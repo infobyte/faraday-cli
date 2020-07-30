@@ -23,6 +23,7 @@ Configure login for farday-cli
 ```shell script
 #> faraday-cli login
 ```
+![Example](./docs/login.svg)
 
 > View faraday-cli status
 
@@ -62,11 +63,8 @@ demo
 
 ```shell script
 #> faraday-cli workspace
-
-name      hosts    services    vulns
-------  -------  ----------  -------
-demo         13          19       55
 ```
+![Example](./docs/list_workspace.svg)
 
 > Create a workspace
 
@@ -84,33 +82,15 @@ demo         13          19       55
 
 ```shell script
 #> faraday-cli host
-  id  name            ip              os       hostnames      services    vulns
-----  --------------  --------------  -------  -----------  ----------  -------
- 188  127.0.0.10      127.0.0.10      unknown                        1        3
- 191  127.0.0.11      127.0.0.11      unknown                        1        3
- 190  127.0.0.12      127.0.0.12      unknown                        1        3
- 192  127.0.0.13      127.0.0.13      unknown                        1        3
 ```
+![Example](./docs/list_hosts.svg)
 
-> Get host of a workspaces
+> Get host
 
 ```shell script
 #> faraday-cli host -a get -id HOST_ID
-  id  name            ip              os       hostnames    owner    owned
-----  --------------  --------------  -------  -----------  -------  -------
- 199  192.168.0.108  192.168.0.108  unknown    mymac.local   faraday  False
-
-
-  id  name          description    protocol      port  version                   status      vulns
-----  ------------  -------------  ----------  ------  ------------------------  --------  -------
- 196  ssh           ssh            tcp             22  OpenSSH 7.8               open            1
- 197  http          http           tcp             80  nginx 1.17.10             open            2
- 198  kerberos-sec  kerberos-sec   tcp             88  Heimdal Kerberos          open            0
- 199  https         https          tcp            443  nginx 1.17.10             open            6
- 200  microsoft-ds  microsoft-ds   tcp            445                            open            0
- 201  vnc           vnc            tcp           5900  Apple remote desktop vnc  open            6
- 202  cslistener    cslistener     tcp           9000                            open            1
 ```
+![Example](./docs/get_host.svg)
 
 > Delete host
 

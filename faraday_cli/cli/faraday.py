@@ -17,6 +17,7 @@ def cli(ctx):
     else:
         active_config.load()
 
+
 from .commands.workspace import workspace
 from .commands.login import login
 from .commands.report import report
