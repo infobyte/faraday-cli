@@ -19,4 +19,12 @@ class BulkCreateResource(Resource):
 
 
 class HostResource(Resource):
-    actions = {"list": {"method": "GET", "url": "v2/ws/{}/hosts/"}}
+    actions = {"list": {"method": "GET", "url": "v2/ws/{}/hosts/"},
+               "get": {"method": "GET", "url": "v2/ws/{}/hosts/{}/"},
+               "delete": {"method": "DELETE", "url": "v2/ws/{}/hosts/{}/"},
+               "get_services": {"method": "GET", "url": "v2/ws/{}/hosts/{}/services/"}
+               }
+
+class ServiceResource(Resource):
+    actions = {
+               "get": {"method": "GET", "url": "v2/ws/{}/services/{}/"}}
