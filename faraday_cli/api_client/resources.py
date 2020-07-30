@@ -1,5 +1,8 @@
 from simple_rest_client.resource import Resource
 
+class SessionResource(Resource):
+    actions = {
+               "get": {"method": "GET", "url": "session"}}
 
 class LoginResource(Resource):
     actions = {"auth": {"method": "POST", "url": "login"},

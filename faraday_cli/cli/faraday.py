@@ -2,7 +2,9 @@
 import os
 import click
 from faraday_cli import __version__
+from faraday_cli.api_client import FaradayApi
 from faraday_cli.config import active_config
+from simple_rest_client.exceptions import AuthError
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -16,6 +18,12 @@ def cli(ctx):
             raise click.UsageError("Config file missing, run 'login' command first")
     else:
         active_config.load()
+        api_client = FaradayApi(active_config.faraday_url, ssl_verify=active_config.ssl_verify,
+                                session=active_config.session)
+        try:
+            api_client.faraday_api.session.get()
+        except AuthError:
+            raise click.UsageError("Invalid credentials, run 'login' command")
 
 
 from .commands.workspace import workspace

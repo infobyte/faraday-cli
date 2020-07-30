@@ -23,6 +23,7 @@ class FaradayApi:
         self._build_resources()
 
     def _build_resources(self):
+        self.faraday_api.add_resource(resource_name="session", resource_class=resources.SessionResource)
         self.faraday_api.add_resource(resource_name="login", resource_class=resources.LoginResource)
         self.faraday_api.add_resource(resource_name="workspace", resource_class=resources.WorkspaceResource)
         self.faraday_api.add_resource(resource_name="bulk_create", resource_class=resources.BulkCreateResource)
@@ -45,53 +46,32 @@ class FaradayApi:
         return self.session
 
     def get_workspaces(self):
-        try:
-            response = self.faraday_api.workspace.list()
-            return response.body
-        except AuthError:
-            raise Exception("Invalid credentials")
+        response = self.faraday_api.workspace.list()
+        return response.body
 
     def get_workspace(self, workspace_name):
-        try:
-            response = self.faraday_api.workspace.get(workspace_name)
-            return response.body
-        except AuthError:
-            raise Exception("Invalid credentials")
+        response = self.faraday_api.workspace.get(workspace_name)
+        return response.body
 
     def get_hosts(self, workspace_name):
-        try:
-            response = self.faraday_api.host.list(workspace_name)
-            return response.body
-        except AuthError:
-            raise Exception("Invalid credentials")
+        response = self.faraday_api.host.list(workspace_name)
+        return response.body
 
     def get_host(self, workspace_name, host_id):
-        try:
-            response = self.faraday_api.host.get(workspace_name, host_id)
-            return response.body
-        except AuthError:
-            raise Exception("Invalid credentials")
+        response = self.faraday_api.host.get(workspace_name, host_id)
+        return response.body
 
     def delete_host(self, workspace_name, host_id):
-        try:
-            response = self.faraday_api.host.delete(workspace_name, host_id)
-            return response.body
-        except AuthError:
-            raise Exception("Invalid credentials")
+        response = self.faraday_api.host.delete(workspace_name, host_id)
+        return response.body
 
     def get_host_services(self, workspace_name, host_id):
-        try:
-            response = self.faraday_api.host.get_services(workspace_name, host_id)
-            return response.body
-        except AuthError:
-            raise Exception("Invalid credentials")
+        response = self.faraday_api.host.get_services(workspace_name, host_id)
+        return response.body
 
     def bulk_create(self, ws, data):
-        try:
-            response = self.faraday_api.bulk_create.create(ws, body=data)
-            return response.body
-        except AuthError:
-            raise Exception("Invalid credentials")
+        response = self.faraday_api.bulk_create.create(ws, body=data)
+        return response.body
 
     def create_workspace(self, name, description="", users=None):
         try:
@@ -115,11 +95,8 @@ class FaradayApi:
             raise Exception("Invalid credentials")
 
     def delete_workspace(self, name):
-        try:
-            response = self.faraday_api.workspace.delete(name)
-            return response
-        except AuthError:
-            raise Exception("Invalid credentials")
+        response = self.faraday_api.workspace.delete(name)
+        return response
 
     def is_workspace_valid(self, name):
         workspaces = self.get_workspaces()
