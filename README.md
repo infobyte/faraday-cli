@@ -108,3 +108,11 @@ $ faraday-cli host -a get -id HOST_ID
 ```shell script
 $ faraday-cli host -a delete -id HOST_ID
 ```
+
+### Run executor
+
+```shell script
+~$ faraday-cli agent -a run -ag 1 -e 1 -p '{"port_list": "1-9000", "target": "192.168.66.1"}'
+```
+
+![Example](./docs/agent.svg)
