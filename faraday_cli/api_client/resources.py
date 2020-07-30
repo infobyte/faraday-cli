@@ -31,3 +31,15 @@ class HostResource(Resource):
 class ServiceResource(Resource):
     actions = {
                "get": {"method": "GET", "url": "v2/ws/{}/services/{}/"}}
+
+
+class CredentialResource(Resource):
+    actions = {
+               "list": {"method": "GET", "url": "v2/ws/{}/credential/"}}
+
+
+class AgentResource(Resource):
+    actions = {"list": {"method": "GET", "url": "v2/ws/{}/agents/"},
+               "get": {"method": "GET", "url": "v2/ws/{}/agents/{}/"},
+               "run": {"method": "POST", "url": "v2/ws/{}/agents/{}/run/"}
+               }

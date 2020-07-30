@@ -7,6 +7,7 @@ from faraday_cli.api_client import resources
 from simple_rest_client.exceptions import AuthError, NotFoundError
 
 SESSION_KEY = "faraday_session_2"
+DEFAULT_TIMEOUT = 60
 
 class FaradayApi:
 
@@ -18,8 +19,8 @@ class FaradayApi:
             #headers = {"Authorization": f"Token {self.session}"}
         else:
             headers = {}
-        self.faraday_api = API(api_root_url=self.api_url, params={}, headers=headers, timeout=10, append_slash=False,
-                               json_encode_body=True, ssl_verify=ssl_verify)
+        self.faraday_api = API(api_root_url=self.api_url, params={}, headers=headers, timeout=DEFAULT_TIMEOUT,
+                               append_slash=False, json_encode_body=True, ssl_verify=ssl_verify)
         self._build_resources()
 
     def _build_resources(self):
@@ -29,6 +30,10 @@ class FaradayApi:
         self.faraday_api.add_resource(resource_name="bulk_create", resource_class=resources.BulkCreateResource)
         self.faraday_api.add_resource(resource_name="host", resource_class=resources.HostResource)
         self.faraday_api.add_resource(resource_name="service", resource_class=resources.ServiceResource)
+        self.faraday_api.add_resource(resource_name="credential", resource_class=resources.CredentialResource)
+        self.faraday_api.add_resource(resource_name="agent", resource_class=resources.AgentResource)
+
+
 
     def get_session(self, user, password):
         if not self.session:
@@ -55,6 +60,28 @@ class FaradayApi:
 
     def get_hosts(self, workspace_name):
         response = self.faraday_api.host.list(workspace_name)
+        return response.body
+
+    def get_workspace_credentials(self, workspace_name):
+        response = self.faraday_api.credential.list(workspace_name)
+        return response.body
+
+    def get_workspace_agents(self, workspace_name):
+        response = self.faraday_api.agent.list(workspace_name)
+        return response.body
+
+    def get_agent(self, workspace_name, agent_id):
+        response = self.faraday_api.agent.get(workspace_name, agent_id)
+        return response.body
+
+    def run_executor(self, workspace_name, agent_id, executor_name, args):
+        body = {"executorData": {
+                    "agent_id": agent_id,
+                    "args": args,
+                    "executor": executor_name
+                                }
+                }
+        response = self.faraday_api.agent.run(workspace_name, agent_id, body=body)
         return response.body
 
     def get_host(self, workspace_name, host_id):
@@ -102,3 +129,5 @@ class FaradayApi:
         workspaces = self.get_workspaces()
         available_workspaces = [ws for ws in map(lambda x: x['name'], workspaces)]
         return name in available_workspaces
+
+
