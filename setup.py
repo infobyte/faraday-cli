@@ -8,8 +8,13 @@ with open('faraday_cli/__init__.py', 'rt', encoding='utf8') as f:
 install_requires = [
     'Click',
     'validators',
-    'requests',
-    'colorama'
+    'colorama',
+    'simple-rest-client',
+    'faraday-plugins',
+    'PyYAML',
+    'tabulate',
+    'jsonschema'
+
 ]
 
 
