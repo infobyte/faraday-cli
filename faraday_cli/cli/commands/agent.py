@@ -6,15 +6,16 @@ from tabulate import tabulate
 
 from faraday_cli.api_client import FaradayApi
 from faraday_cli.config import active_config
+from faraday_cli.cli import utils
 
 
 @click.command(help="Agent operations")
 @click.option('-a', '--action', type=click.Choice(['list', 'get', 'run'], case_sensitive=False),
               default="list", show_default=True)
 @click.option('-ws', '--workspace-name', type=str, help="Workspace name")
-@click.option('-ag', '--agent_id', type=int, help="Agent ID")
-@click.option('-e', '--executor_id', type=int, help="Executor ID")
-@click.option('-p', '--executor-params', type=str, help="Executor Params in json")
+@click.option('-aid', '--agent_id', type=int, help="Agent ID")
+@click.option('-eid', '--executor_id', type=int, help="Executor ID")
+@click.option('-p', '--executor-params', type=str, help="Executor Params in json", callback=utils.validate_json)
 def agent(action, workspace_name, agent_id, executor_id, executor_params):
     api_client = FaradayApi(active_config.faraday_url, ssl_verify=active_config.ssl_verify,
                             session=active_config.session)
@@ -33,7 +34,7 @@ def agent(action, workspace_name, agent_id, executor_id, executor_params):
                              'name': x['name'],
                              'active': x['active'],
                              'status': x['status'],
-                             'executors': " ".join([i['name'] for i in x['executors']])
+                             'executors': ", ".join([i['name'] for i in x['executors']])
                              }) for x in agents]
         click.secho(tabulate(data, headers="keys"), fg="yellow")
 
@@ -57,11 +58,6 @@ def agent(action, workspace_name, agent_id, executor_id, executor_params):
         click.secho(tabulate(executors_data, headers="keys"), fg="yellow")
 
     def _run_executor(workspace_name, agent_id, executor_id, executor_params):
-        try:
-            executor_params = json.loads(executor_params)
-        except Exception:
-            click.secho(f"Invalid Executor params format [{executor_params}]", fg="red")
-            return
         agent = api_client.get_agent(workspace_name, agent_id)
         executor = None
         for executor in agent['executors']:
@@ -69,11 +65,13 @@ def agent(action, workspace_name, agent_id, executor_id, executor_params):
                 break
         if not executor:
             click.secho(f"Invalid executor id [{executor_id}]", fg="red")
-        required_params = set(executor['parameters_metadata'].keys())
-        given_params = set(executor_params.keys()) # TODO check issue with not required params
-        if required_params.symmetric_difference(given_params) != set():
-            click.secho(f"Executor Params difference [Required: {required_params} / Given: {given_params}]")
             return
+        executor_parameters_schema = {
+            "type": "object",
+            "properties": {x: {"type": "string"} for x in executor['parameters_metadata'].keys()},
+            "required": [i[0] for i in filter(lambda x: x[1] is True, executor['parameters_metadata'].items())]
+        }
+        utils.json_schema_validator(executor_parameters_schema)(None, None, executor_params)
         response = api_client.run_executor(workspace_name, agent_id, executor['name'], executor_params)
         click.secho(f"Run executor: {agent['name']}/{executor['name']} [{response}]", fg="green")
 

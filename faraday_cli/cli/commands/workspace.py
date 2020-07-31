@@ -30,8 +30,12 @@ def workspace(action, json_output, name):
             click.secho(tabulate(data, headers="keys"), fg="yellow")
 
     def _create_workspace(workspace_name):
-        created_workspace = api_client.create_workspace(workspace_name)
-        click.secho(f"Created workspace: {created_workspace['name']}", fg="green")
+        try:
+            created_workspace = api_client.create_workspace(workspace_name)
+        except Exception as e:
+            click.secho(f"{e}", fg="red")
+        else:
+            click.secho(f"Created workspace\n{json.dumps(created_workspace, indent=4)}", fg="green")
 
     def _select_workspace(selected_workspace):
         workspaces = api_client.get_workspaces()
