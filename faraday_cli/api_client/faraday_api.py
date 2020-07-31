@@ -1,5 +1,4 @@
 from urllib.parse import urljoin
-import click
 from simple_rest_client.api import API
 
 
@@ -105,6 +104,9 @@ class FaradayApi:
         response = self.faraday_api.host.get_services(workspace_name, host_id)
         return response.body
 
+    def get_host_vulns(self, workspace_name, host_ip):
+        response = self.faraday_api.host.get_vulns(workspace_name, params={'target': host_ip})
+        return response.body
 
     def bulk_create(self, ws, data):
         response = self.faraday_api.bulk_create.create(ws, body=data)

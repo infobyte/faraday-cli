@@ -66,26 +66,42 @@ def host(action, json_output, workspace_name, host_id, host_data, stdin):
         if json_output:
             click.echo(json.dumps(host, indent=4))
         else:
-            data = [OrderedDict({'id': x['id'],
+            host_data = [OrderedDict({'id': x['id'],
                                  'ip': x['ip'],
                                  'os': x['os'],
                                  'hostnames': ", ".join(x['hostnames']),
                                  'owner': x['owner'],
                                  'owned': x['owned'],
+                                 'vulns': x['vulns'],
                                  }) for x in [host]]
-            services = api_client.get_host_services(workspace_name, host_id)
-            services_data = [OrderedDict({'id': x['id'],
-                                          'name': x['name'],
-                                          'description': x['description'],
-                                          'protocol': x['protocol'],
-                                          'port': x['port'],
-                                          'version': x['version'],
-                                          'status': x['status'],
-                                          'vulns': x['vulns'],
-                                          }) for x in services]
-            click.secho(tabulate(data, headers="keys"), fg="yellow")
-            click.echo("\n")
-            click.secho(tabulate(services_data, headers="keys"), fg="yellow")
+            click.secho("Host", fg="yellow")
+            click.secho(tabulate(host_data, headers="keys"), fg="yellow")
+            if host['services'] > 0:
+                services = api_client.get_host_services(workspace_name, host_id)
+                services_data = [OrderedDict({'id': x['id'],
+                                              'name': x['name'],
+                                              'description': x['description'],
+                                              'protocol': x['protocol'],
+                                              'port': x['port'],
+                                              'version': x['version'],
+                                              'status': x['status'],
+                                              'vulns': x['vulns'],
+                                              }) for x in services]
+                click.secho("\nServices", fg="yellow")
+                click.secho(tabulate(services_data, headers="keys"), fg="yellow")
+            if host['vulns'] > 0:
+                vulns = api_client.get_host_vulns(workspace_name, host['ip'])
+                vulns_data = [OrderedDict({'id': x['id'],
+                                           'name': x['value']['name'],
+                                           'description': utils.trim_long_text(x['value']['description']),
+                                           'severity': x['value']['severity'],
+                                           'status': x['value']['status'],
+                                           'parent': x['value']['parent_type'],
+                                           'confirmed': x['value']['confirmed'],
+                                           'creator': x['value']['metadata']['creator'],
+                                              }) for x in vulns['vulnerabilities']]
+                click.secho("\nVulnerabilities", fg="yellow")
+                click.secho(tabulate(vulns_data, headers="keys"), fg="yellow")
 
     def _delete_host(workspace_name, host_id):
         try:

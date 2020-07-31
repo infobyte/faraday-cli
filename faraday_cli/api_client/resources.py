@@ -26,7 +26,8 @@ class HostResource(Resource):
                "get": {"method": "GET", "url": "v2/ws/{}/hosts/{}/"},
                "create": {"method": "POST", "url": "v2/ws/{}/hosts/"},
                "delete": {"method": "DELETE", "url": "v2/ws/{}/hosts/{}/"},
-               "get_services": {"method": "GET", "url": "v2/ws/{}/hosts/{}/services/"}
+               "get_services": {"method": "GET", "url": "v2/ws/{}/hosts/{}/services/"},
+               "get_vulns": {"method": "GET", "url": "v2/ws/{}/vulns/"}
                }
 
 class ServiceResource(Resource):

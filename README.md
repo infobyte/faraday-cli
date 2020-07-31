@@ -99,14 +99,14 @@ $ faraday-cli host
 ### Get host
 
 ```shell script
-$ faraday-cli host -a get -id HOST_ID
+$ faraday-cli host -a get -hid HOST_ID
 ```
 ![Example](./docs/get_host.svg)
 
 ### Delete host
 
 ```shell script
-$ faraday-cli host -a delete -id HOST_ID
+$ faraday-cli host -a delete -hid HOST_ID
 ```
 
 ### List agents
@@ -118,13 +118,13 @@ $ faraday-cli agent
 ### Get agent
 
 ```shell script
-$ faraday-cli agent -a get -ag 1
+$ faraday-cli agent -a get -aid 1
 ```
 
 ### Run executor
 
 ```shell script
-$ faraday-cli agent -a run -ag 1 -e 1 -p '{"port_list": "1-9000", "target": "192.168.66.1"}'
+$ faraday-cli agent -a run -aid 1 -eid 1 -p '{"port_list": "1-9000", "target": "192.168.66.1"}'
 ```
 
 ![Example](./docs/agent.svg)

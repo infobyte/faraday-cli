@@ -41,6 +41,7 @@ def json_schema_validator(schema):
             return json_value
     return _validate_json
 
+
 def get_ip_and_hostname(value):
     try:
         inet_aton(value)
@@ -52,3 +53,10 @@ def get_ip_and_hostname(value):
             return value, None
         else:
             return ip_address, value
+
+
+def trim_long_text(text, size=50):
+    if len(text) <= size:
+        return text
+    else:
+        return f"{text[:size]}..."
