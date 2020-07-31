@@ -45,17 +45,20 @@ def host(action, json_output, workspace_name, host_id, host_data, stdin):
 
     def _list_hosts(workspace_name):
         hosts = api_client.get_hosts(workspace_name)
-        data = [OrderedDict({'id': x['value']['id'],
-                             'ip': x['value']['ip'],
-                             'os': x['value']['os'],
-                             'hostnames': ", ".join(x['value']['hostnames']),
-                             'services': len(x['value']['service_summaries']),
-                             'vulns': x['value']['vulns']}) for x in hosts['rows']]
-        if json_output:
-            click.echo(json.dumps(data, indent=4))
+        if not hosts['rows']:
+            click.secho(f"No hosts in workspace: {workspace_name}", fg="yellow")
         else:
+            data = [OrderedDict({'id': x['value']['id'],
+                                 'ip': x['value']['ip'],
+                                 'os': x['value']['os'],
+                                 'hostnames': ", ".join(x['value']['hostnames']),
+                                 'services': len(x['value']['service_summaries']),
+                                 'vulns': x['value']['vulns']}) for x in hosts['rows']]
+            if json_output:
+                click.echo(json.dumps(data, indent=4))
+            else:
 
-            click.secho(tabulate(data, headers="keys"), fg="yellow")
+                click.secho(tabulate(data, headers="keys"), fg="yellow")
 
     def _get_host(workspace_name, host_id):
         try:

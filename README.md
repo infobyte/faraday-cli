@@ -103,6 +103,17 @@ $ faraday-cli host -a get -hid HOST_ID
 ```
 ![Example](./docs/get_host.svg)
 
+### Create hosts
+
+```shell script
+$ faraday-cli host -a create -d '[{"ip": "stan.local", "description": "some server"}]'
+```
+or pipe it
+```shell script
+$ echo '[{"ip": "stan.local", "description": "some server"}]' | faraday-cli host -a create --stdin 
+```
+![Example](./docs/create_host.svg)
+
 ### Delete host
 
 ```shell script
