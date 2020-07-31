@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 
 
 @click.command(help="Faraday auth configuration")
-@click.option('--url', prompt='Faraday url', callback=utils.validate_url)
+@click.option('--url', type=str, prompt='Faraday url', callback=utils.validate_url)
 @click.option('--user', prompt=True)
 @click.option('--password', prompt=True, hide_input=True)
 def login(url, user, password):

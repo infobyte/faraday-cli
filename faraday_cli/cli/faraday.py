@@ -4,7 +4,7 @@ import click
 from faraday_cli import __version__
 from faraday_cli.api_client import FaradayApi
 from faraday_cli.config import active_config
-from simple_rest_client.exceptions import AuthError
+from simple_rest_client.exceptions import AuthError, ServerError
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -15,15 +15,19 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 def cli(ctx):
     if not os.path.isfile(active_config.config_file):
         if ctx.invoked_subcommand != "login":
-            raise click.UsageError("Config file missing, run 'faraday-cli login' first")
+            raise click.ClickException(click.style("Config file missing, run 'faraday-cli login' first", fg='red'))
     else:
-        active_config.load()
-        api_client = FaradayApi(active_config.faraday_url, ssl_verify=active_config.ssl_verify,
-                                session=active_config.session)
-        try:
-            api_client.faraday_api.session.get()
-        except AuthError:
-            raise click.UsageError("Invalid credentials, run 'faraday-cli login'")
+        if ctx.invoked_subcommand != "login":
+            active_config.load()
+            api_client = FaradayApi(active_config.faraday_url, ssl_verify=active_config.ssl_verify,
+                                    session=active_config.session)
+            try:
+                api_client.faraday_api.session.get()
+            except AuthError:
+                raise click.ClickException(click.style("Invalid credentials, run 'faraday-cli login'", fg='red'))
+            except ServerError:
+                raise click.ClickException(click.style("Connecting to faraday server", fg='red'))
+
 
 
 from .commands.workspace import workspace

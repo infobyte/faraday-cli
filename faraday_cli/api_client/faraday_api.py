@@ -1,10 +1,9 @@
 from urllib.parse import urljoin
-import click
 from simple_rest_client.api import API
 
 
-from faraday_cli.api_client import resources
-from simple_rest_client.exceptions import AuthError, NotFoundError
+from faraday_cli.api_client import resources, exceptions
+from simple_rest_client.exceptions import AuthError, NotFoundError, ClientError
 
 SESSION_KEY = "faraday_session_2"
 DEFAULT_TIMEOUT = 60
@@ -92,8 +91,21 @@ class FaradayApi:
         response = self.faraday_api.host.delete(workspace_name, host_id)
         return response.body
 
+    def create_host(self, workspace_name, host_params):
+        try:
+            response = self.faraday_api.host.create(workspace_name, body=host_params)
+        except ClientError as e:
+            if e.response.status_code == 409:
+                raise exceptions.DuplicatedError("Host already exist")
+        else:
+            return response.body
+
     def get_host_services(self, workspace_name, host_id):
         response = self.faraday_api.host.get_services(workspace_name, host_id)
+        return response.body
+
+    def get_host_vulns(self, workspace_name, host_ip):
+        response = self.faraday_api.host.get_vulns(workspace_name, params={'target': host_ip})
         return response.body
 
     def bulk_create(self, ws, data):
@@ -101,25 +113,27 @@ class FaradayApi:
         return response.body
 
     def create_workspace(self, name, description="", users=None):
-        try:
-            default_users = ["faraday"]
-            if users:
-                if isinstance(users, str):
-                    default_users.append(users)
-                elif isinstance(users, list):
-                    default_users.extend(users)
-            data = {"description": description,
-                    "id": 0,
-                    "name": name,
-                    "public": False,
-                    "readonly": False,
-                    "customer": "",
-                    "users": default_users
+        default_users = ["faraday"]
+        if users:
+            if isinstance(users, str):
+                default_users.append(users)
+            elif isinstance(users, list):
+                default_users.extend(users)
+        data = {"description": description,
+                "id": 0,
+                "name": name,
+                "public": False,
+                "readonly": False,
+                "customer": "",
+                "users": default_users
                 }
+        try:
             response = self.faraday_api.workspace.create(body=data)
+        except ClientError as e:
+            if e.response.status_code == 409:
+                raise exceptions.DuplicatedError("Workspace already exist")
+        else:
             return response.body
-        except AuthError:
-            raise Exception("Invalid credentials")
 
     def delete_workspace(self, name):
         response = self.faraday_api.workspace.delete(name)
