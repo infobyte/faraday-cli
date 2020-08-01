@@ -10,9 +10,9 @@ from faraday_plugins.plugins.manager import PluginsManager, ReportAnalyzer
 @click.option('--plugin_id', type=str)
 @click.option('-ws', '--workspace', type=str)
 @click.argument('filename', type=click.Path(exists=True))
-def report(custom_plugins_folder, plugin_id, workspace, filename):
-    api_client = FaradayApi(active_config.faraday_url, ssl_verify=active_config.ssl_verify,
-                            session=active_config.session)
+@click.pass_obj
+def report(api_client, custom_plugins_folder, plugin_id, workspace, filename):
+
     if workspace:
         if not api_client.is_workspace_valid(workspace):
             click.secho(f"Invalid workspace: {workspace}", fg="red")

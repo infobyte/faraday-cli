@@ -31,9 +31,8 @@ HOST_CREATE_JSON_SCHEMA = {
 @click.option('-d', '--host-data', type=str, help=f"json schema:{HOST_CREATE_JSON_SCHEMA}",
               callback=utils.json_schema_validator(HOST_CREATE_JSON_SCHEMA), required=False)
 @click.option('--stdin', is_flag=True, help="Read host-data from stdin", show_default=True)
-def host(action, json_output, workspace_name, host_id, host_data, stdin):
-    api_client = FaradayApi(active_config.faraday_url, ssl_verify=active_config.ssl_verify,
-                            session=active_config.session)
+@click.pass_obj
+def host(api_client, action, json_output, workspace_name, host_id, host_data, stdin):
 
     if not workspace_name:
         workspace_name = active_config.workspace

@@ -1,10 +1,7 @@
 from collections import OrderedDict
-import json
 import click
 from simple_rest_client.exceptions import NotFoundError
 from tabulate import tabulate
-
-from faraday_cli.api_client import FaradayApi
 from faraday_cli.config import active_config
 from faraday_cli.cli import utils
 
@@ -16,10 +13,8 @@ from faraday_cli.cli import utils
 @click.option('-aid', '--agent_id', type=int, help="Agent ID")
 @click.option('-eid', '--executor_id', type=int, help="Executor ID")
 @click.option('-p', '--executor-params', type=str, help="Executor Params in json", callback=utils.validate_json)
-def agent(action, workspace_name, agent_id, executor_id, executor_params):
-    api_client = FaradayApi(active_config.faraday_url, ssl_verify=active_config.ssl_verify,
-                            session=active_config.session)
-
+@click.pass_obj
+def agent(api_client, action, workspace_name, agent_id, executor_id, executor_params):
     if not workspace_name:
         workspace_name = active_config.workspace
     if not workspace_name:

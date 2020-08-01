@@ -19,10 +19,10 @@ def cli(ctx):
     else:
         if ctx.invoked_subcommand != "login":
             active_config.load()
-            api_client = FaradayApi(active_config.faraday_url, ssl_verify=active_config.ssl_verify,
+            ctx.obj = FaradayApi(active_config.faraday_url, ssl_verify=active_config.ssl_verify,
                                     session=active_config.session)
             try:
-                api_client.faraday_api.session.get()
+                ctx.obj.faraday_api.session.get()
             except AuthError:
                 raise click.ClickException(click.style("Invalid credentials, run 'faraday-cli login'", fg='red'))
             except ServerError:
