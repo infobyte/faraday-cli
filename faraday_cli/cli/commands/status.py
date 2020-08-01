@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 import click
 from faraday_cli.config import active_config
 from tabulate import tabulate
