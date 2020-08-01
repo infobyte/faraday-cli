@@ -17,9 +17,9 @@ from faraday_plugins.plugins.manager import PluginsManager, CommandAnalyzer
 @click.option('-ws', '--workspace', type=str)
 @click.option('--hide-output', is_flag=True, show_default=True)
 @click.argument('command', type=str)
-def command(custom_plugins_folder, plugin_id, workspace, hide_output, command):
-    api_client = FaradayApi(active_config.faraday_url, ssl_verify=active_config.ssl_verify,
-                            session=active_config.session)
+@click.pass_obj
+def command(api_client, custom_plugins_folder, plugin_id, workspace, hide_output, command):
+
     if workspace:
         if not api_client.is_workspace_valid(workspace):
             click.secho(f"Invalid workspace: {workspace}", fg="red")

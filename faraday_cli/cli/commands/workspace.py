@@ -13,17 +13,19 @@ from faraday_cli.config import active_config
               default="list", show_default=True)
 @click.option('--json-output', is_flag=True, help="Output in json")
 @click.option('-n', '--name', type=str, help="Name of the workspace")
-def workspace(action, json_output, name):
-    api_client = FaradayApi(active_config.faraday_url, ssl_verify=active_config.ssl_verify,
-                            session=active_config.session)
+@click.pass_obj
+def workspace(api_client, action, json_output, name):
 
     def _list_workspaces():
         workspaces = api_client.get_workspaces()
+        if not workspaces:
+            click.secho("No workspaces available", fg="yellow")
+            return
         data = [OrderedDict({'name': x['name'],
                                           'hosts': x['stats']['hosts'],
                                           'services': x['stats']['services'],
                                           'vulns': x['stats']['total_vulns']
-                                          }) for x in  workspaces]
+                                          }) for x in workspaces]
         if json_output:
             click.echo(json.dumps(data, indent=4))
         else:
