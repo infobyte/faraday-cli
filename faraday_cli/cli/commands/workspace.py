@@ -35,7 +35,7 @@ def workspace(api_client, action, json_output, name):
         except Exception as e:
             click.secho(f"{e}", fg="red")
         else:
-            click.secho(f"Created workspace\n{json.dumps(created_workspace, indent=4)}", fg="green")
+            click.secho(f"Created workspace: {workspace_name}", fg="green")
 
     def _select_workspace(selected_workspace):
         workspaces = api_client.get_workspaces()
@@ -67,6 +67,9 @@ def workspace(api_client, action, json_output, name):
                 return
         response = api_client.delete_workspace(workspace_to_delete)
         click.secho(f"Deleted workspace: {workspace_to_delete}", fg="green")
+        if active_config.workspace == workspace_to_delete:
+            active_config.workspace = None
+            active_config.save()
 
     if action == "list":
         _list_workspaces()
