@@ -1,7 +1,6 @@
 import getpass
 import click
 
-from faraday_cli.api_client import FaradayApi
 from faraday_cli.config import active_config
 from faraday_plugins.plugins.manager import PluginsManager, ReportAnalyzer
 

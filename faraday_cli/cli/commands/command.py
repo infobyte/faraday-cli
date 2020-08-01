@@ -4,10 +4,8 @@ import subprocess
 import sys
 import getpass
 import shlex
-
 import click
 
-from faraday_cli.api_client import FaradayApi
 from faraday_cli.config import active_config
 from faraday_plugins.plugins.manager import PluginsManager, CommandAnalyzer
 
