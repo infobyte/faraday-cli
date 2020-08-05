@@ -1,3 +1,4 @@
+import os
 from urllib.parse import urljoin
 from simple_rest_client.api import API
 
@@ -6,7 +7,7 @@ from faraday_cli.api_client import resources, exceptions
 from simple_rest_client.exceptions import AuthError, NotFoundError, ClientError
 
 SESSION_KEY = "faraday_session_2"
-DEFAULT_TIMEOUT = 60
+DEFAULT_TIMEOUT = int(os.environ.get("FARADAY_CLI_TIMEOUT", 1000))
 
 class FaradayApi:
 
