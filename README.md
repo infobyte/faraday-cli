@@ -12,11 +12,11 @@ pip install .
 ### Adding Autocomplete to our shell
 Zsh
 ```
-echo ". $(pwd)/faraday-cli-autocomplete_zsh.sh" > $HOME/.zshrc
+echo ". $(pwd)/faraday-cli-autocomplete_zsh.sh" >> $HOME/.zshrc
 ```
 Bash
 ```
-echo ". $(pwd)/faraday-cli-autocomplete_bash.sh" > $HOME/.bashrc
+echo ". $(pwd)/faraday-cli-autocomplete_bash.sh" >> $HOME/.bashrc
 ```
 
 ## Install from pip
