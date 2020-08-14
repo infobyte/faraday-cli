@@ -29,12 +29,12 @@ TBA
 
 ### Login
 
-Configure login for farday-cli
+Configure auth for farday-cli
 
 ```shell script
-$ faraday-cli login
+$ faraday-cli auth
 ```
-![Example](./docs/login.svg)
+![Example](./docs/auth.svg)
 
 ### View faraday-cli status
 
@@ -42,7 +42,7 @@ $ faraday-cli login
 $ faraday-cli status
 Faraday Cli - Status
 
-faraday_url            session                                                ssl_verify
+faraday_url            token                                                ssl_verify
 ---------------------  -----------------------------------------------------  ------------
 http://localhost:5985  XXXXXXXXX                                              False
 

@@ -7,7 +7,7 @@ class Config:
     def __init__(self):
         self.config_file = os.path.expanduser(DEFAULT_CONFIG_FILE)
         self.faraday_url = None
-        self.session = None
+        self.token = None
         self.ssl_verify = True
         self.workspace = None
 
@@ -15,13 +15,13 @@ class Config:
         with open(self.config_file) as f:
             config_data = yaml.load(f, Loader=yaml.FullLoader)
         self.faraday_url = config_data['auth']['faraday_url']
-        self.session = config_data['auth']['session']
+        self.token = config_data['auth']['token']
         self.ssl_verify = config_data['auth']['ssl_verify']
         self.workspace = config_data['workbench']['workspace']
 
     def save(self):
         config_data = {'auth': {'faraday_url': self.faraday_url,
-                                'session': self.session,
+                                'token': self.token,
                                 'ssl_verify': self.ssl_verify},
                        'workbench': {'workspace': self.workspace}
                        }
