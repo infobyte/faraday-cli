@@ -11,12 +11,11 @@ DEFAULT_TIMEOUT = int(os.environ.get("FARADAY_CLI_TIMEOUT", 1000))
 
 class FaradayApi:
 
-    def __init__(self, url, ssl_verify=True, session=None):
+    def __init__(self, url, ssl_verify=True, token=None):
         self.api_url = urljoin(url, "_api")
-        self.session = session
-        if self.session:
-            headers = {"Cookie": f"{SESSION_KEY}={self.session}"}
-            #headers = {"Authorization": f"Token {self.session}"}
+        self.token = token
+        if self.token:
+            headers = {"Authorization": f"Token {self.token}"}
         else:
             headers = {}
         self.faraday_api = API(api_root_url=self.api_url, params={}, headers=headers, timeout=DEFAULT_TIMEOUT,
@@ -24,7 +23,6 @@ class FaradayApi:
         self._build_resources()
 
     def _build_resources(self):
-        self.faraday_api.add_resource(resource_name="session", resource_class=resources.SessionResource)
         self.faraday_api.add_resource(resource_name="login", resource_class=resources.LoginResource)
         self.faraday_api.add_resource(resource_name="workspace", resource_class=resources.WorkspaceResource)
         self.faraday_api.add_resource(resource_name="bulk_create", resource_class=resources.BulkCreateResource)
@@ -35,20 +33,19 @@ class FaradayApi:
 
 
 
-    def get_session(self, user, password):
-        if not self.session:
+    def get_token(self, user, password):
+        if not self.token:
             body = {'email': user, 'password': password}
             try:
                 response = self.faraday_api.login.auth(body=body)
-                #token_response = self.faraday_api.login.get_token()
+                token_response = self.faraday_api.login.get_token()
             except NotFoundError:
                 raise Exception(f"Invalid url: {self.faraday_api.api_root_url}")
             except AuthError:
                 raise Exception("Invalid credentials")
             else:
-                self.session = response.client_response.cookies.get(SESSION_KEY)
-                #self.token = token_response.body
-        return self.session
+                self.token = token_response.body
+        return self.token
 
     def get_workspaces(self):
         response = self.faraday_api.workspace.list()

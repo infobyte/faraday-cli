@@ -6,7 +6,8 @@ from tabulate import tabulate
 @click.command(help="Show Cli status")
 def status():
     click.secho("Faraday Cli - Status\n", fg="green")
-    data = [{'faraday_url': active_config.faraday_url, 'session': active_config.session,
+    data = [{'faraday_url': active_config.faraday_url,
+             'token': f"{active_config.token[:10]}..." if active_config.token else "NO TOKEN",
             'ssl_verify': active_config.ssl_verify}]
     click.secho(tabulate(data, headers="keys"), fg="green")
     click.echo("\n")

@@ -1,12 +1,11 @@
 from simple_rest_client.resource import Resource
 
-class SessionResource(Resource):
-    actions = {
-               "get": {"method": "GET", "url": "session"}}
+
 
 class LoginResource(Resource):
     actions = {"auth": {"method": "POST", "url": "login"},
-               "get_token": {"method": "GET", "url": "v2/token/"}}
+               "get_token": {"method": "GET", "url": "v2/token/"},
+               "validate": {"method": "GET", "url": "v2/preferences/"}}
 
 
 class WorkspaceResource(Resource):

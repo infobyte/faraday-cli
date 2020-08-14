@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 @click.option('--url', type=str, prompt='Faraday url', callback=utils.validate_url)
 @click.option('--user', prompt=True)
 @click.option('--password', prompt=True, hide_input=True)
-def login(url, user, password):
+def auth(url, user, password):
     url_data = urlparse(url)
     ssl_verify = False
     if url_data.scheme == "https":
@@ -21,10 +21,10 @@ def login(url, user, password):
 
     api_client = FaradayApi(url, ssl_verify=ssl_verify)
     try:
-        session = api_client.get_session(user, password)
+        token = api_client.get_token(user, password)
         active_config.faraday_url = url
         active_config.ssl_verify = ssl_verify
-        active_config.session = session
+        active_config.token = token
         active_config.save()
         click.secho(f"Saving config", fg="green")
     except Exception as e:
