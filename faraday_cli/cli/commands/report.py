@@ -39,9 +39,3 @@ def report(api_client, custom_plugins_folder, plugin_id, workspace, filename):
     plugin.processReport(filename, getpass.getuser())
     click.secho(f"Sending data from {filename} to {destination_workspace}", fg="green")
     api_client.bulk_create(destination_workspace, plugin.get_data())
-
-
-
-
-
-

@@ -84,7 +84,3 @@ def agent(api_client, action, workspace_name, agent_id, executor_id, executor_pa
             click.secho("Agent ID, executor ID and executor params are required to run an executor", fg="red")
         else:
             _run_executor(workspace_name, agent_id, executor_id, executor_params)
-
-
-
-

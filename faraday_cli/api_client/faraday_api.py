@@ -141,5 +141,3 @@ class FaradayApi:
         workspaces = self.get_workspaces()
         available_workspaces = [ws for ws in map(lambda x: x['name'], workspaces)]
         return name in available_workspaces
-
-

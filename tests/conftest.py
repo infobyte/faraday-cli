@@ -232,4 +232,3 @@ def skip_by_sql_dialect(app, request):
     if request.node.get_closest_marker('skip_sql_dialect'):
         if request.node.get_closest_marker('skip_sql_dialect').args[0] == dialect:
             pytest.skip('Skipped dialect is {}'.format(dialect))
-

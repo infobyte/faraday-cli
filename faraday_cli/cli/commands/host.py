@@ -151,7 +151,3 @@ def host(api_client, action, json_output, workspace_name, host_id, host_data, st
             click.secho("Host params are required to create a host", fg="red")
         else:
             _create_host(workspace_name, host_data)
-
-
-
-

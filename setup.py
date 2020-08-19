@@ -21,6 +21,7 @@ extra_req = {
         'dev': [
             'giteasychangelog',
             'flake8',
+            'pre-commit'
         ],
         'test': [
             'pytest',

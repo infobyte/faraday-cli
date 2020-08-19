@@ -67,11 +67,3 @@ def command(api_client, custom_plugins_folder, plugin_id, workspace, hide_output
         api_client.bulk_create(destination_workspace, plugin.get_data())
     else:
         click.secho("Command execution error!!", fg="red")
-
-
-
-
-
-
-
-

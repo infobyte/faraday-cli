@@ -85,6 +85,3 @@ def workspace(api_client, action, json_output, name):
 
     elif action == 'delete':
         _delete_workspace(name)
-
-
-
