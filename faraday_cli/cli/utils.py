@@ -11,7 +11,7 @@ def validate_url(ctx, param, value):
     if valid_url:
         return value
     else:
-        raise click.BadParameter(f'Invalid url: {value}')
+        raise click.BadParameter(f"Invalid url: {value}")
 
 
 def validate_json(ctx, param, value):
@@ -19,7 +19,9 @@ def validate_json(ctx, param, value):
         try:
             json_value = json.loads(value)
         except Exception as e:
-            raise click.BadParameter(click.style(f'Invalid json parameter: {value} - {e}', fg="red"))
+            raise click.BadParameter(
+                click.style(f"Invalid json parameter: {value} - {e}", fg="red")
+            )
         else:
             return json_value
 
@@ -31,14 +33,19 @@ def json_schema_validator(schema):
                 try:
                     json_value = json.loads(value)
                 except Exception as e:
-                    raise click.BadParameter(click.style(f'Invalid json format: {value} - {e}', fg="red"))
+                    raise click.BadParameter(
+                        click.style(
+                            f"Invalid json format: {value} - {e}", fg="red"
+                        )
+                    )
             else:
                 json_value = value
             try:
                 jsonschema.validate(instance=json_value, schema=schema)
             except jsonschema.exceptions.ValidationError as err:
-                raise click.BadParameter(click.style(f'{err}', fg="red"))
+                raise click.BadParameter(click.style(f"{err}", fg="red"))
             return json_value
+
     return _validate_json
 
 

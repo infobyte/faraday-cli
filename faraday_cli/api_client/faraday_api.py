@@ -9,8 +9,8 @@ from simple_rest_client.exceptions import AuthError, NotFoundError, ClientError
 SESSION_KEY = "faraday_session_2"
 DEFAULT_TIMEOUT = int(os.environ.get("FARADAY_CLI_TIMEOUT", 1000))
 
-class FaradayApi:
 
+class FaradayApi:
     def __init__(self, url, ssl_verify=True, token=None):
         self.api_url = urljoin(url, "_api")
         self.token = token
@@ -18,29 +18,53 @@ class FaradayApi:
             headers = {"Authorization": f"Token {self.token}"}
         else:
             headers = {}
-        self.faraday_api = API(api_root_url=self.api_url, params={}, headers=headers, timeout=DEFAULT_TIMEOUT,
-                               append_slash=False, json_encode_body=True, ssl_verify=ssl_verify)
+        self.faraday_api = API(
+            api_root_url=self.api_url,
+            params={},
+            headers=headers,
+            timeout=DEFAULT_TIMEOUT,
+            append_slash=False,
+            json_encode_body=True,
+            ssl_verify=ssl_verify,
+        )
         self._build_resources()
 
     def _build_resources(self):
-        self.faraday_api.add_resource(resource_name="login", resource_class=resources.LoginResource)
-        self.faraday_api.add_resource(resource_name="workspace", resource_class=resources.WorkspaceResource)
-        self.faraday_api.add_resource(resource_name="bulk_create", resource_class=resources.BulkCreateResource)
-        self.faraday_api.add_resource(resource_name="host", resource_class=resources.HostResource)
-        self.faraday_api.add_resource(resource_name="service", resource_class=resources.ServiceResource)
-        self.faraday_api.add_resource(resource_name="credential", resource_class=resources.CredentialResource)
-        self.faraday_api.add_resource(resource_name="agent", resource_class=resources.AgentResource)
-
-
+        self.faraday_api.add_resource(
+            resource_name="login", resource_class=resources.LoginResource
+        )
+        self.faraday_api.add_resource(
+            resource_name="workspace",
+            resource_class=resources.WorkspaceResource,
+        )
+        self.faraday_api.add_resource(
+            resource_name="bulk_create",
+            resource_class=resources.BulkCreateResource,
+        )
+        self.faraday_api.add_resource(
+            resource_name="host", resource_class=resources.HostResource
+        )
+        self.faraday_api.add_resource(
+            resource_name="service", resource_class=resources.ServiceResource
+        )
+        self.faraday_api.add_resource(
+            resource_name="credential",
+            resource_class=resources.CredentialResource,
+        )
+        self.faraday_api.add_resource(
+            resource_name="agent", resource_class=resources.AgentResource
+        )
 
     def get_token(self, user, password):
         if not self.token:
-            body = {'email': user, 'password': password}
+            body = {"email": user, "password": password}
             try:
                 response = self.faraday_api.login.auth(body=body)
                 token_response = self.faraday_api.login.get_token()
             except NotFoundError:
-                raise Exception(f"Invalid url: {self.faraday_api.api_root_url}")
+                raise Exception(
+                    f"Invalid url: {self.faraday_api.api_root_url}"
+                )
             except AuthError:
                 raise Exception("Invalid credentials")
             else:
@@ -72,13 +96,16 @@ class FaradayApi:
         return response.body
 
     def run_executor(self, workspace_name, agent_id, executor_name, args):
-        body = {"executorData": {
-                    "agent_id": agent_id,
-                    "args": args,
-                    "executor": executor_name
-                                }
-                }
-        response = self.faraday_api.agent.run(workspace_name, agent_id, body=body)
+        body = {
+            "executorData": {
+                "agent_id": agent_id,
+                "args": args,
+                "executor": executor_name,
+            }
+        }
+        response = self.faraday_api.agent.run(
+            workspace_name, agent_id, body=body
+        )
         return response.body
 
     def get_host(self, workspace_name, host_id):
@@ -91,7 +118,9 @@ class FaradayApi:
 
     def create_host(self, workspace_name, host_params):
         try:
-            response = self.faraday_api.host.create(workspace_name, body=host_params)
+            response = self.faraday_api.host.create(
+                workspace_name, body=host_params
+            )
         except ClientError as e:
             if e.response.status_code == 409:
                 raise exceptions.DuplicatedError("Host already exist")
@@ -103,7 +132,9 @@ class FaradayApi:
         return response.body
 
     def get_host_vulns(self, workspace_name, host_ip):
-        response = self.faraday_api.host.get_vulns(workspace_name, params={'target': host_ip})
+        response = self.faraday_api.host.get_vulns(
+            workspace_name, params={"target": host_ip}
+        )
         return response.body
 
     def bulk_create(self, ws, data):
@@ -117,14 +148,15 @@ class FaradayApi:
                 default_users.append(users)
             elif isinstance(users, list):
                 default_users.extend(users)
-        data = {"description": description,
-                "id": 0,
-                "name": name,
-                "public": False,
-                "readonly": False,
-                "customer": "",
-                "users": default_users
-                }
+        data = {
+            "description": description,
+            "id": 0,
+            "name": name,
+            "public": False,
+            "readonly": False,
+            "customer": "",
+            "users": default_users,
+        }
         try:
             response = self.faraday_api.workspace.create(body=data)
         except ClientError as e:
@@ -139,5 +171,7 @@ class FaradayApi:
 
     def is_workspace_valid(self, name):
         workspaces = self.get_workspaces()
-        available_workspaces = [ws for ws in map(lambda x: x['name'], workspaces)]
+        available_workspaces = [
+            ws for ws in map(lambda x: x["name"], workspaces)
+        ]
         return name in available_workspaces

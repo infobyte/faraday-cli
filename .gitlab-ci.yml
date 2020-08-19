@@ -37,6 +37,13 @@ flake8:
       - flake8 .
 
 
+black:
+    image: python:3
+    stage: .pre
+    script:
+      - pip install .[dev]
+      - black .
+
 .unit_tests_base:
     stage: testing
     coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
