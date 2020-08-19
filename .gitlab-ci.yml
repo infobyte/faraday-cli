@@ -42,7 +42,7 @@ black:
     stage: .pre
     script:
       - pip install .[dev]
-      - black .
+      - black --line-length=79 --check .
 
 .unit_tests_base:
     stage: testing
