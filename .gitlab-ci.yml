@@ -47,9 +47,7 @@ flake8:
         - source venv/bin/activate
         - pip install $PIP_INSTALL_FLAGS .[test]
         - mkdir run_from
-        - cd run_from && mkdir logs && pytest ../tests --capture=sys -v
-      - --cov=../faraday_cli --color=yes
-      - --disable-warnings --junitxml=report.xml
+        - cd run_from && mkdir logs && pytest ../tests --capture=sys -v --cov=../faraday_cli --color=yes --disable-warnings --junitxml=report.xml
         - cp report.xml ../
     artifacts:
       reports:
@@ -72,7 +70,7 @@ flake8:
 .alpha_unit_test_base:
   extends: .unit_tests_base
   variables:
-      PIP_INSTALL_FLAGS --pre
+      PIP_INSTALL_FLAGS: --pre
   allow_failure: true
   rules:
     - if: '$CI_COMMIT_REF_NAME =~ /^(dev|master)$/'
