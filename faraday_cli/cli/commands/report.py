@@ -21,7 +21,7 @@ def report(api_client, custom_plugins_folder, plugin_id, workspace, filename):
             destination_workspace = workspace
     else:
         if not active_config.workspace:
-            click.secho(f"Missing default workspace", fg="red")
+            click.secho("Missing default workspace", fg="red")
             return
         else:
             destination_workspace = active_config.workspace

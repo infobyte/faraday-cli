@@ -59,7 +59,7 @@ def host(
     if not workspace_name:
         workspace_name = active_config.workspace
     if not workspace_name:
-        click.secho(f"Workspace is required", fg="red")
+        click.secho("Workspace is required", fg="red")
         return
     if not api_client.is_workspace_valid(workspace_name):
         click.secho(f"Invalid workspace: {workspace_name}", fg="red")
@@ -162,11 +162,11 @@ def host(
 
     def _delete_host(workspace_name, host_id):
         try:
-            hosts = api_client.delete_host(workspace_name, host_id)
+            api_client.delete_host(workspace_name, host_id)
         except NotFoundError:
             click.secho("Host not found", fg="red")
             return
-        click.secho(f"Deleted host", fg="green")
+        click.secho("Deleted host", fg="green")
 
     def _create_host(workspace_name, host_params):
         for _host_data in host_params:

@@ -53,10 +53,10 @@ def get_ip_and_hostname(value):
     try:
         inet_aton(value)
         return value, None
-    except:
+    except Exception:
         try:
             ip_address = gethostbyname(value)
-        except:
+        except OSError:
             return value, None
         else:
             return ip_address, value

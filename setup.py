@@ -19,7 +19,7 @@ install_requires = [
 
 extra_req = {
     "dev": ["giteasychangelog", "flake8", "pre-commit"],
-    "test": ["pytest", "pytest-cov", "faradaysec",],
+    "test": ["pytest", "pytest-cov", "faradaysec"],
 }
 
 
@@ -45,6 +45,6 @@ setup(
     install_requires=install_requires,
     extras_require=extra_req,
     entry_points={
-        "console_scripts": ["faraday-cli=faraday_cli.cli.faraday:cli",],
+        "console_scripts": ["faraday-cli=faraday_cli.cli.faraday:cli"],
     },
 )

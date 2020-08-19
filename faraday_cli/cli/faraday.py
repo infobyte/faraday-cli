@@ -6,6 +6,16 @@ from faraday_cli.api_client import FaradayApi
 from faraday_cli.config import active_config
 from simple_rest_client.exceptions import AuthError, ServerError
 
+
+from .commands.workspace import workspace
+from .commands.auth import auth
+from .commands.report import report
+from .commands.status import status
+from .commands.command import command
+from .commands.host import host
+from .commands.agent import agent
+
+
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
@@ -42,14 +52,6 @@ def cli(ctx):
                     click.style("Connecting to faraday server", fg="red")
                 )
 
-
-from .commands.workspace import workspace
-from .commands.auth import auth
-from .commands.report import report
-from .commands.status import status
-from .commands.command import command
-from .commands.host import host
-from .commands.agent import agent
 
 cli.add_command(auth)
 cli.add_command(workspace)

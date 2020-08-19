@@ -31,6 +31,6 @@ def auth(url, user, password):
         active_config.ssl_verify = ssl_verify
         active_config.token = token
         active_config.save()
-        click.secho(f"Saving config", fg="green")
+        click.secho("Saving config", fg="green")
     except Exception as e:
         click.secho(f"{e}", fg="red")

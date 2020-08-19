@@ -43,7 +43,7 @@ def workspace(api_client, action, json_output, name):
 
     def _create_workspace(workspace_name):
         try:
-            created_workspace = api_client.create_workspace(workspace_name)
+            api_client.create_workspace(workspace_name)
         except Exception as e:
             click.secho(f"{e}", fg="red")
         else:
@@ -54,7 +54,7 @@ def workspace(api_client, action, json_output, name):
         workspace_choices = [ws for ws in map(lambda x: x["name"], workspaces)]
         if not selected_workspace:
             selected_workspace = click.prompt(
-                f"Select workspace",
+                "Select workspace",
                 type=click.Choice(
                     choices=workspace_choices, case_sensitive=False
                 ),
@@ -74,7 +74,7 @@ def workspace(api_client, action, json_output, name):
         workspace_choices = [ws for ws in map(lambda x: x["name"], workspaces)]
         if not workspace_to_delete:
             workspace_to_delete = click.prompt(
-                f"Select workspace",
+                "Select workspace",
                 type=click.Choice(
                     choices=workspace_choices, case_sensitive=False
                 ),
@@ -85,7 +85,7 @@ def workspace(api_client, action, json_output, name):
                     f"Invalid worskpace: {workspace_to_delete}", fg="red"
                 )
                 return
-        response = api_client.delete_workspace(workspace_to_delete)
+        api_client.delete_workspace(workspace_to_delete)
         click.secho(f"Deleted workspace: {workspace_to_delete}", fg="green")
         if active_config.workspace == workspace_to_delete:
             active_config.workspace = None

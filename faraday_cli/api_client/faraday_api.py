@@ -59,7 +59,7 @@ class FaradayApi:
         if not self.token:
             body = {"email": user, "password": password}
             try:
-                response = self.faraday_api.login.auth(body=body)
+                self.faraday_api.login.auth(body=body)
                 token_response = self.faraday_api.login.get_token()
             except NotFoundError:
                 raise Exception(

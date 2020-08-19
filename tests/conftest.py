@@ -7,14 +7,12 @@ See the file 'doc/LICENSE' for the license information
 from tempfile import NamedTemporaryFile
 
 import os
-import sys
 import json
 import pytest
 from flask.testing import FlaskClient
 from flask_principal import identity_changed, Identity
 from sqlalchemy import event
 
-sys.path.append(os.path.abspath(os.getcwd()))
 from faraday.server.app import create_app
 from faraday.server.models import db
 
@@ -48,7 +46,8 @@ class CustomClient(FlaskClient):
 
 
 def pytest_addoption(parser):
-    # currently for tests using sqlite and memory have problem while using transactions
+    # currently for tests using sqlite and memory have problem while using
+    # transactions
     # we need to review sqlite configuraitons for persistence using PRAGMA.
     parser.addoption(
         "--connection-string",
@@ -141,7 +140,7 @@ def session(database, request):
     """Use this fixture if the function being tested does a session
     rollback.
 
-    See http://docs.sqlalchemy.org/en/latest/orm/session_transaction.html#joining-a-session-into-an-external-transaction-such-as-for-test-suites
+    See http://docs.sqlalchemy.org/en/latest/orm/session_transaction.html#joining-a-session-into-an-external-transaction-such-as-for-test-suites  # noqa: E501
     for further information
     """
     connection = database.engine.connect()

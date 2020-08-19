@@ -31,7 +31,7 @@ def agent(
     if not workspace_name:
         workspace_name = active_config.workspace
     if not workspace_name:
-        click.secho(f"Workspace is required", fg="red")
+        click.secho("Workspace is required", fg="red")
         return
     if not api_client.is_workspace_valid(workspace_name):
         click.secho(f"Invalid workspace: {workspace_name}", fg="red")
@@ -133,7 +133,8 @@ def agent(
     elif action == "run":
         if not agent_id or not executor_id or not executor_params:
             click.secho(
-                "Agent ID, executor ID and executor params are required to run an executor",
+                "Agent ID, executor ID and executor params are required to "
+                "run an executor",
                 fg="red",
             )
         else:
