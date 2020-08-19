@@ -1,6 +1,6 @@
 import os
 import yaml
-DEFAULT_CONFIG_FILE = "~/.faraday-cli.yml"
+DEFAULT_CONFIG_FILE = os.environ.get("FARADAY_CLI_CONFIG", "~/.faraday-cli.yml")
 
 class Config:
 
