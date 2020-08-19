@@ -1,0 +1,120 @@
+variables:
+    TZ: "America/New_York"
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+    APT_CACHE_DIR: "$CI_PROJECT_DIR/apt-cache"
+    POSTGRES_DB: custom_db
+    POSTGRES_USER: custom_user
+    POSTGRES_PASSWORD: custom_pass
+
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+      when: never
+    - when: always
+
+cache:
+  paths:
+    - "$CI_PROJECT_DIR/.cache/pip"
+    - "$CI_PROJECT_DIR/apt-cache"
+
+
+before_script:
+    - mkdir -pv $APT_CACHE_DIR
+
+stages:
+    - testing
+    - publish
+
+services:
+    - postgres:latest
+
+
+flake8:
+    image: python:3
+    stage: .pre
+    script:
+      - pip install .[dev]
+      - flake8 .
+
+
+.unit_tests_base:
+    stage: testing
+    coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+    script:
+        - pip install virtualenv
+        - apt-get update
+        - virtualenv venv
+        - source venv/bin/activate
+        - pip install $PIP_INSTALL_FLAGS .[test]
+        - mkdir run_from
+        - cd run_from && mkdir logs && pytest ../tests --capture=sys -v
+      - --cov=../faraday_cli --color=yes
+      - --disable-warnings --junitxml=report.xml
+        - cp report.xml ../
+    artifacts:
+      reports:
+        junit: report.xml
+      paths:
+        - dist/*
+        - run_from/logs/*
+      expire_in: 7 days
+    rules:
+      - if: '$INTEGRATION'
+        when: never
+      - if: '$CI_COMMIT_REF_NAME =~ /^.*ci-test.*$/'
+        when: never
+      - when: on_success
+
+.latest_unit_test_base:
+  extends: .unit_tests_base
+  before_script:
+
+.alpha_unit_test_base:
+  extends: .unit_tests_base
+  variables:
+      PIP_INSTALL_FLAGS --pre
+  allow_failure: true
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^(dev|master)$/'
+      when: on_success
+    - if: '$TEST_ALPHA'
+      when: on_success
+
+unit_test 3.7:
+    extends: .latest_unit_test_base
+    image: python:3.7
+
+unit_test 3.8:
+    extends: .latest_unit_test_base
+    image: python:3.8
+
+unit_test 3.9:
+    extends: .latest_unit_test_base
+    image: python:3.9-rc
+    allow_failure: true
+
+alpha_unit_test 3.7:
+    extends: .alpha_unit_test_base
+    image: python:3.7
+
+alpha_unit_test 3.8:
+    extends: .alpha_unit_test_base
+    image: python:3.8
+
+alpha_unit_test 3.9:
+    extends: .alpha_unit_test_base
+    image: python:3.9-rc
+
+
+publish_pypi:
+    image: python:3
+    stage: publish
+    script:
+      - apt-get update -qy
+      - apt-get install twine -y
+      - python setup.py sdist bdist_wheel
+      - twine upload -u $PYPI_USER -p $PYPI_PASS dist/* --verbose
+    rules:
+      - if: '$CI_COMMIT_TAG'
+        when: on_success
+
