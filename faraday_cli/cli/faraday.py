@@ -14,13 +14,13 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.version_option(__version__, '-v', '--version')
 def cli(ctx):
     if not os.path.isfile(active_config.config_file):
-        if ctx.invoked_subcommand != "login":
+        if ctx.invoked_subcommand != "auth":
             raise click.ClickException(click.style("Config file missing, run 'faraday-cli auth' first", fg='red'))
     else:
         if ctx.invoked_subcommand != "auth":
             active_config.load()
             ctx.obj = FaradayApi(active_config.faraday_url, ssl_verify=active_config.ssl_verify,
-                                    token=active_config.token)
+                                 token=active_config.token)
             try:
                 ctx.obj.faraday_api.login.validate()
             except AuthError:
