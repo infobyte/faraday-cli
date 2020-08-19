@@ -7,28 +7,50 @@ with open('faraday_cli/__init__.py', 'rt', encoding='utf8') as f:
 
 install_requires = [
     'Click',
-    'validators',
     'colorama',
-    'simple-rest-client',
     'faraday-plugins',
+    'jsonschema',
     'PyYAML',
+    'simple-rest-client',
     'tabulate',
-    'jsonschema'
-
+    'validators',
 ]
+
+
+extra_req = {
+        'dev': [
+            'giteasychangelog',
+            'flake8',
+        ],
+        'test': [
+            'pytest',
+            'pytest-cov',
+            'faradaysec',
+        ],
+    }
 
 
 setup(
     name='faraday-cli',
     version=version,
     packages=find_packages(include=['faraday_cli', 'faraday_cli.*']),
-    url='',
-    license='',
+    url='https://github.com/infobyte/faraday-cli',
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Natural Language :: English',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+    ],
+    license="GNU General Public License v3",
     author='Faradaysec',
     author_email='devel@faradaysec.com',
     description='Faraday cli package',
     include_package_data=True,
     install_requires=install_requires,
+    extras_require=extra_req,
     entry_points={
             'console_scripts': [
                 'faraday-cli=faraday_cli.cli.faraday:cli',
