@@ -23,8 +23,12 @@ def workspace(api_client, action, json_output, name):
     def _list_workspaces():
         workspaces = api_client.get_workspaces()
         if not workspaces:
-            click.secho("No workspaces available", fg="yellow")
-            return
+            if json_output:
+                click.echo(json.dumps(workspaces, indent=4))
+                return
+            else:
+                click.secho("No workspaces available", fg="yellow")
+                return
         data = [
             OrderedDict(
                 {
@@ -65,7 +69,7 @@ def workspace(api_client, action, json_output, name):
                     f"Invalid worskpace: {selected_workspace}", fg="red"
                 )
                 return
-        click.secho(f"Selected Workspace: {selected_workspace}", fg="green")
+        click.secho(f"Selected workspace: {selected_workspace}", fg="green")
         active_config.workspace = selected_workspace
         active_config.save()
 

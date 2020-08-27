@@ -4,7 +4,6 @@ import click
 from faraday_cli import __version__
 from faraday_cli.api_client import FaradayApi
 from faraday_cli.config import active_config
-from simple_rest_client.exceptions import AuthError, ServerError
 
 
 from .commands.workspace import workspace
@@ -39,18 +38,6 @@ def cli(ctx):
                 ssl_verify=active_config.ssl_verify,
                 token=active_config.token,
             )
-            try:
-                ctx.obj.faraday_api.login.validate()
-            except AuthError:
-                raise click.ClickException(
-                    click.style(
-                        "Invalid credentials, run 'faraday-cli auth'", fg="red"
-                    )
-                )
-            except ServerError:
-                raise click.ClickException(
-                    click.style("Connecting to faraday server", fg="red")
-                )
 
 
 cli.add_command(auth)

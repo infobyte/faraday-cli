@@ -5,6 +5,11 @@ variables:
     POSTGRES_DB: custom_db
     POSTGRES_USER: custom_user
     POSTGRES_PASSWORD: custom_pass
+    FARADAY_USER: custom_user
+    FARADAY_PASSWORD: custom_pass
+    FARADAY_EMAIL: test@test.com
+    FARADAY_URL: http://localhost:5985/
+    DEFAULT_FARADAY_REF: white/dev
 
 workflow:
   rules:
@@ -44,18 +49,56 @@ black:
       - pip install .[dev]
       - black --line-length=79 --check .
 
+.generate_license: &generate_license
+  - mkdir -p ~/.faraday/doc
+  - base64 -d $FARADAY_LICENSE_TAR_GZ > license.tgz
+  - tar xzvf license.tgz -C ~/.faraday/doc
+
+
 .unit_tests_base:
     stage: testing
     coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
     script:
-        - pip install virtualenv
-        - apt-get update
-        - virtualenv venv
-        - source venv/bin/activate
-        - pip install $PIP_INSTALL_FLAGS .[test]
-        - mkdir run_from
-        - cd run_from && mkdir logs && pytest ../tests --capture=sys -v --cov=../faraday_cli --color=yes --disable-warnings --junitxml=report.xml
-        - cp report.xml ../
+      - if [ $FARADAY_REF ]; then :; else export FARADAY_REF=$DEFAULT_FARADAY_REF; fi; echo FARADAY_REF=$FARADAY_REF
+      - export LC_ALL=C.UTF-8
+      - export LANG=C.UTF-8
+      - pip3 install virtualenv
+      - *generate_license
+
+      - apt-get update -y
+      - apt-get install pandoc libsasl2-dev python3-dev libldap2-dev libssl-dev -y
+
+      - virtualenv faraday_venv
+      - source faraday_venv/bin/activate
+      - pip install pip -U
+      - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/faradaysec/faraday.git
+      - cd faraday && git checkout $FARADAY_REF
+      - echo FARADAY_COMMIT=$(git rev-parse HEAD)
+      - pip install --upgrade -r requirements.txt
+      - pip install $PIP_INSTALL_FLAGS .
+      - pip install --upgrade responses pytest-xdist pytest-cov
+      - pip install --upgrade -r requirements_dev.txt
+      - pip install pyyaml
+      - mkdir -p ~/.faraday/config
+      - mkdir -p ~/.faraday/doc
+      - mkdir -p ~/.faraday/logs
+      - cp tests/data/server.ini ~/.faraday/config
+      - python3 ../tests/config/psql_config.py
+      - faraday-manage create-tables
+      - faraday-manage create-superuser --username $FARADAY_USER --password $FARADAY_PASSWORD --email $FARADAY_EMAIL
+      - faraday-server &
+      - deactivate
+
+      - cd ..
+
+      - virtualenv faraday_disp_venv
+      - source faraday_disp_venv/bin/activate
+      - pip install $PIP_INSTALL_FLAGS .[test]
+      - mkdir run_from
+      - cd run_from && mkdir logs && pytest ../tests --capture=sys -v --cov=../faraday_cli --color=yes --disable-warnings --junitxml=../report.xml
+
+    after_script:
+      - cp ~/.faraday/logs/*.log run_from/logs/
     artifacts:
       reports:
         junit: report.xml
@@ -64,11 +107,9 @@ black:
         - run_from/logs/*
       expire_in: 7 days
     rules:
-      - if: '$INTEGRATION'
-        when: never
-      - if: '$CI_COMMIT_REF_NAME =~ /^.*ci-test.*$/'
-        when: never
       - when: on_success
+    tags:
+      - faradaytests
 
 .latest_unit_test_base:
   extends: .unit_tests_base
