@@ -4,7 +4,7 @@ from faraday_cli.api_client import FaradayApi
 from faraday_cli.cli import utils
 from urllib.parse import urlparse
 
-from simple_rest_client.exceptions import AuthError
+from simple_rest_client.exceptions import AuthError, ClientError
 
 
 @click.command(help="Faraday auth configuration")
@@ -35,6 +35,8 @@ def auth(url, user, password):
         active_config.save()
         click.secho("Saving config", fg="green")
     except AuthError:
+        click.secho("Invalid credentials", fg="red")
+    except ClientError:
         click.secho("Invalid credentials", fg="red")
     except Exception as e:
         click.secho(f"{e}", fg="red")
