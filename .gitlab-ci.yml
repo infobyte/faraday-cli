@@ -59,7 +59,6 @@ black:
     stage: testing
     coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
     script:
-      - echo "" > report.xml
       - if [ $FARADAY_REF ]; then :; else export FARADAY_REF=$DEFAULT_FARADAY_REF; fi; echo FARADAY_REF=$FARADAY_REF
       - export LC_ALL=C.UTF-8
       - export LANG=C.UTF-8
@@ -96,8 +95,8 @@ black:
       - source faraday_disp_venv/bin/activate
       - pip install $PIP_INSTALL_FLAGS .[test]
       - mkdir run_from
-      - cd run_from && mkdir logs && pytest ../tests --capture=sys -v --cov=../faraday_cli --color=yes --disable-warnings --junitxml=report.xml
-      - cp report.xml ../
+      - cd run_from && mkdir logs && pytest ../tests --capture=sys -v --cov=../faraday_cli --color=yes --disable-warnings --junitxml=../report.xml
+
     after_script:
       - cp ~/.faraday/logs/*.log run_from/logs/
     artifacts:
