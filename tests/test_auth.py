@@ -19,11 +19,11 @@ def test_get_token_with_invalid_credentials(faraday_url, faraday_user):
         "--user",
         faraday_user,
         "--password",
-        "INVALID_PASSWORD",
+        "PASSWORD",
     ]
     cli_execution = runner.invoke(cli, parameters)
     assert cli_execution.exit_code == 0
-    assert "Invalid credentials" in cli_execution.output
+    assert "Invalid credentials" in cli_execution.output, cli_execution.output
 
 
 def test_get_token_with_valid_credentials(
@@ -41,4 +41,4 @@ def test_get_token_with_valid_credentials(
     ]
     cli_execution = runner.invoke(cli, parameters)
     assert cli_execution.exit_code == 0
-    assert "Saving config" in cli_execution.output
+    assert "Saving config" in cli_execution.output, cli_execution.output
