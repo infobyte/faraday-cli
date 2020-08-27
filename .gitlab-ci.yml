@@ -59,6 +59,7 @@ black:
     stage: testing
     coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
     script:
+      - echo "" > report.xml
       - if [ $FARADAY_REF ]; then :; else export FARADAY_REF=$DEFAULT_FARADAY_REF; fi; echo FARADAY_REF=$FARADAY_REF
       - export LC_ALL=C.UTF-8
       - export LANG=C.UTF-8
@@ -105,7 +106,6 @@ black:
       paths:
         - dist/*
         - run_from/logs/*
-        - ~/.faraday/*
       expire_in: 7 days
     rules:
       - when: on_success
