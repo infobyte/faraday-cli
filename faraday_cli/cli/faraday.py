@@ -4,7 +4,6 @@ import click
 from faraday_cli import __version__
 from faraday_cli.api_client import FaradayApi
 from faraday_cli.config import active_config
-from simple_rest_client.exceptions import AuthError, ServerError
 
 
 from .commands.workspace import workspace
