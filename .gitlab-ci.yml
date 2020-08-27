@@ -83,7 +83,7 @@ black:
       - mkdir -p ~/.faraday/doc
       - mkdir -p ~/.faraday/logs
       - cp tests/data/server.ini ~/.faraday/config
-      - python3 ../integration_faraday_dispatcher/psql_config.py
+      - python3 ../tests/config/psql_config.py
       - faraday-manage create-tables
       - faraday-manage create-superuser --username $FARADAY_USER --password $FARADAY_PASSWORD --email $FARADAY_EMAIL
       - faraday-server &
