@@ -8,6 +8,7 @@ variables:
     FARADAY_USER: custom_user
     FARADAY_PASSWORD: custom_pass
     FARADAY_EMAIL: test@test.com
+    FARADAY_URL: http://localhost:5985/
     DEFAULT_FARADAY_REF: white/dev
 
 workflow:
