@@ -10,5 +10,4 @@ def test_token_in_status(ok_configuration_file):
     with open(ok_configuration_file.name) as f:
         config_data = yaml.load(f, Loader=yaml.FullLoader)
     assert cli_execution.exit_code == 0
-    assert config_data['auth']['token'][:10] in cli_execution.output
-
+    assert config_data["auth"]["token"][:10] in cli_execution.output

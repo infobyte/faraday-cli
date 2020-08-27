@@ -6,13 +6,18 @@ from simple_rest_client.api import API
 
 
 from faraday_cli.api_client import resources, exceptions
-from simple_rest_client.exceptions import AuthError, NotFoundError, ClientError, ClientConnectionError
+from simple_rest_client.exceptions import (
+    AuthError,
+    NotFoundError,
+    ClientError,
+    ClientConnectionError,
+)
 
 SESSION_KEY = "faraday_session_2"
 DEFAULT_TIMEOUT = int(os.environ.get("FARADAY_CLI_TIMEOUT", 1000))
 
-def handle_errors(func):
 
+def handle_errors(func):
     def hanlde(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
@@ -24,19 +29,17 @@ def handle_errors(func):
             )
         except ClientConnectionError as e:
             raise click.ClickException(
-                click.style(
-                    f"Connection to error: {e}", fg="red"
-                )
+                click.style(f"Connection to error: {e}", fg="red")
             )
         except Exception as e:
             raise click.ClickException(
-                click.style(
-                    f"Unknown error: {e}", fg="red"
-                )
+                click.style(f"Unknown error: {e}", fg="red")
             )
         else:
             return result
+
     return hanlde
+
 
 class FaradayApi:
     def __init__(self, url, ssl_verify=True, token=None):

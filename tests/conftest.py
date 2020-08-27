@@ -6,16 +6,9 @@ See the file 'doc/LICENSE' for the license information
 """
 import tempfile
 import os
-import json
 import pytest
+from pathlib import Path
 from faraday_cli.api_client import FaradayApi
-from flask.testing import FlaskClient
-from flask_principal import identity_changed, Identity
-from sqlalchemy import event
-from requests import Session
-
-from faraday.server.app import create_app
-from faraday.server.models import db
 
 
 TEST_BASE = os.path.abspath(os.path.dirname(__file__))
@@ -27,8 +20,9 @@ FARADAY_PASSWORD = os.getenv("FARADAY_PASSWORD")
 FARADAY_URL = os.getenv("FARADAY_URL")
 
 TEMPORATY_SQLITE = tempfile.NamedTemporaryFile()
-CONFIG_FILE = f"{os.path.join(tempfile.gettempdir(), next(tempfile._get_candidate_names()))}.yml"
-os.environ['FARADAY_CLI_CONFIG'] = CONFIG_FILE
+TEMP_DIR = Path(tempfile.gettempdir())
+CONFIG_FILE = f"{TEMP_DIR / next(tempfile._get_candidate_names())}.yml"
+os.environ["FARADAY_CLI_CONFIG"] = CONFIG_FILE
 TOKEN = None
 
 
@@ -36,13 +30,16 @@ TOKEN = None
 def faraday_url():
     return FARADAY_URL
 
+
 @pytest.fixture
 def faraday_user():
     return FARADAY_USER
 
+
 @pytest.fixture
 def faraday_password():
     return FARADAY_PASSWORD
+
 
 @pytest.fixture(scope="function")
 def token():
@@ -59,8 +56,7 @@ def ok_configuration_file(token):
     with open(CONFIG_FILE, "w") as file:
         with open(os.path.join(TEST_DATA, "config_file_template.yml")) as f:
             template = f.read()
-        file.write(template.format(**{'url': FARADAY_URL,'token': token}))
+        file.write(template.format(**{"url": FARADAY_URL, "token": token}))
         file.seek(0)
         yield file
     os.remove(CONFIG_FILE)
-

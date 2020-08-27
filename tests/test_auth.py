@@ -1,4 +1,3 @@
-import os
 from click.testing import CliRunner
 
 from faraday_cli.cli.faraday import cli
@@ -13,15 +12,33 @@ def test_run_without_auth():
 
 def test_get_token_with_invalid_credentials(faraday_url, faraday_user):
     runner = CliRunner()
-    parameters = ['auth', '--url', faraday_url, '--user', faraday_user, '--password', 'INVALID_PASSWORD']
+    parameters = [
+        "auth",
+        "--url",
+        faraday_url,
+        "--user",
+        faraday_user,
+        "--password",
+        "INVALID_PASSWORD",
+    ]
     cli_execution = runner.invoke(cli, parameters)
     assert cli_execution.exit_code == 0
     assert "Invalid credentials" in cli_execution.output
 
 
-def test_get_token_with_valid_credentials(faraday_url, faraday_user, faraday_password):
+def test_get_token_with_valid_credentials(
+    faraday_url, faraday_user, faraday_password
+):
     runner = CliRunner()
-    parameters = ['auth', '--url', faraday_url, '--user', faraday_user, '--password', faraday_password]
+    parameters = [
+        "auth",
+        "--url",
+        faraday_url,
+        "--user",
+        faraday_user,
+        "--password",
+        faraday_password,
+    ]
     cli_execution = runner.invoke(cli, parameters)
     assert cli_execution.exit_code == 0
     assert "Saving config" in cli_execution.output
