@@ -1,2 +1,2 @@
-from .faraday_api import FaradayApi
-from .faraday_api import exceptions
+from .faraday_api import FaradayApi  # noqa: F401
+from .faraday_api import exceptions  # noqa: F401

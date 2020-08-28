@@ -1,4 +1,4 @@
-# Faraday command line 
+# Faraday command line
 Use faraday directly from your favorite terminal
 
 
@@ -110,7 +110,7 @@ $ faraday-cli host -a create -d '[{"ip": "stan.local", "description": "some serv
 ```
 or pipe it
 ```shell script
-$ echo '[{"ip": "stan.local", "description": "some server"}]' | faraday-cli host -a create --stdin 
+$ echo '[{"ip": "stan.local", "description": "some server"}]' | faraday-cli host -a create --stdin
 ```
 ![Example](./docs/create_host.svg)
 
