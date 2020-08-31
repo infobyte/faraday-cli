@@ -82,10 +82,11 @@ def command(
     output_value = output.getvalue()
     if retcode == 0:
         plugin.processOutput(output_value)
-        click.secho(
-            f"Sending data from command {command} to {destination_workspace}",
-            fg="green",
+        message = (
+            f"Sending data from command [{command}] "
+            f"to workspace: {destination_workspace}"
         )
+        click.secho(message, fg="green")
         api_client.bulk_create(destination_workspace, plugin.get_data())
     else:
         click.secho("Command execution error!!", fg="red")
