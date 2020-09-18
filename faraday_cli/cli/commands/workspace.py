@@ -33,6 +33,9 @@ def workspace(api_client, action, json_output, name):
             OrderedDict(
                 {
                     "name": x["name"],
+                    "active": x["active"],
+                    "public": x["public"],
+                    "readonly": x["readonly"],
                     "hosts": x["stats"]["hosts"],
                     "services": x["stats"]["services"],
                     "vulns": x["stats"]["total_vulns"],

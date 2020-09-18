@@ -13,7 +13,8 @@ from .commands.status import status
 from .commands.command import command
 from .commands.host import host
 from .commands.agent import agent
-
+from .commands.shell import shell
+from .commands.stats import stats
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
@@ -47,6 +48,8 @@ cli.add_command(status)
 cli.add_command(command)
 cli.add_command(host)
 cli.add_command(agent)
+cli.add_command(shell)
+cli.add_command(stats)
 
 if __name__ == "__main__":
     cli()

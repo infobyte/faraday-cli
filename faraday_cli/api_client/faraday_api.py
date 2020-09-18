@@ -2,6 +2,7 @@ import os
 from urllib.parse import urljoin
 
 import click
+from faraday_cli.api_client.exceptions import DuplicatedError
 from simple_rest_client.api import API
 
 
@@ -31,6 +32,8 @@ def handle_errors(func):
             raise click.ClickException(
                 click.style(f"Connection to error: {e}", fg="red")
             )
+        except DuplicatedError as e:
+            raise click.ClickException(click.style(f"{e}", fg="red"))
         except Exception as e:
             raise click.ClickException(
                 click.style(f"Unknown error: {e}", fg="red")
@@ -85,6 +88,9 @@ class FaradayApi:
         self.faraday_api.add_resource(
             resource_name="agent", resource_class=resources.AgentResource
         )
+        self.faraday_api.add_resource(
+            resource_name="vuln", resource_class=resources.VulnResource
+        )
 
     def get_token(self, user, password):
         if not self.token:
@@ -115,6 +121,11 @@ class FaradayApi:
     @handle_errors
     def get_hosts(self, workspace_name):
         response = self.faraday_api.host.list(workspace_name)
+        return response.body
+
+    @handle_errors
+    def get_vulns(self, workspace_name):
+        response = self.faraday_api.vuln.list(workspace_name)
         return response.body
 
     @handle_errors

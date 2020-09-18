@@ -113,7 +113,7 @@ def host(
                 )
                 for x in [host]
             ]
-            click.secho("Host", fg="yellow")
+            click.secho("Host:", fg="yellow")
             click.secho(tabulate(host_data, headers="keys"), fg="yellow")
             if host["services"] > 0:
                 services = api_client.get_host_services(
@@ -134,7 +134,7 @@ def host(
                     )
                     for x in services
                 ]
-                click.secho("\nServices", fg="yellow")
+                click.secho("\nServices:", fg="yellow")
                 click.secho(
                     tabulate(services_data, headers="keys"), fg="yellow"
                 )
@@ -152,12 +152,12 @@ def host(
                             "status": x["value"]["status"],
                             "parent": x["value"]["parent_type"],
                             "confirmed": x["value"]["confirmed"],
-                            "creator": x["value"]["metadata"]["creator"],
+                            "tool": x["value"]["metadata"]["creator"],
                         }
                     )
                     for x in vulns["vulnerabilities"]
                 ]
-                click.secho("\nVulnerabilities", fg="yellow")
+                click.secho("\nVulnerabilities:", fg="yellow")
                 click.secho(tabulate(vulns_data, headers="keys"), fg="yellow")
 
     def _delete_host(workspace_name, host_id):

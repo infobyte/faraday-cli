@@ -40,6 +40,12 @@ class ServiceResource(Resource):
     actions = {"get": {"method": "GET", "url": "v2/ws/{}/services/{}/"}}
 
 
+class VulnResource(Resource):
+    actions = {
+        "list": {"method": "GET", "url": "v2/ws/{}/vulns/"},
+    }
+
+
 class CredentialResource(Resource):
     actions = {
         "list": {"method": "GET", "url": "v2/ws/{}/credential/"},
