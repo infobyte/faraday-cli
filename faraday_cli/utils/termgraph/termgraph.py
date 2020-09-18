@@ -213,7 +213,7 @@ def find_max_label_length(labels):
 
 def hist_rows(data, args, colors):
     """Prepare the Histgram graph.
-       Each row is printed through the print_row function."""
+    Each row is printed through the print_row function."""
 
     val_min = find_min(data)
     val_max = find_max(data)
@@ -277,7 +277,7 @@ def hist_rows(data, args, colors):
 
 def horiz_rows(labels, data, normal_dat, args, colors, doprint=True):
     """Prepare the horizontal graph.
-       Each row is printed through the print_row function."""
+    Each row is printed through the print_row function."""
     val_min = find_min(data)
 
     for i in range(len(labels)):
@@ -376,7 +376,7 @@ def print_row(
 
 def stacked_graph(labels, data, normal_data, len_categories, args, colors):
     """Prepare the horizontal stacked graph.
-       Each row is printed through the print_row function."""
+    Each row is printed through the print_row function."""
     val_min = find_min(data)
 
     for i in range(len(labels)):
@@ -407,7 +407,7 @@ value_list, zipped_list, vertical_list, maxi = [], [], [], 0
 
 def vertically(value, num_blocks, val_min, color, args):
     """Prepare the vertical graph.
-       The whole graph is printed through the print_vertical function."""
+    The whole graph is printed through the print_vertical function."""
     global maxi, value_list
 
     value_list.append(str(value))
@@ -624,7 +624,7 @@ def check_data(labels, data, args):
 
 def print_categories(categories, colors):
     """Print a tick and the category's name for each category above
-       the graph."""
+    the graph."""
     for i in range(len(categories)):
         if colors:
             sys.stdout.write(
@@ -642,14 +642,14 @@ def print_categories(categories, colors):
 def read_data(args):
     """Read data from a file or stdin and returns it.
 
-       Filename includes (categories), labels and data.
-       We append categories and labels to lists.
-       Data are inserted to a list of lists due to the categories.
+    Filename includes (categories), labels and data.
+    We append categories and labels to lists.
+    Data are inserted to a list of lists due to the categories.
 
-       i.e.
-       labels = ['2001', '2002', '2003', ...]
-       categories = ['boys', 'girls']
-       data = [ [20.4, 40.5], [30.7, 100.0], ...]"""
+    i.e.
+    labels = ['2001', '2002', '2003', ...]
+    categories = ['boys', 'girls']
+    data = [ [20.4, 40.5], [30.7, 100.0], ...]"""
     print("")
     if args["title"]:
         print("# " + args["title"] + "\n")
