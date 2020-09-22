@@ -18,6 +18,7 @@ install_requires = [
     "termgraph",
     "spinners",
     "log_symbols",
+    "termcolor",
 ]
 
 
