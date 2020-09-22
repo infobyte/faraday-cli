@@ -17,6 +17,7 @@ install_requires = [
     "pyfiglet",
     "termgraph",
     "spinners",
+    "log_symbols",
 ]
 
 
