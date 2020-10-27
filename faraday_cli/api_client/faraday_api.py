@@ -1,4 +1,5 @@
 import os
+import re
 from urllib.parse import urljoin
 
 import click
@@ -68,6 +69,9 @@ class FaradayApi:
             resource_name="login", resource_class=resources.LoginResource
         )
         self.faraday_api.add_resource(
+            resource_name="config", resource_class=resources.ConfigResource
+        )
+        self.faraday_api.add_resource(
             resource_name="workspace",
             resource_class=resources.WorkspaceResource,
         )
@@ -107,6 +111,29 @@ class FaradayApi:
             else:
                 self.token = token_response.body
         return self.token
+
+    def is_token_valid(self):
+        try:
+            self.faraday_api.login.validate()
+        except ClientConnectionError as e:
+            raise click.ClickException(
+                click.style(f"Connection to error: {e}", fg="red")
+            )
+        except AuthError:
+            return False
+        else:
+            return True
+
+    @handle_errors
+    def get_version(self):
+        version_regex = r"(?P<product>\w)?-?(?P<version>\d+\.\d+)"
+        response = self.faraday_api.config.config()
+        raw_version = response.body["ver"]
+        match = re.match(version_regex, raw_version)
+        products = {"p": "pro", "c": "corp"}
+        product = products.get(match.group("product"), "community")
+        version = match.group("version")
+        return {"product": product, "version": version}
 
     @handle_errors
     def get_workspaces(self):
