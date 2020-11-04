@@ -67,9 +67,7 @@ def host(
     def _list_hosts(workspace_name):
         hosts = api_client.get_hosts(workspace_name)
         if not hosts["rows"]:
-            click.secho(
-                f"No hosts in workspace: {workspace_name}", fg="yellow"
-            )
+            click.echo(f"No hosts in workspace: {workspace_name}")
         else:
             data = [
                 OrderedDict(
@@ -88,7 +86,7 @@ def host(
                 click.echo(json.dumps(data, indent=4))
             else:
 
-                click.secho(tabulate(data, headers="keys"), fg="yellow")
+                click.echo(tabulate(data, headers="keys"))
 
     def _get_host(workspace_name, host_id):
         try:
@@ -113,8 +111,8 @@ def host(
                 )
                 for x in [host]
             ]
-            click.secho("Host:", fg="yellow")
-            click.secho(tabulate(host_data, headers="keys"), fg="yellow")
+            click.echo("Host:")
+            click.echo(tabulate(host_data, headers="keys"))
             if host["services"] > 0:
                 services = api_client.get_host_services(
                     workspace_name, host_id
@@ -134,10 +132,8 @@ def host(
                     )
                     for x in services
                 ]
-                click.secho("\nServices:", fg="yellow")
-                click.secho(
-                    tabulate(services_data, headers="keys"), fg="yellow"
-                )
+                click.echo("\nServices:")
+                click.echo(tabulate(services_data, headers="keys"))
             if host["vulns"] > 0:
                 vulns = api_client.get_host_vulns(workspace_name, host["ip"])
                 vulns_data = [
@@ -157,8 +153,8 @@ def host(
                     )
                     for x in vulns["vulnerabilities"]
                 ]
-                click.secho("\nVulnerabilities:", fg="yellow")
-                click.secho(tabulate(vulns_data, headers="keys"), fg="yellow")
+                click.echo("\nVulnerabilities:")
+                click.echo(tabulate(vulns_data, headers="keys"))
 
     def _delete_host(workspace_name, host_id):
         try:

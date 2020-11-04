@@ -15,10 +15,10 @@ def status(api_client):
     data = [
         {
             "Faraday url": active_config.faraday_url,
-            "Verify SSL": active_config.ssl_verify,
+            "Ignore SSL": active_config.ignore_ssl,
             "Version": version,
             "Valid Token": "\U00002714" if valid_token else "\U0000274c",
             "Workspace": active_config.workspace,
         }
     ]
-    click.echo(tabulate(data, headers="keys"))
+    click.secho(tabulate(data, headers="keys"), fg="green")

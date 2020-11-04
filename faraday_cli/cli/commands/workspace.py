@@ -27,7 +27,7 @@ def workspace(api_client, action, json_output, name):
             return
         else:
             if not workspaces:
-                click.secho("No workspaces available", fg="yellow")
+                click.echo("No workspaces available")
                 return
             else:
                 data = [
@@ -44,7 +44,7 @@ def workspace(api_client, action, json_output, name):
                     )
                     for x in workspaces
                 ]
-                click.secho(tabulate(data, headers="keys"), fg="yellow")
+                click.echo(tabulate(data, headers="keys"))
 
     def _create_workspace(workspace_name):
         try:
@@ -67,7 +67,7 @@ def workspace(api_client, action, json_output, name):
         else:
             if selected_workspace not in workspace_choices:
                 click.secho(
-                    f"Invalid worskpace: {selected_workspace}", fg="red"
+                    f"Invalid workspace: {selected_workspace}", fg="red"
                 )
                 return
         click.secho(f"Selected workspace: {selected_workspace}", fg="green")
@@ -87,7 +87,7 @@ def workspace(api_client, action, json_output, name):
         else:
             if workspace_to_delete not in workspace_choices:
                 click.secho(
-                    f"Invalid worskpace: {workspace_to_delete}", fg="red"
+                    f"Invalid workspace: {workspace_to_delete}", fg="red"
                 )
                 return
         api_client.delete_workspace(workspace_to_delete)

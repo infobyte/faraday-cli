@@ -52,7 +52,7 @@ def agent(
             )
             for x in agents
         ]
-        click.secho(tabulate(data, headers="keys"), fg="yellow")
+        click.echo(tabulate(data, headers="keys"))
 
     def _get_agent(workspace_name, agent_id):
         try:
@@ -83,9 +83,9 @@ def agent(
             )
             for x in agent["executors"]
         ]
-        click.secho(tabulate(data, headers="keys"), fg="yellow")
-        click.secho("\nExecutors:", fg="yellow")
-        click.secho(tabulate(executors_data, headers="keys"), fg="yellow")
+        click.echo(tabulate(data, headers="keys"))
+        click.echo("\nExecutors:")
+        click.echo(tabulate(executors_data, headers="keys"))
 
     def _run_executor(workspace_name, agent_id, executor_id, executor_params):
         agent = api_client.get_agent(workspace_name, agent_id)

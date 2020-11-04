@@ -35,7 +35,7 @@ def cli(ctx):
             active_config.load()
             ctx.obj = FaradayApi(
                 active_config.faraday_url,
-                ssl_verify=active_config.ssl_verify,
+                ignore_ssl=active_config.ignore_ssl,
                 token=active_config.token,
             )
 

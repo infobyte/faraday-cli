@@ -6,7 +6,8 @@ import click
 from validators import url
 
 
-def validate_url(ctx, param, value):
+# def validate_url(ctx, param, value):
+def validate_url(value):
     valid_url = url(value)
     if valid_url:
         return value

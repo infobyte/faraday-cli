@@ -15,7 +15,6 @@ from simple_rest_client.exceptions import (
     ClientConnectionError,
 )
 
-SESSION_KEY = "faraday_session_2"
 DEFAULT_TIMEOUT = int(os.environ.get("FARADAY_CLI_TIMEOUT", 1000))
 
 
@@ -46,13 +45,14 @@ def handle_errors(func):
 
 
 class FaradayApi:
-    def __init__(self, url, ssl_verify=True, token=None):
+    def __init__(self, url, ignore_ssl=False, token=None):
         self.api_url = urljoin(url, "_api")
         self.token = token
         if self.token:
             headers = {"Authorization": f"Token {self.token}"}
         else:
             headers = {}
+        ssl_verify = not ignore_ssl
         self.faraday_api = API(
             api_root_url=self.api_url,
             params={},
@@ -107,7 +107,9 @@ class FaradayApi:
                     f"Invalid url: {self.faraday_api.api_root_url}"
                 )
             except AuthError:
-                raise Exception("Invalid credentials")
+                raise
+            except ClientConnectionError:
+                raise
             else:
                 self.token = token_response.body
         return self.token
