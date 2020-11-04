@@ -1,7 +1,9 @@
 import os
+import re
 from urllib.parse import urljoin
 
 import click
+from faraday_cli.api_client.exceptions import DuplicatedError
 from simple_rest_client.api import API
 
 
@@ -31,6 +33,8 @@ def handle_errors(func):
             raise click.ClickException(
                 click.style(f"Connection to error: {e}", fg="red")
             )
+        except DuplicatedError as e:
+            raise click.ClickException(click.style(f"{e}", fg="red"))
         except Exception as e:
             raise click.ClickException(
                 click.style(f"Unknown error: {e}", fg="red")
@@ -65,6 +69,9 @@ class FaradayApi:
             resource_name="login", resource_class=resources.LoginResource
         )
         self.faraday_api.add_resource(
+            resource_name="config", resource_class=resources.ConfigResource
+        )
+        self.faraday_api.add_resource(
             resource_name="workspace",
             resource_class=resources.WorkspaceResource,
         )
@@ -85,6 +92,9 @@ class FaradayApi:
         self.faraday_api.add_resource(
             resource_name="agent", resource_class=resources.AgentResource
         )
+        self.faraday_api.add_resource(
+            resource_name="vuln", resource_class=resources.VulnResource
+        )
 
     def get_token(self, user, password):
         if not self.token:
@@ -102,6 +112,29 @@ class FaradayApi:
                 self.token = token_response.body
         return self.token
 
+    def is_token_valid(self):
+        try:
+            self.faraday_api.login.validate()
+        except ClientConnectionError as e:
+            raise click.ClickException(
+                click.style(f"Connection to error: {e}", fg="red")
+            )
+        except AuthError:
+            return False
+        else:
+            return True
+
+    @handle_errors
+    def get_version(self):
+        version_regex = r"(?P<product>\w)?-?(?P<version>\d+\.\d+)"
+        response = self.faraday_api.config.config()
+        raw_version = response.body["ver"]
+        match = re.match(version_regex, raw_version)
+        products = {"p": "pro", "c": "corp"}
+        product = products.get(match.group("product"), "community")
+        version = match.group("version")
+        return {"product": product, "version": version}
+
     @handle_errors
     def get_workspaces(self):
         response = self.faraday_api.workspace.list()
@@ -115,6 +148,11 @@ class FaradayApi:
     @handle_errors
     def get_hosts(self, workspace_name):
         response = self.faraday_api.host.list(workspace_name)
+        return response.body
+
+    @handle_errors
+    def get_vulns(self, workspace_name):
+        response = self.faraday_api.vuln.list(workspace_name)
         return response.body
 
     @handle_errors

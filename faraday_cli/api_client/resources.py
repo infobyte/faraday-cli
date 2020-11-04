@@ -9,6 +9,12 @@ class LoginResource(Resource):
     }
 
 
+class ConfigResource(Resource):
+    actions = {
+        "config": {"method": "GET", "url": "config"},
+    }
+
+
 class WorkspaceResource(Resource):
     actions = {
         "list": {"method": "GET", "url": "v2/ws/"},
@@ -38,6 +44,12 @@ class HostResource(Resource):
 
 class ServiceResource(Resource):
     actions = {"get": {"method": "GET", "url": "v2/ws/{}/services/{}/"}}
+
+
+class VulnResource(Resource):
+    actions = {
+        "list": {"method": "GET", "url": "v2/ws/{}/vulns/"},
+    }
 
 
 class CredentialResource(Resource):

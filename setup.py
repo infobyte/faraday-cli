@@ -14,6 +14,11 @@ install_requires = [
     "simple-rest-client",
     "tabulate",
     "validators",
+    "pyfiglet",
+    "termgraph",
+    "spinners",
+    "log_symbols",
+    "termcolor",
 ]
 
 

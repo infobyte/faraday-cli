@@ -22,28 +22,29 @@ from faraday_cli.config import active_config
 def workspace(api_client, action, json_output, name):
     def _list_workspaces():
         workspaces = api_client.get_workspaces()
-        if not workspaces:
-            if json_output:
-                click.echo(json.dumps(workspaces, indent=4))
-                return
-            else:
+        if json_output:
+            click.echo(json.dumps(workspaces, indent=4))
+            return
+        else:
+            if not workspaces:
                 click.secho("No workspaces available", fg="yellow")
                 return
-        data = [
-            OrderedDict(
-                {
-                    "name": x["name"],
-                    "hosts": x["stats"]["hosts"],
-                    "services": x["stats"]["services"],
-                    "vulns": x["stats"]["total_vulns"],
-                }
-            )
-            for x in workspaces
-        ]
-        if json_output:
-            click.echo(json.dumps(data, indent=4))
-        else:
-            click.secho(tabulate(data, headers="keys"), fg="yellow")
+            else:
+                data = [
+                    OrderedDict(
+                        {
+                            "name": x["name"],
+                            "active": x["active"],
+                            "public": x["public"],
+                            "readonly": x["readonly"],
+                            "hosts": x["stats"]["hosts"],
+                            "services": x["stats"]["services"],
+                            "vulns": x["stats"]["total_vulns"],
+                        }
+                    )
+                    for x in workspaces
+                ]
+                click.secho(tabulate(data, headers="keys"), fg="yellow")
 
     def _create_workspace(workspace_name):
         try:
