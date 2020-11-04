@@ -36,7 +36,7 @@ HOST_CREATE_JSON_SCHEMA = {
 @click.option(
     "-ws", "--workspace-name", type=str, help="Name of the workspace"
 )
-@click.option("-hid", "--host_id", type=int, help="id of the host")
+@click.option("-hid", "--host_id", type=int, help="ID of the host")
 @click.option(
     "-d",
     "--host-data",
