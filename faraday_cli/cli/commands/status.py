@@ -21,4 +21,4 @@ def status(api_client):
             "Workspace": active_config.workspace,
         }
     ]
-    click.secho(tabulate(data, headers="keys"), fg="green")
+    click.echo(tabulate(data, headers="keys"))
