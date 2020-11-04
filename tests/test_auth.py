@@ -14,7 +14,7 @@ def test_get_token_with_invalid_credentials(faraday_url, faraday_user):
     runner = CliRunner()
     parameters = [
         "auth",
-        "--url",
+        "--faraday-url",
         faraday_url,
         "--user",
         faraday_user,
@@ -32,7 +32,7 @@ def test_get_token_with_valid_credentials(
     runner = CliRunner()
     parameters = [
         "auth",
-        "--url",
+        "--faraday-url",
         faraday_url,
         "--user",
         faraday_user,
