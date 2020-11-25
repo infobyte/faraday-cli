@@ -140,6 +140,7 @@ $ faraday-cli agent -a run -aid 1 -eid 1 -p '{"port_list": "1-9000", "target": "
 
 ![Example](./docs/agent.svg)
 
+<!---
 ### Shell
 
 Faraday Shell
@@ -148,3 +149,4 @@ Faraday Shell
 $ faraday-cli shell
 ```
 ![Example](./docs/shell.svg)
+-->
