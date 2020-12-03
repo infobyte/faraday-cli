@@ -1,6 +1,6 @@
 auth:
   faraday_url: {url}
-  ssl_verify: false
+  ignore_ssl: true
   token: {token}
-workbench:
+faraday:
   workspace: demo_workspace

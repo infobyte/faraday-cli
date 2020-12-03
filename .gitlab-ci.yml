@@ -71,6 +71,10 @@ black:
       - virtualenv faraday_venv
       - source faraday_venv/bin/activate
       - pip install pip -U
+      - git clone https://github.com/python-cmd2/cmd2.git
+      - cd cmd2/plugins/ext_test
+      - pip install .
+      - cd ../../..
       - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/faradaysec/faraday.git
       - cd faraday && git checkout $FARADAY_REF
       - echo FARADAY_COMMIT=$(git rev-parse HEAD)

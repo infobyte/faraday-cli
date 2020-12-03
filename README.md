@@ -42,7 +42,7 @@ $ faraday-cli auth
 $ faraday-cli status
 Faraday Cli - Status
 
-faraday_url            token                                                ssl_verify
+faraday_url            token                                                ignore_ssl
 ---------------------  -----------------------------------------------------  ------------
 http://localhost:5985  XXXXXXXXX                                              False
 
@@ -140,6 +140,7 @@ $ faraday-cli agent -a run -aid 1 -eid 1 -p '{"port_list": "1-9000", "target": "
 
 ![Example](./docs/agent.svg)
 
+<!---
 ### Shell
 
 Faraday Shell
@@ -148,3 +149,4 @@ Faraday Shell
 $ faraday-cli shell
 ```
 ![Example](./docs/shell.svg)
+-->
