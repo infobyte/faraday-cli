@@ -14,15 +14,30 @@ class Config:
         self.token = None
         self.ignore_ssl = False
         self.workspace = None
+        self.custom_plugins_folder = None
+        self.load()
+
+    def config_exists(self) -> bool:
+        return self.config_file.exists()
 
     def load(self):
-        if self.config_file.exists():
-            with open(self.config_file) as f:
-                config_data = yaml.load(f, Loader=yaml.FullLoader)
-            self.faraday_url = config_data["auth"]["faraday_url"]
-            self.token = config_data["auth"]["token"]
-            self.ignore_ssl = config_data["auth"]["ignore_ssl"]
-            self.workspace = config_data["workbench"]["workspace"]
+        try:
+            if self.config_exists():
+                with open(self.config_file) as f:
+                    config_data = yaml.load(f, Loader=yaml.FullLoader)
+                self.faraday_url = config_data.get("auth", {}).get(
+                    "faraday_url"
+                )
+                self.token = config_data.get("auth", {}).get("token")
+                self.ignore_ssl = config_data.get("auth", {}).get("ignore_ssl")
+                self.workspace = config_data.get("faraday", {}).get(
+                    "workspace"
+                )
+                self.custom_plugins_folder = config_data.get(
+                    "settings", {}
+                ).get("custom_plugins_folder")
+        except KeyError:
+            pass
 
     def save(self):
         config_data = {
@@ -31,7 +46,8 @@ class Config:
                 "token": self.token,
                 "ignore_ssl": self.ignore_ssl,
             },
-            "workbench": {"workspace": self.workspace},
+            "faraday": {"workspace": self.workspace},
+            "settings": {"custom_plugins_folder": self.custom_plugins_folder},
         }
         with open(self.config_file, "w") as f:
             yaml.dump(config_data, f)

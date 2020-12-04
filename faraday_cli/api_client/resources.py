@@ -6,6 +6,7 @@ class LoginResource(Resource):
         "auth": {"method": "POST", "url": "login"},
         "get_token": {"method": "GET", "url": "v2/token/"},
         "validate": {"method": "GET", "url": "v2/preferences/"},
+        "second_factor": {"method": "POST", "url": "confirmation"},
     }
 
 

@@ -3,7 +3,12 @@ import re
 from urllib.parse import urljoin
 
 import click
-from faraday_cli.api_client.exceptions import DuplicatedError
+from faraday_cli.api_client.exceptions import (
+    DuplicatedError,
+    InvalidCredentials,
+    Invalid2FA,
+    MissingConfig,
+)
 from simple_rest_client.api import API
 
 
@@ -15,38 +20,15 @@ from simple_rest_client.exceptions import (
     ClientConnectionError,
 )
 
-DEFAULT_TIMEOUT = int(os.environ.get("FARADAY_CLI_TIMEOUT", 1000))
-
-
-def handle_errors(func):
-    def hanlde(*args, **kwargs):
-        try:
-            result = func(*args, **kwargs)
-        except AuthError:
-            raise click.ClickException(
-                click.style(
-                    "Invalid credentials, run 'faraday-cli auth'", fg="red"
-                )
-            )
-        except ClientConnectionError as e:
-            raise click.ClickException(
-                click.style(f"Connection to error: {e}", fg="red")
-            )
-        except DuplicatedError as e:
-            raise click.ClickException(click.style(f"{e}", fg="red"))
-        except Exception as e:
-            raise click.ClickException(
-                click.style(f"Unknown error: {e}", fg="red")
-            )
-        else:
-            return result
-
-    return hanlde
+DEFAULT_TIMEOUT = int(os.environ.get("FARADAY_CLI_TIMEOUT", 10000))
 
 
 class FaradayApi:
-    def __init__(self, url, ignore_ssl=False, token=None):
-        self.api_url = urljoin(url, "_api")
+    def __init__(self, url=None, ignore_ssl=False, token=None):
+        if url:
+            self.api_url = urljoin(url, "_api")
+        else:
+            self.api_url = None
         self.token = token
         if self.token:
             headers = {"Authorization": f"Token {self.token}"}
@@ -63,6 +45,33 @@ class FaradayApi:
             ssl_verify=ssl_verify,
         )
         self._build_resources()
+
+    def handle_errors(func):
+        def hanlde(self, *args, **kwargs):
+            if not self.token:
+                raise MissingConfig("Missing Config, run 'faraday-cli auth'")
+            try:
+                result = func(self, *args, **kwargs)
+            except InvalidCredentials:
+                raise
+            except AuthError:
+                raise InvalidCredentials(
+                    "Invalid credentials, run 'faraday-cli auth'"
+                )
+            except ClientConnectionError as e:
+                raise Exception(f"Connection to error: {e}")
+            except DuplicatedError as e:
+                raise Exception(f"{e}")
+            except NotFoundError:
+                raise
+            except ClientError:
+                raise
+            except Exception as e:
+                raise Exception(f"Unknown error: {type(e)} - {e}")
+            else:
+                return result
+
+        return hanlde
 
     def _build_resources(self):
         self.faraday_api.add_resource(
@@ -96,24 +105,49 @@ class FaradayApi:
             resource_name="vuln", resource_class=resources.VulnResource
         )
 
-    def get_token(self, user, password):
+    def login(self, user, password):
+        body = {"email": user, "password": password}
+        try:
+            response = self.faraday_api.login.auth(body=body)
+            if response.status_code == 202:
+                return None
+        except NotFoundError:
+            raise
+        except AuthError:
+            return False
+        except ClientConnectionError:
+            raise
+        else:
+            return True
+
+    def get_token(self, user, password, second_factor=None):
         if not self.token:
-            body = {"email": user, "password": password}
+            login_body = {"email": user, "password": password}
             try:
-                self.faraday_api.login.auth(body=body)
+                self.faraday_api.login.auth(body=login_body)
+                if second_factor:
+                    second_factor_body = {"secret": second_factor}
+                    try:
+                        self.faraday_api.login.second_factor(
+                            body=second_factor_body
+                        )
+                    except AuthError:
+                        raise Invalid2FA("Invalid 2FA")
                 token_response = self.faraday_api.login.get_token()
             except NotFoundError:
-                raise Exception(
-                    f"Invalid url: {self.faraday_api.api_root_url}"
-                )
-            except AuthError:
+                # raise Exception(
+                #    f"Invalid url: {self.faraday_api.api_root_url}"
+                # )
                 raise
+            except AuthError:
+                raise InvalidCredentials()
             except ClientConnectionError:
                 raise
             else:
                 self.token = token_response.body
         return self.token
 
+    @handle_errors
     def is_token_valid(self):
         try:
             self.faraday_api.login.validate()

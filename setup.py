@@ -19,6 +19,7 @@ install_requires = [
     "spinners",
     "log_symbols",
     "termcolor",
+    "cmd2",
 ]
 
 
@@ -50,6 +51,6 @@ setup(
     install_requires=install_requires,
     extras_require=extra_req,
     entry_points={
-        "console_scripts": ["faraday-cli=faraday_cli.cli.faraday:cli"],
+        "console_scripts": ["faraday-cli=faraday_cli.shell.main:main"],
     },
 )

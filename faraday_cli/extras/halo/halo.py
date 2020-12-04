@@ -10,12 +10,12 @@ import sys
 import threading
 import time
 
-import faraday_cli.utils.halo.cursor as cursor
+import faraday_cli.extras.halo.cursor as cursor
 
 from log_symbols.symbols import LogSymbols
 from spinners.spinners import Spinners
 
-from faraday_cli.utils.halo._utils import (
+from faraday_cli.extras.halo._utils import (
     colored_frame,
     decode_utf_8_text,
     get_environment,

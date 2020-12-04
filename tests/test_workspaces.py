@@ -1,58 +1,56 @@
-import json
 import random
 import string
-
-import yaml
-from click.testing import CliRunner
-from faraday_cli.cli.faraday import cli
+import json
+from cmd2 import CommandResult
 
 
-def test_workspaces(ok_configuration_file):
-    runner = CliRunner()
+def test_create_ws(faraday_cli_app):
     workspace_name = "".join(
         random.choice(string.ascii_lowercase) for i in range(10)
     )
-    cli_execution = runner.invoke(
-        cli, ["workspace", "-a", "create", "-n", workspace_name]
-    )
-    assert cli_execution.exit_code == 0
-    assert f"Created workspace: {workspace_name}" in cli_execution.output
-    cli_execution = runner.invoke(cli, ["workspace", "--json-output"])
-    json_output = json.loads(cli_execution.output)
-    number_of_ws = len(json_output)
-    assert cli_execution.exit_code == 0
-    cli_execution = runner.invoke(
-        cli, ["workspace", "-a", "delete", "-n", workspace_name]
-    )
-    assert cli_execution.exit_code == 0
-    assert f"Deleted workspace: {workspace_name}" in cli_execution.output
-    cli_execution = runner.invoke(cli, ["workspace", "--json-output"])
-    json_output = json.loads(cli_execution.output)
-    assert cli_execution.exit_code == 0
-    assert len(json_output) == (number_of_ws - 1)
+    command = f"create_ws {workspace_name}"
+    create_out = faraday_cli_app.app_cmd(command)
+    assert isinstance(create_out, CommandResult)
+    assert f"Created workspace: {workspace_name}" in create_out.stdout.strip()
+    command = f"delete_ws {workspace_name}"
+    delete_out = faraday_cli_app.app_cmd(command)
+    assert isinstance(delete_out, CommandResult)
+    assert f"Deleted workspace: {workspace_name}" in delete_out.stdout.strip()
 
 
-def test_select_workspace(ok_configuration_file):
-    runner = CliRunner()
+def test_select_ws(faraday_cli_app):
     workspace_name = "".join(
         random.choice(string.ascii_lowercase) for i in range(10)
     )
-    cli_execution = runner.invoke(
-        cli, ["workspace", "-a", "create", "-n", workspace_name]
+    command = f"create_ws {workspace_name}"
+    create_out = faraday_cli_app.app_cmd(command)
+    assert isinstance(create_out, CommandResult)
+    assert f"Created workspace: {workspace_name}" in create_out.stdout.strip()
+    command = f"select_ws {workspace_name}"
+    select_out = faraday_cli_app.app_cmd(command)
+    assert isinstance(select_out, CommandResult)
+    assert f"Selected workspace: {workspace_name}" in select_out.stdout.strip()
+    command = f"delete_ws {workspace_name}"
+    delete_out = faraday_cli_app.app_cmd(command)
+    assert isinstance(delete_out, CommandResult)
+    assert f"Deleted workspace: {workspace_name}" in delete_out.stdout.strip()
+
+
+def test_list_ws(faraday_cli_app):
+    workspace_name = "".join(
+        random.choice(string.ascii_lowercase) for i in range(10)
     )
-    assert cli_execution.exit_code == 0
-    assert f"Created workspace: {workspace_name}" in cli_execution.output
-    cli_execution = runner.invoke(
-        cli, ["workspace", "-a", "select", "-n", workspace_name]
-    )
-    assert cli_execution.exit_code == 0
-    assert f"Selected workspace: {workspace_name}" in cli_execution.output
-    with open(ok_configuration_file.name) as f:
-        config_data = yaml.load(f, Loader=yaml.FullLoader)
-    assert cli_execution.exit_code == 0
-    assert config_data["workbench"]["workspace"] == workspace_name
-    cli_execution = runner.invoke(
-        cli, ["workspace", "-a", "delete", "-n", workspace_name]
-    )
-    assert cli_execution.exit_code == 0
-    assert f"Deleted workspace: {workspace_name}" in cli_execution.output
+    command = f"create_ws {workspace_name}"
+    create_out = faraday_cli_app.app_cmd(command)
+    assert isinstance(create_out, CommandResult)
+    assert f"Created workspace: {workspace_name}" in create_out.stdout.strip()
+    command = "list_ws -j"
+    out = faraday_cli_app.app_cmd(command)
+    assert isinstance(out, CommandResult)
+    workspaces = json.loads(out.stdout.strip())
+    workspaces_names = [x["name"] for x in workspaces]
+    assert workspace_name in workspaces_names
+    command = f"delete_ws {workspace_name}"
+    delete_out = faraday_cli_app.app_cmd(command)
+    assert isinstance(delete_out, CommandResult)
+    assert f"Deleted workspace: {workspace_name}" in delete_out.stdout.strip()
