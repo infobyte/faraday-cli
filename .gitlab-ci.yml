@@ -97,7 +97,7 @@ black:
 
       #- virtualenv faraday_disp_venv
       #- source faraday_disp_venv/bin/activate
-      #- pip install $PIP_INSTALL_FLAGS .[test]
+      - pip install $PIP_INSTALL_FLAGS .[test]
       - mkdir run_from
       - cd run_from && mkdir logs && pytest ../tests --capture=sys -v --cov=../faraday_cli --color=yes --disable-warnings --junitxml=../report.xml
 
