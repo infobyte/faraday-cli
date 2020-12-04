@@ -64,6 +64,8 @@ class FaradayApi:
                 raise Exception(f"{e}")
             except NotFoundError:
                 raise
+            except ClientError:
+                raise
             except Exception as e:
                 raise Exception(f"Unknown error: {type(e)} - {e}")
             else:

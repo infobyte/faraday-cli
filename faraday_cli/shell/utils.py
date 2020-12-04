@@ -2,8 +2,9 @@ import json
 from socket import gethostbyname, inet_aton
 import jsonschema
 
-import click
 from validators import url
+
+from .exceptions import InvalidJson, InvalidJsonSchema
 
 SEVERITY_COLORS = {
     "critical": "magenta",
@@ -23,14 +24,12 @@ def validate_url(value):
         raise Exception(f"Invalid url: {value}")
 
 
-def validate_json(ctx, param, value):
+def validate_json(value):
     if value:
         try:
             json_value = json.loads(value)
         except Exception as e:
-            raise click.BadParameter(
-                click.style(f"Invalid json parameter: {value} - {e}", fg="red")
-            )
+            raise InvalidJson(f"Invalid json parameter: {value} - {e}")
         else:
             return json_value
 
@@ -48,7 +47,7 @@ def json_schema_validator(schema):
             try:
                 jsonschema.validate(instance=json_value, schema=schema)
             except jsonschema.exceptions.ValidationError as err:
-                raise Exception(f"{err}")
+                raise InvalidJsonSchema(f"{err}")
             return json_value
 
     return _validate_json
