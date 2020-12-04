@@ -111,7 +111,7 @@ $ faraday-cli list_host
 ```shell script
 $ faraday-cli get_host 574
 
-(faraday-cli) ➜  Faraday-cli faraday-cli get_host 574
+$ faraday-cli get_host 574
 Host:
   ID  IP         OS       HOSTNAMES    OWNER    OWNED      VULNS
 ----  ---------  -------  -----------  -------  -------  -------
@@ -133,7 +133,7 @@ Vulnerabilities:
 ### Create hosts
 
 ```shell script
-$ faraday-cli host -a create -d \''[{"ip": "stan.local", "description": "some server"}]'\'
+$ faraday-cli create_host -d \''[{"ip": "stan.local", "description": "some server"}]'\'
 ```
 
 Or pipe it
