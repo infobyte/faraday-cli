@@ -71,10 +71,6 @@ black:
       - virtualenv faraday_venv
       - source faraday_venv/bin/activate
       - pip install pip -U
-      - git clone https://github.com/python-cmd2/cmd2.git
-      - cd cmd2/plugins/ext_test
-      - pip install .
-      - cd ../../..
       - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/faradaysec/faraday.git
       - cd faraday && git checkout $FARADAY_REF
       - echo FARADAY_COMMIT=$(git rev-parse HEAD)
@@ -91,12 +87,14 @@ black:
       - faraday-manage create-tables
       - faraday-manage create-superuser --username $FARADAY_USER --password $FARADAY_PASSWORD --email $FARADAY_EMAIL
       - faraday-server &
-      #- deactivate
-
+      - deactivate
       - cd ..
-
-      #- virtualenv faraday_disp_venv
-      #- source faraday_disp_venv/bin/activate
+      - virtualenv faraday_cli_venv
+      - source faraday_cli_venv/bin/activate
+      - git clone https://github.com/python-cmd2/cmd2.git
+      - cd cmd2/plugins/ext_test
+      - pip install .
+      - cd ../../..
       - pip install $PIP_INSTALL_FLAGS .[test]
       - mkdir run_from
       - cd run_from && mkdir logs && pytest ../tests --capture=sys -v --cov=../faraday_cli --color=yes --disable-warnings --junitxml=../report.xml
