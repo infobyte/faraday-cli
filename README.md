@@ -105,7 +105,6 @@ $ faraday-cli list_host
  575  127.0.0.9    unknown                            1  3
  590  58.76.184.4  unknown  www.googlec.com           0  -
 ```
-![Example](./docs/list_hosts.svg)
 
 ### Get host
 
@@ -134,15 +133,16 @@ Vulnerabilities:
 ### Create hosts
 
 ```shell script
-$ faraday-cli host -a create -d '[{"ip": "stan.local", "description": "some server"}]'
+$ faraday-cli host -a create -d \''[{"ip": "stan.local", "description": "some server"}]'\'
 ```
+
 Or pipe it
 ```shell script
 $ echo '[{"ip": "1.1.1.5", "description": "some text"}]' | faraday-cli create_host --stdin
 
 ```
-![Example](./docs/create_host.svg)
-
+**The escaping of the single quotes (\\') is only needed when using it as a command.
+In the shell or using pipes it not necessary**
 
 ### Delete host
 
@@ -189,7 +189,7 @@ Executors:
 ### Run executor
 
 ```shell script
-$ faraday-cli run_executor -a 1 -e nmap -p '{"target": "www.google.com"}'
+$ faraday-cli run_executor -a 1 -e nmap -p \''{"target": "www.google.com"}'\'
 Run executor: internal/nmap [{'successful': True}]
 ```
 
