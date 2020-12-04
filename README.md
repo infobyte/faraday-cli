@@ -147,7 +147,7 @@ In the shell or using pipes it not necessary**
 ### Delete host
 
 ```shell script
-$ faraday-cli host -a delete -hid HOST_ID
+$ faraday-cli delete_host HOST_ID
 ```
 
 ### Import vulnerabilities from tool report
