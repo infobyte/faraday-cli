@@ -188,16 +188,13 @@ class WorkspaceCommands(CommandSet):
             self._cmd.perror(f"{e}")
         else:
             self._cmd.poutput(
-                style(f"Created workspace: {workspace_name}", fg="green")
+                style(
+                    f"{self._cmd.emojis['check']} "
+                    f"Created workspace: {args.workspace_name}",
+                    fg="green",
+                )
             )
             if not args.dont_select:
                 active_config.workspace = workspace_name
                 active_config.save()
-                self._cmd.poutput(
-                    style(
-                        f"{self._cmd.emojis['check']} "
-                        f"Created workspace: {args.workspace_name}",
-                        fg="green",
-                    )
-                )
                 self._cmd.update_prompt()

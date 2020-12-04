@@ -1,4 +1,4 @@
-# Faraday command line
+# Faraday on the terminal
 Use faraday directly from your favorite terminal
 
 
@@ -9,15 +9,6 @@ cd faraday-cli
 pip install .
 ```
 
-### Adding Autocomplete to our shell
-Zsh
-```
-echo ". $(pwd)/faraday-cli-autocomplete_zsh.sh" >> $HOME/.zshrc
-```
-Bash
-```
-echo ". $(pwd)/faraday-cli-autocomplete_bash.sh" >> $HOME/.bashrc
-```
 
 ## Install from pip
 
@@ -25,7 +16,25 @@ echo ". $(pwd)/faraday-cli-autocomplete_bash.sh" >> $HOME/.bashrc
 TBA
 ```
 
-## Commands
+## Use it like a command
+
+### Get help
+Get help of any command
+
+```shell script
+$ faraday-cli help create_ws
+usage: create_ws [-h] [-d] workspace_name
+
+Create Workspace
+
+positional arguments:
+  workspace_name     Workspace name
+
+optional arguments:
+  -h, --help         show this help message and exit
+  -d, --dont-select  Dont select after create
+```
+
 
 ### Login
 
@@ -40,79 +49,100 @@ $ faraday-cli auth
 
 ```shell script
 $ faraday-cli status
-Faraday Cli - Status
-
-faraday_url            token                                                ignore_ssl
----------------------  -----------------------------------------------------  ------------
-http://localhost:5985  XXXXXXXXX                                              False
-
-
-workspace
------------
-demo
+FARADAY SERVER         IGNORE SSL    VERSION    VALID TOKEN    WORKSPACE
+---------------------  ------------  ---------  -------------  -----------
+http://localhost:5985  False         corp-3.12  ✔
 ```
 
-### Select default workspace
 
+### Create a workspace
+When you create a workspace by default is selected as active, unless you use the "-d" flag
 ```shell script
-$ faraday-cli workspace -a select -n WORKSPACE_NAME
+$ faraday-cli create_ws some_name
+✔ Created workspace: some_name
 ```
 
-### Import vulns from tool report
+### Select active workspace
 
 ```shell script
-$ faraday-cli report "/path/to/report.xml"
-```
-
-### Import vulns from command
-
-```shell script
-$ faraday-cli command "ping -c 1 www.google.com"
+$ faraday-cli select_ws some_name
+✔ Selected workspace: some_name
 ```
 
 ### List workspaces
 
 ```shell script
-$ faraday-cli workspace
-```
-![Example](./docs/list_workspace.svg)
-
-### Create a workspace
-
-```shell script
-$ faraday-cli workspace -a create -n WORKSPACE_NAME
+$ faraday-cli list_ws
+NAME         HOSTS    SERVICES    VULNS  ACTIVE    PUBLIC    READONLY
+---------  -------  ----------  -------  --------  --------  ----------
+some_name       14          13       39  True      False     False
 ```
 
 ### Delete a workspace
 
 ```shell script
-$ faraday-cli workspace -a delete -n WORKSPACE_NAME
+$ faraday-cli delete_ws some_name
 ```
 
 ### List hosts of a workspace
 
 ```shell script
-$ faraday-cli host
+$ faraday-cli list_host
+  ID  IP           OS       HOSTNAMES          SERVICES  VULNS
+----  -----------  -------  ---------------  ----------  -------
+ 574  127.0.0.1    unknown                            1  3
+ 566  127.0.0.10   unknown                            1  3
+ 569  127.0.0.11   unknown                            1  3
+ 568  127.0.0.12   unknown                            1  3
+ 570  127.0.0.13   unknown                            1  3
+ 576  127.0.0.2    unknown                            1  3
+ 565  127.0.0.3    unknown                            1  3
+ 572  127.0.0.4    unknown                            1  3
+ 573  127.0.0.5    unknown                            1  3
+ 567  127.0.0.6    unknown                            1  3
+ 571  127.0.0.7    unknown                            1  3
+ 564  127.0.0.8    unknown                            1  3
+ 575  127.0.0.9    unknown                            1  3
+ 590  58.76.184.4  unknown  www.googlec.com           0  -
 ```
 ![Example](./docs/list_hosts.svg)
 
 ### Get host
 
 ```shell script
-$ faraday-cli host -a get -hid HOST_ID
+$ faraday-cli get_host 574
+
+(faraday-cli) ➜  Faraday-cli faraday-cli get_host 574
+Host:
+  ID  IP         OS       HOSTNAMES    OWNER    OWNED      VULNS
+----  ---------  -------  -----------  -------  -------  -------
+ 574  127.0.0.1  unknown               faraday  False          3
+
+Services:
+  ID  NAME    DESCRIPTION    PROTOCOL      PORT  VERSION    STATUS      VULNS
+----  ------  -------------  ----------  ------  ---------  --------  -------
+2638  ssh                    tcp             22  unknown    open            2
+
+Vulnerabilities:
+   ID  NAME                                      SEVERITY    STATUS    CONFIRMED    TOOL
+-----  ----------------------------------------  ----------  --------  -----------  -------
+13509  SSH Weak Encryption Algorithms Supported  MED         opened    False        Openvas
+13510  SSH Weak MAC Algorithms Supported         LOW         opened    False        Openvas
+13511  TCP timestamps                            LOW         opened    False        Openvas
 ```
-![Example](./docs/get_host.svg)
 
 ### Create hosts
 
 ```shell script
 $ faraday-cli host -a create -d '[{"ip": "stan.local", "description": "some server"}]'
 ```
-or pipe it
+Or pipe it
 ```shell script
-$ echo '[{"ip": "stan.local", "description": "some server"}]' | faraday-cli host -a create --stdin
+$ echo '[{"ip": "1.1.1.5", "description": "some text"}]' | faraday-cli create_host --stdin
+
 ```
 ![Example](./docs/create_host.svg)
+
 
 ### Delete host
 
@@ -120,33 +150,115 @@ $ echo '[{"ip": "stan.local", "description": "some server"}]' | faraday-cli host
 $ faraday-cli host -a delete -hid HOST_ID
 ```
 
+### Import vulnerabilities from tool report
+
+```shell script
+$ faraday-cli process_report "/path/to/report.xml"
+```
+![Example](./docs/process_report.svg)
+
+### Import vulnerabilities from command
+
+```shell script
+$ faraday-cli ping -c 1 www.google.com
+```
+![Example](./docs/command.svg)
+
 ### List agents
 
 ```shell script
-$ faraday-cli agent
+$ faraday-cli list_agent
+  id  name      active    status    executors
+----  --------  --------  --------  -----------
+   8  internal  True      online    nmap
 ```
 
-### Get agent
+### Get agent executors
 
 ```shell script
-$ faraday-cli agent -a get -aid 1
+$ faraday-cli get_agent 8
+  id  name      active    status
+----  --------  --------  --------
+   8  internal  True      online
+Executors:
+  id  name    parameters
+----  ------  ------------
+   9  nmap    target
 ```
 
 ### Run executor
 
 ```shell script
-$ faraday-cli agent -a run -aid 1 -eid 1 -p '{"port_list": "1-9000", "target": "192.168.66.1"}'
+$ faraday-cli run_executor -a 1 -e nmap -p '{"target": "www.google.com"}'
+Run executor: internal/nmap [{'successful': True}]
 ```
 
-![Example](./docs/agent.svg)
+### Different output
 
-<!---
-### Shell
-
-Faraday Shell
+Most of the commands support different ways to show output
+* In json (-j)
+* In a pretty table (-p)
 
 ```shell script
-$ faraday-cli shell
+$ faraday-cli list_ws
+NAME         HOSTS    SERVICES    VULNS  ACTIVE    PUBLIC    READONLY
+---------  -------  ----------  -------  --------  --------  ----------
+some_name       14          13       39  True      False     False
+
+$ faraday-cli list_ws -p
++-----------+---------+------------+---------+----------+----------+------------+
+| NAME      |   HOSTS |   SERVICES |   VULNS | ACTIVE   | PUBLIC   | READONLY   |
+|-----------+---------+------------+---------+----------+----------+------------|
+| some_name |      14 |         13 |      39 | True     | False    | False      |
++-----------+---------+------------+---------+----------+----------+------------+
+
+
+$ faraday-cli list_ws -j
+[
+    {
+        "update_date": "2020-12-04T18:46:46.473892+00:00",
+        "name": "some_name",
+        "scope": [],
+        "_id": 116,
+        "id": 116,
+        "public": false,
+        "readonly": false,
+        "active_agents_count": 0,
+        "duration": {
+            "start_date": null,
+            "end_date": null
+        },
+        "stats": {
+            "code_vulns": 0,
+            "critical_vulns": 0,
+            "unclassified_vulns": 0,
+            "hosts": 14,
+            "medium_vulns": 13,
+            "high_vulns": 0,
+            "web_vulns": 0,
+            "low_vulns": 26,
+            "info_vulns": 0,
+            "total_vulns": 39,
+            "services": 13,
+            "std_vulns": 39
+        },
+        "create_date": "2020-12-04T18:46:46.453040+00:00",
+        "description": "",
+        "active": true,
+        "customer": ""
+    }
+]
+
 ```
+
+
+### Specify workspace
+
+The commands use by default the active workspace, but you can specify other with the "-w" parameter
+
+
+## Use it like a shell
+
+Faraday-cli can be used as a shell and have el the same commands you have as a cli
+
 ![Example](./docs/shell.svg)
--->

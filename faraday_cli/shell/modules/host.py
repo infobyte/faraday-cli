@@ -243,7 +243,7 @@ class HostCommands(CommandSet):
         "--host-data",
         type=str,
         help=f"json schema:{HOST_CREATE_JSON_SCHEMA}",
-        required=False,
+        required=True,
     )
     create_host_parser.add_argument(
         "--stdin", action="store_true", help="Read host-data from stdin"
@@ -294,8 +294,5 @@ class HostCommands(CommandSet):
                     self._cmd.perror(f"{e}")
                 else:
                     self._cmd.poutput(
-                        style(
-                            f"Created host\n{json.dumps(host, indent=4)}",
-                            fg="green",
-                        )
+                        f"Created host\n{json.dumps(host, indent=4)}"
                     )

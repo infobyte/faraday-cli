@@ -1,5 +1,6 @@
 import json
 import argparse
+import sys
 from collections import OrderedDict
 
 from cmd2 import style, with_argparser, with_default_category, CommandSet
@@ -157,7 +158,9 @@ class AgentCommands(CommandSet):
         "--executor-params",
         type=str,
         help="Executor Params in json",
-        required=True,
+    )
+    run_executor_parser.add_argument(
+        "--stdin", action="store_true", help="Read executor-params from stdin"
     )
     run_executor_parser.add_argument(
         "-w", "--workspace-name", type=str, help="Workspace"
@@ -166,6 +169,14 @@ class AgentCommands(CommandSet):
     @with_argparser(run_executor_parser)
     def do_run_executor(self, args):
         """Run executor"""
+        if args.stdin:
+            executor_params = sys.stdin.read()
+        else:
+            if not args.executor_params:
+                self._cmd.perror("Missing executor params")
+                return
+            else:
+                executor_params = args.executor_params
         if not args.workspace_name:
             if active_config.workspace:
                 workspace_name = active_config.workspace
@@ -211,7 +222,7 @@ class AgentCommands(CommandSet):
                 }
                 try:
                     utils.json_schema_validator(executor_parameters_schema)(
-                        args.executor_params
+                        executor_params
                     )
                 except InvalidJsonSchema as e:
                     self._cmd.perror(e)
@@ -221,7 +232,7 @@ class AgentCommands(CommandSet):
                             workspace_name,
                             args.agent_id,
                             executor["name"],
-                            json.loads(args.executor_params),
+                            json.loads(executor_params),
                         )
                     except Exception as e:
                         print(e)
