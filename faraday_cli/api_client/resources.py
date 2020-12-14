@@ -50,6 +50,7 @@ class ServiceResource(Resource):
 class VulnResource(Resource):
     actions = {
         "list": {"method": "GET", "url": "v2/ws/{}/vulns/"},
+        "filter": {"method": "GET", "url": "v2/ws/{}/vulns/filter"},
     }
 
 
@@ -64,4 +65,16 @@ class AgentResource(Resource):
         "list": {"method": "GET", "url": "v2/ws/{}/agents/"},
         "get": {"method": "GET", "url": "v2/ws/{}/agents/{}/"},
         "run": {"method": "POST", "url": "v2/ws/{}/agents/{}/run/"},
+    }
+
+
+class ExecutiveReportResource(Resource):
+    actions = {
+        "list_templates": {
+            "method": "GET",
+            "url": "v2/ws/{}/reports/listTemplates/",
+        },
+        "generate": {"method": "POST", "url": "v2/ws/{}/reports/"},
+        "status": {"method": "GET", "url": "v2/ws/{}/reports/{}/"},
+        "download": {"method": "GET", "url": "v2/ws/{}/reports/{}/download/"},
     }

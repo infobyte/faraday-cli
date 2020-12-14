@@ -104,6 +104,10 @@ class FaradayApi:
         self.faraday_api.add_resource(
             resource_name="vuln", resource_class=resources.VulnResource
         )
+        self.faraday_api.add_resource(
+            resource_name="executive_report",
+            resource_class=resources.ExecutiveReportResource,
+        )
 
     def login(self, user, password):
         body = {"email": user, "password": password}
@@ -177,37 +181,43 @@ class FaradayApi:
         return response.body
 
     @handle_errors
-    def get_workspace(self, workspace_name):
+    def get_workspace(self, workspace_name: str):
         response = self.faraday_api.workspace.get(workspace_name)
         return response.body
 
     @handle_errors
-    def get_hosts(self, workspace_name):
+    def get_hosts(self, workspace_name: str):
         response = self.faraday_api.host.list(workspace_name)
         return response.body
 
     @handle_errors
-    def get_vulns(self, workspace_name):
-        response = self.faraday_api.vuln.list(workspace_name)
+    def get_vulns(self, workspace_name: str, query_filter: dict = None):
+        if query_filter:
+            # encoded_query = urllib.parse.urlencode({'q': query_filter})
+            response = self.faraday_api.vuln.filter(
+                workspace_name, params={"q": query_filter}
+            )
+        else:
+            response = self.faraday_api.vuln.list(workspace_name)
         return response.body
 
     @handle_errors
-    def get_workspace_credentials(self, workspace_name):
+    def get_workspace_credentials(self, workspace_name: str):
         response = self.faraday_api.credential.list(workspace_name)
         return response.body
 
     @handle_errors
-    def get_workspace_agents(self, workspace_name):
+    def get_workspace_agents(self, workspace_name: str):
         response = self.faraday_api.agent.list(workspace_name)
         return response.body
 
     @handle_errors
-    def get_agent(self, workspace_name, agent_id):
+    def get_agent(self, workspace_name: str, agent_id: int):
         response = self.faraday_api.agent.get(workspace_name, agent_id)
         return response.body
 
     @handle_errors
-    def run_executor(self, workspace_name, agent_id, executor_name, args):
+    def run_executor(self, workspace_name: str, agent_id, executor_name, args):
         body = {
             "executorData": {
                 "agent_id": agent_id,
@@ -221,17 +231,17 @@ class FaradayApi:
         return response.body
 
     @handle_errors
-    def get_host(self, workspace_name, host_id):
+    def get_host(self, workspace_name: str, host_id):
         response = self.faraday_api.host.get(workspace_name, host_id)
         return response.body
 
     @handle_errors
-    def delete_host(self, workspace_name, host_id):
+    def delete_host(self, workspace_name: str, host_id):
         response = self.faraday_api.host.delete(workspace_name, host_id)
         return response.body
 
     @handle_errors
-    def create_host(self, workspace_name, host_params):
+    def create_host(self, workspace_name: str, host_params):
         try:
             response = self.faraday_api.host.create(
                 workspace_name, body=host_params
@@ -243,24 +253,28 @@ class FaradayApi:
             return response.body
 
     @handle_errors
-    def get_host_services(self, workspace_name, host_id):
+    def get_host_services(self, workspace_name: str, host_id):
         response = self.faraday_api.host.get_services(workspace_name, host_id)
         return response.body
 
     @handle_errors
-    def get_host_vulns(self, workspace_name, host_ip):
+    def get_host_vulns(self, workspace_name: str, host_ip):
         response = self.faraday_api.host.get_vulns(
             workspace_name, params={"target": host_ip}
         )
         return response.body
 
     @handle_errors
-    def bulk_create(self, ws, data):
-        response = self.faraday_api.bulk_create.create(ws, body=data)
+    def bulk_create(self, workspace_name, data):
+        response = self.faraday_api.bulk_create.create(
+            workspace_name, body=data
+        )
         return response.body
 
     @handle_errors
-    def create_workspace(self, name, description="", users=None):
+    def create_workspace(
+        self, workspace_name: str, description="", users=None
+    ):
         default_users = ["faraday"]
         if users:
             if isinstance(users, str):
@@ -270,7 +284,7 @@ class FaradayApi:
         data = {
             "description": description,
             "id": 0,
-            "name": name,
+            "name": workspace_name,
             "public": False,
             "readonly": False,
             "customer": "",
@@ -285,14 +299,44 @@ class FaradayApi:
             return response.body
 
     @handle_errors
-    def delete_workspace(self, name):
-        response = self.faraday_api.workspace.delete(name)
+    def delete_workspace(self, workspace_name: str):
+        response = self.faraday_api.workspace.delete(workspace_name)
         return response
 
     @handle_errors
-    def is_workspace_valid(self, name):
+    def is_workspace_valid(self, workspace_name):
         workspaces = self.get_workspaces()
         available_workspaces = [
             ws for ws in map(lambda x: x["name"], workspaces)
         ]
-        return name in available_workspaces
+        return workspace_name in available_workspaces
+
+    @handle_errors
+    def get_executive_report_templates(self, workspace_name: str):
+        response = self.faraday_api.executive_report.list_templates(
+            workspace_name
+        )
+        return response.body
+
+    @handle_errors
+    def generate_executive_report(
+        self, workspace_name: str, report_data: dict
+    ):
+        response = self.faraday_api.executive_report.generate(
+            workspace_name, body=report_data
+        )
+        return response.body["id"]
+
+    @handle_errors
+    def get_executive_report_status(self, workspace_name: str, report_id: int):
+        response = self.faraday_api.executive_report.status(
+            workspace_name, report_id
+        )
+        return response.body["status"]
+
+    @handle_errors
+    def download_executive_report(self, workspace_name: str, report_id: int):
+        response = self.faraday_api.executive_report.download(
+            workspace_name, report_id
+        )
+        return response

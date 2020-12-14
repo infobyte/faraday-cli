@@ -1,4 +1,5 @@
 import argparse
+import json
 from collections import defaultdict
 from datetime import datetime
 import dateutil.parser
@@ -6,11 +7,13 @@ import dateutil.parser
 from cmd2 import with_argparser, with_default_category, CommandSet
 from faraday_cli.extras.halo.halo import Halo
 from faraday_cli.extras.termgraph import termgraph
-from faraday_cli.shell.utils import SEVERITY_COLORS
+from faraday_cli.shell.utils import (
+    SEVERITY_COLORS,
+    IGNORE_SEVERITIES,
+    SEVERITIES,
+)
 from faraday_cli.config import active_config
-
-
-IGNORE_SEVERITIES = ("info", "unclassified")
+from faraday_cli.api_client.filter import FaradayFilter
 
 
 @with_default_category("Stats")
@@ -30,10 +33,19 @@ class StatsCommands(CommandSet):
         help="Type of stat",
     )
     stats_parser.add_argument(
-        "-i",
         "--ignore-info",
         action="store_true",
-        help="Ignore informational/unclassified vulns",
+        help=f"Ignore {'/'.join(IGNORE_SEVERITIES)} vulnerabilities",
+    )
+    stats_parser.add_argument(
+        "--severity",
+        type=str,
+        help=f"Filter by severity {'/'.join(SEVERITIES)}",
+        default=[],
+        nargs="*",
+    )
+    stats_parser.add_argument(
+        "--confirmed", action="store_true", help="Confirmed vulnerabilities"
     )
 
     @with_argparser(stats_parser)
@@ -53,9 +65,6 @@ class StatsCommands(CommandSet):
             if vulns["vulnerabilities"]:
                 counters = defaultdict(int)
                 for vuln in vulns["vulnerabilities"]:
-                    if args.ignore_info:
-                        if vuln["value"]["severity"] in IGNORE_SEVERITIES:
-                            continue
                     if len(vuln["value"]["hostnames"]):
                         host_identifier = vuln["value"]["hostnames"][0]
                     else:
@@ -81,9 +90,6 @@ class StatsCommands(CommandSet):
                     lambda: {"severity": {x: 0 for x in SEVERITY_COLORS}}
                 )
                 for vuln in vulns["vulnerabilities"]:
-                    if args.ignore_info:
-                        if vuln["value"]["severity"] in IGNORE_SEVERITIES:
-                            continue
                     if len(vuln["value"]["hostnames"]):
                         host_identifier = vuln["value"]["hostnames"][0]
                     else:
@@ -116,9 +122,6 @@ class StatsCommands(CommandSet):
                 DATE_FORMAT = "%Y-%m-%d"
                 min_date = datetime.now()
                 for vuln in vulns["vulnerabilities"]:
-                    if args.ignore_info:
-                        if vuln["value"]["severity"] in IGNORE_SEVERITIES:
-                            continue
                     vuln_date = dateutil.parser.parse(
                         vuln["value"]["metadata"]["create_time"]
                     )
@@ -162,7 +165,26 @@ class StatsCommands(CommandSet):
                 return
             else:
                 workspace = active_config.workspace
-        vulns = self._cmd.api_client.get_vulns(workspace)
+        if args.severity and args.ignore_info:
+            self._cmd.perror("Use either --ignore-info or --severity")
+            return
+        query_filter = FaradayFilter()
+        selected_severities = set(map(lambda x: x.lower(), args.severity))
+        if selected_severities:
+            for severity in selected_severities:
+                if severity not in SEVERITIES:
+                    self._cmd.perror(f"Invalid severity: {severity}")
+                    return
+                else:
+                    query_filter.require_severity(severity)
+        if args.ignore_info:
+            for severity in IGNORE_SEVERITIES:
+                query_filter.ignore_severity(severity)
+        if args.confirmed:
+            query_filter.filter_confirmed()
+        vulns = self._cmd.api_client.get_vulns(
+            workspace, json.dumps(query_filter.get_filter())
+        )
         gather_data_function_choices = {
             "severity": gather_severity_stats,
             "vulns": gather_vulns_stats,

@@ -259,6 +259,21 @@ The commands use by default the active workspace, but you can specify other with
 
 ## Use it like a shell
 
-Faraday-cli can be used as a shell and have el the same commands you have as a cli
+Faraday-cli can be used as a shell and have all the same commands you have as a cli
 
 ![Example](./docs/shell.svg)
+
+
+## With Faraday commercial version
+
+If you have a Faraday commercial version you can automate report generation and download
+
+You can filter vulnerabilities
+* --ignore-info (ignore info/unclassified vulnerabilities)
+* --severity (only include vulnerabilities with the selected severities)
+* --confirmed (only include confirmed vulnerabilities)
+
+```shell
+$ faraday-cli generate_executive_report -t \'"generic_default.docx (generic)"\'  --title title --summary summary --enterprise company  -o /tmp/test.docx  --ignore-info
+Report generated: /tmp/test.docx
+```

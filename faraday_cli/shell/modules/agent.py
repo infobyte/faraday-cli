@@ -151,7 +151,7 @@ class AgentCommands(CommandSet):
         "-a", "--agent-id", type=int, help="Agent ID", required=True
     )
     run_executor_parser.add_argument(
-        "-e", "--executor-nme", type=str, help="Executor name", required=True
+        "-e", "--executor-name", type=str, help="Executor name", required=True
     )
     run_executor_parser.add_argument(
         "-p",
