@@ -249,6 +249,8 @@ class FaradayApi:
         except ClientError as e:
             if e.response.status_code == 409:
                 raise exceptions.DuplicatedError("Host already exist")
+            else:
+                raise
         else:
             return response.body
 
@@ -295,6 +297,8 @@ class FaradayApi:
         except ClientError as e:
             if e.response.status_code == 409:
                 raise exceptions.DuplicatedError("Workspace already exist")
+            else:
+                raise
         else:
             return response.body
 
