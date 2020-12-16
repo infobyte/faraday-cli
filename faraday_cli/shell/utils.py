@@ -6,6 +6,15 @@ from validators import url
 
 from .exceptions import InvalidJson, InvalidJsonSchema
 
+IGNORE_SEVERITIES = ("informational", "unclassified")
+SEVERITIES = (
+    "informational",
+    "critical",
+    "high",
+    "medium",
+    "low",
+    "unclassified",
+)
 SEVERITY_COLORS = {
     "critical": "magenta",
     "high": "red",
@@ -75,3 +84,38 @@ def trim_long_text(text, size=50):
 
 def get_severity_color(severity):
     return SEVERITY_COLORS.get(severity, "white")
+
+
+def get_ignore_info_severity_filter() -> dict:
+    query_filter = {
+        "filters": [
+            {
+                "and": [
+                    {"name": "severity", "op": "neq", "val": severity}
+                    for severity in IGNORE_SEVERITIES
+                ]
+            }
+        ]
+    }
+    return query_filter
+
+
+def get_severity_filter(severities: list) -> dict:
+    query_filter = {
+        "filters": [
+            {
+                "or": [
+                    {"name": "severity", "op": "eq", "val": severity}
+                    for severity in severities
+                ]
+            }
+        ]
+    }
+    return query_filter
+
+
+def get_confirmed_filter() -> dict:
+    query_filter = {
+        "filters": [{"name": "confirmed", "op": "==", "val": "true"}]
+    }
+    return query_filter
