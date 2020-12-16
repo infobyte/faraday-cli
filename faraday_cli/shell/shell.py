@@ -215,9 +215,9 @@ class FaradayShell(Cmd):
 
     def get_prompt(self) -> str:
         if active_config.workspace:
-            return style(f"[ws:{active_config.workspace}]>", fg="blue")
+            return style(f"[ws:{active_config.workspace}]> ", fg="blue")
         else:
-            return style("Faraday>", fg="blue")
+            return style("Faraday> ", fg="blue")
 
     status_parser = argparse.ArgumentParser()
     status_parser.add_argument(
