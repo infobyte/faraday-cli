@@ -4,7 +4,7 @@ Use faraday directly from your favorite terminal
 
 ## Install from source
 ```shell script
-git clone git@gitlab.com:faradaysec/faraday-cli.git
+git clone https://github.com/infobyte/faraday-cli.git
 cd faraday-cli
 pip install .
 ```
