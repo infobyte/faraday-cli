@@ -18,7 +18,6 @@ from faraday_plugins.plugins.manager import (
     ReportAnalyzer,
     CommandAnalyzer,
 )
-from pyfiglet import Figlet
 from simple_rest_client.exceptions import NotFoundError, ClientConnectionError
 from tabulate import tabulate
 
@@ -30,8 +29,16 @@ from faraday_cli.shell import utils
 
 from faraday_cli.api_client import FaradayApi
 from faraday_cli.api_client.exceptions import InvalidCredentials, Invalid2FA
+from faraday_cli.shell import modules  # Dont delete, this loads the modules
 
-from faraday_cli.shell import modules
+logo = """
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+"""
 
 
 class FaradayShell(Cmd):
@@ -58,9 +65,8 @@ class FaradayShell(Cmd):
         settings_to_hide = ["debug"]
         for setting_name in settings_to_hide:
             self.remove_settable(setting_name)
-        f = Figlet(font="slant")
         intro = []
-        intro.append(style(f.renderText("Faraday Cli"), fg="red"))
+        intro.append(style(logo, fg="red"))
         if active_config.faraday_url and active_config.token:
             intro.append(
                 style(f"Server: {active_config.faraday_url}", fg="green")

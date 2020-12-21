@@ -60,8 +60,7 @@ class StatsCommands(CommandSet):
         else:
             workspace_name = args.workspace_name
 
-        @Halo(text="Gathering data", text_color="green", spinner="dots")
-        def gather_vulns_stats():
+        def gather_vulns_stats(vulns):
             if vulns["vulnerabilities"]:
                 counters = defaultdict(int)
                 for vuln in vulns["vulnerabilities"]:
@@ -83,8 +82,7 @@ class StatsCommands(CommandSet):
             else:
                 return None
 
-        @Halo(text="Gathering data", text_color="green", spinner="dots")
-        def gather_severity_stats():
+        def gather_severity_stats(vulns):
             if vulns["vulnerabilities"]:
                 counters = defaultdict(
                     lambda: {"severity": {x: 0 for x in SEVERITY_COLORS}}
@@ -115,8 +113,7 @@ class StatsCommands(CommandSet):
             else:
                 return None
 
-        @Halo(text="Gathering data", text_color="green", spinner="dots")
-        def gather_history_stats():
+        def gather_history_stats(vulns):
             if vulns["vulnerabilities"]:
                 counters = defaultdict(int)
                 DATE_FORMAT = "%Y-%m-%d"
@@ -142,8 +139,12 @@ class StatsCommands(CommandSet):
             else:
                 return None
 
-        def graph_stats(gather_data_func):
-            args_data = gather_data_func()
+        @Halo(text="Gathering data", text_color="green", spinner="dots")
+        def graph_stats(gather_data_func, filter_to_apply):
+            vulns = self._cmd.api_client.get_vulns(
+                workspace, json.dumps(filter_to_apply)
+            )
+            args_data = gather_data_func(vulns)
             if args_data:
                 _, labels, data, colors = termgraph.read_data(args_data)
                 if args_data["calendar"]:
@@ -182,13 +183,13 @@ class StatsCommands(CommandSet):
                 query_filter.ignore_severity(severity)
         if args.confirmed:
             query_filter.filter_confirmed()
-        vulns = self._cmd.api_client.get_vulns(
-            workspace, json.dumps(query_filter.get_filter())
-        )
         gather_data_function_choices = {
             "severity": gather_severity_stats,
             "vulns": gather_vulns_stats,
             "date": gather_history_stats,
         }
 
-        graph_stats(gather_data_function_choices[args.stat_type])
+        graph_stats(
+            gather_data_function_choices[args.stat_type],
+            query_filter.get_filter(),
+        )
