@@ -44,7 +44,10 @@ class HostResource(Resource):
 
 
 class ServiceResource(Resource):
-    actions = {"get": {"method": "GET", "url": "v2/ws/{}/services/{}/"}}
+    actions = {
+        "list": {"method": "GET", "url": "v2/ws/{}/services/"},
+        "get": {"method": "GET", "url": "v2/ws/{}/services/{}/"},
+    }
 
 
 class VulnResource(Resource):
