@@ -191,6 +191,11 @@ class FaradayApi:
         return response.body
 
     @handle_errors
+    def get_services(self, workspace_name: str):
+        response = self.faraday_api.service.list(workspace_name)
+        return response.body
+
+    @handle_errors
     def get_vulns(self, workspace_name: str, query_filter: dict = None):
         if query_filter:
             # encoded_query = urllib.parse.urlencode({'q': query_filter})
