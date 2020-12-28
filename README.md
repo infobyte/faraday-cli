@@ -13,7 +13,7 @@ pip install .
 ## Install from pip
 
 ```
-TBA
+pip install faraday-cli
 ```
 
 ## Use it like a command
@@ -256,6 +256,13 @@ $ faraday-cli list_ws -j
 
 The commands use by default the active workspace, but you can specify other with the "-w" parameter
 
+
+### Continuous scan your assets with faraday
+
+For example run nmap for all the hosts in faraday that listen on the 443 port and import the results back to faraday
+```shell
+$ faraday-cli list_host --port 443 -ip | nmap -iL - -oX /tmp/nmap.xml  && faraday-cli process_report /tmp/nmap.xml
+```
 
 ## Use it like a shell
 
