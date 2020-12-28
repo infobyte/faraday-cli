@@ -26,6 +26,12 @@ extra_req = {
     "test": ["pytest", "pytest-cov", "faradaysec"],
 }
 
+with open("README.md") as readme_file:
+    readme = readme_file.read()
+
+with open("RELEASE.md") as history_file:
+    history = history_file.read()
+
 
 setup(
     name="faraday-cli",
@@ -44,6 +50,7 @@ setup(
     license="GNU General Public License v3",
     author="Faradaysec",
     author_email="devel@faradaysec.com",
+    long_description=readme + "\n\n" + history,
     description="Faraday cli package",
     include_package_data=True,
     install_requires=install_requires,
