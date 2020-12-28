@@ -1,4 +1,5 @@
 import json
+import sys
 import argparse
 from collections import OrderedDict
 
@@ -44,7 +45,12 @@ class ServiceCommands(CommandSet):
     def do_list_service(self, args):
         """List services"""
 
-        @Halo(text="Gathering data", text_color="green", spinner="dots")
+        @Halo(
+            text="Gathering data",
+            text_color="green",
+            spinner="dots",
+            stream=sys.stderr,
+        )
         def get_data(workspace_name):
             services = self._cmd.api_client.get_services(workspace_name)
             for i in services["services"]:

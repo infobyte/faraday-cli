@@ -7,6 +7,7 @@ from cmd2 import style, with_argparser, with_default_category, CommandSet
 from tabulate import tabulate
 from simple_rest_client.exceptions import NotFoundError
 
+from faraday_cli.extras.halo.halo import Halo
 from faraday_cli.config import active_config
 from faraday_cli.shell import utils
 
@@ -37,12 +38,27 @@ class HostCommands(CommandSet):
         "-j", "--json-output", action="store_true", help="JSON output"
     )
     list_host_parser.add_argument(
+        "-ip", "--list-ip", action="store_true", help="List ip only"
+    )
+    list_host_parser.add_argument(
         "-p", "--pretty", action="store_true", help="Pretty Tables"
     )
+    list_host_parser.add_argument("--port", type=int, help="Port number")
 
     @with_argparser(list_host_parser)
     def do_list_host(self, args):
         """List hosts"""
+
+        @Halo(
+            text="Gathering data",
+            text_color="green",
+            spinner="dots",
+            stream=sys.stderr,
+        )
+        def get_data(workspace_name, port_number):
+            hosts = self._cmd.api_client.get_hosts(workspace_name, port_number)
+            return hosts
+
         if not args.workspace_name:
             if active_config.workspace:
                 workspace_name = active_config.workspace
@@ -52,7 +68,7 @@ class HostCommands(CommandSet):
         else:
             workspace_name = args.workspace_name
         try:
-            hosts = self._cmd.api_client.get_hosts(workspace_name)
+            hosts = get_data(workspace_name, args.port)
         except NotFoundError:
             self._cmd.perror("Workspace not found")
         else:
@@ -61,6 +77,9 @@ class HostCommands(CommandSet):
             else:
                 if args.json_output:
                     self._cmd.poutput(json.dumps(hosts["rows"], indent=4))
+                elif args.ip:
+                    for host in hosts["rows"]:
+                        self._cmd.poutput(host["value"]["ip"])
                 else:
                     data = [
                         OrderedDict(

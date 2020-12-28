@@ -1,4 +1,3 @@
-# flake8: noqa
 import io
 import os
 import queue
@@ -18,10 +17,10 @@ from faraday_plugins.plugins.manager import (
     ReportAnalyzer,
     CommandAnalyzer,
 )
-from simple_rest_client.exceptions import NotFoundError, ClientConnectionError
+from simple_rest_client.exceptions import ClientConnectionError
 from tabulate import tabulate
 
-from simple_rest_client.exceptions import AuthError, ClientError
+from simple_rest_client.exceptions import ClientError
 
 from faraday_cli.extras.halo.halo import Halo
 from faraday_cli.config import active_config
@@ -29,7 +28,7 @@ from faraday_cli.shell import utils
 
 from faraday_cli.api_client import FaradayApi
 from faraday_cli.api_client.exceptions import InvalidCredentials, Invalid2FA
-from faraday_cli.shell import modules  # Dont delete, this loads the modules
+from faraday_cli.shell import modules  # noqa: F401
 
 logo = """
     ______                     __               _________
@@ -38,7 +37,7 @@ logo = """
  / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
 /_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
                                    /____/
-"""
+"""  # noqa: W605
 
 
 class FaradayShell(Cmd):
@@ -59,14 +58,15 @@ class FaradayShell(Cmd):
     delattr(Cmd, "do_run_script")
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(
+            persistent_history_file="~/.faraday-cli_history", *args, **kwargs
+        )
         self.TABLE_PRETTY_FORMAT = "psql"
         # hide unwanted settings
         settings_to_hide = ["debug"]
         for setting_name in settings_to_hide:
             self.remove_settable(setting_name)
-        intro = []
-        intro.append(style(logo, fg="red"))
+        intro = [style(logo, fg="red")]
         if active_config.faraday_url and active_config.token:
             intro.append(
                 style(f"Server: {active_config.faraday_url}", fg="green")
@@ -79,7 +79,7 @@ class FaradayShell(Cmd):
         else:
             self.api_client = FaradayApi()
             intro.append(
-                style(f"Missing faraday server, run 'auth'", fg="yellow")
+                style("Missing faraday server, run 'auth'", fg="yellow")
             )
         self.intro = "\n".join(intro)
         self.data_queue = queue.Queue()
@@ -176,7 +176,7 @@ class FaradayShell(Cmd):
                 self.poutput(style("Saving config", fg="green"))
                 self.poutput(
                     style(
-                        f"{self.emojis['check']} Authenticated with faraday: {faraday_url}",
+                        f"{self.emojis['check']} Authenticated with faraday: {faraday_url}",  # noqa: E501
                         fg="green",
                     )
                 )
@@ -203,13 +203,15 @@ class FaradayShell(Cmd):
         print("exit the application. Shorthand: Ctrl-D.")
 
     def postcmd(self, stop, line):
-        @Halo(text="Sending", text_color="green", spinner="dots")
         def send_to_faraday(ws, data):
+            spinner = Halo(text="Sending", text_color="green", spinner="dots")
+            spinner.start()
             self.api_client.bulk_create(ws, data)
+            spinner.stop()
 
         while not self.data_queue.empty():
             data = self.data_queue.get()
-            message = f"{self.emojis['arrow_up']} Sending data to workspace: {data['workspace']}"
+            message = f"{self.emojis['arrow_up']} Sending data to workspace: {data['workspace']}"  # noqa: E501
             self.poutput(style(message, fg="green"))
             send_to_faraday(data["workspace"], data["json_data"])
             self.poutput(style(f"{self.emojis['check']} Done", fg="green"))
