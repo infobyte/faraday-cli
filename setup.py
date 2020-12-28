@@ -51,6 +51,7 @@ setup(
     author="Faradaysec",
     author_email="devel@faradaysec.com",
     long_description=readme + "\n\n" + history,
+    long_description_content_type="text/markdown",
     description="Faraday cli package",
     include_package_data=True,
     install_requires=install_requires,
