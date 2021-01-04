@@ -1,3 +1,7 @@
+1.0.1 [Jan 4th, 2021]:
+---
+ * Fix error in list_host command
+
 1.0.0 [Dec 28th, 2020]:
 ---
  * Add List Services command
