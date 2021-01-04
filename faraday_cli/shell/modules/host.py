@@ -77,7 +77,7 @@ class HostCommands(CommandSet):
             else:
                 if args.json_output:
                     self._cmd.poutput(json.dumps(hosts["rows"], indent=4))
-                elif args.ip:
+                elif args.list_ip:
                     for host in hosts["rows"]:
                         self._cmd.poutput(host["value"]["ip"])
                 else:
