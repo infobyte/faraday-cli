@@ -26,6 +26,7 @@ def main(argv=None):
         app.onecmd_plus_hooks(command_string)
     else:
         # we have no command, drop into interactive mode
+        app.run_as_shell = True
         sys_exit_code = app.cmdloop()
     sys.exit(sys_exit_code)
 

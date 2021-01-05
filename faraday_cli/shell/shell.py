@@ -61,6 +61,7 @@ class FaradayShell(Cmd):
         super().__init__(
             persistent_history_file="~/.faraday-cli_history", *args, **kwargs
         )
+        self.run_as_shell = False
         self.TABLE_PRETTY_FORMAT = "psql"
         # hide unwanted settings
         settings_to_hide = ["debug"]
@@ -183,16 +184,28 @@ class FaradayShell(Cmd):
                 self.update_prompt()
             else:
                 self.perror("Invalid credentials")
+                if self.run_as_shell:
+                    sys.exit(1)
         except Invalid2FA:
             self.perror("Invalid 2FA")
+            if self.run_as_shell:
+                sys.exit(1)
         except InvalidCredentials:
             self.perror("Invalid credentials")
+            if self.run_as_shell:
+                sys.exit(1)
         except ClientError:
             self.perror("Invalid credentials")
+            if self.run_as_shell:
+                sys.exit(1)
         except ClientConnectionError as e:
             self.perror(f"Connection refused: {e}")
+            if self.run_as_shell:
+                sys.exit(1)
         except Exception as e:
             self.perror(f"{e}")
+            if self.run_as_shell:
+                sys.exit(1)
 
     def do_exit(self, inp):
         """Exit shell"""
