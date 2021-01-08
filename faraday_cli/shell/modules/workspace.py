@@ -9,7 +9,7 @@ from tabulate import tabulate
 from faraday_cli.config import active_config
 
 
-@with_default_category("Workspace")
+@with_default_category("Workspaces")
 class WorkspaceCommands(CommandSet):
     def __init__(self):
         super().__init__()
