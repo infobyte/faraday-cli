@@ -1,5 +1,6 @@
 site_name: Faraday Cli
 nav:
+    - Home: index.md
     - Getting started: getting_started.md
     - Using: using.md
     - Commands: commands.md
