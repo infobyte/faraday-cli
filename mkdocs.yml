@@ -1,0 +1,8 @@
+site_name: Faraday Cli
+nav:
+    - Getting started: getting_started.md
+    - Using: using.md
+    - Commands: commands.md
+theme: readthedocs
+markdown_extensions:
+  - admonition

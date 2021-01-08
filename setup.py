@@ -49,6 +49,7 @@ setup(
     ],
     license="GNU General Public License v3",
     author="Faradaysec",
+    python_requires=">3.7.0",
     author_email="devel@faradaysec.com",
     long_description=readme + "\n\n" + history,
     long_description_content_type="text/markdown",
