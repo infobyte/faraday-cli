@@ -10,7 +10,14 @@ import getpass
 import subprocess
 
 
-from cmd2 import Cmd, style, with_argparser, Statement, Settable
+from cmd2 import (
+    Cmd,
+    style,
+    with_argparser,
+    Statement,
+    Settable,
+    with_default_category,
+)
 import click
 from faraday_plugins.plugins.manager import (
     PluginsManager,
@@ -40,8 +47,8 @@ logo = """
 """  # noqa: W605
 
 
+@with_default_category("Core")
 class FaradayShell(Cmd):
-    __hiden_methods = ("do_EOF", "do_cd")
     prompt = "Faraday> "
     intro = "Welcome to Faraday Cli! Type ? to list commands"
     doc_header = "Available Commands (type help <command>)"
@@ -61,6 +68,7 @@ class FaradayShell(Cmd):
         super().__init__(
             persistent_history_file="~/.faraday-cli_history", *args, **kwargs
         )
+        self.hidden_commands += ["EOF", "cd", "alias"]
         self.run_as_shell = False
         self.TABLE_PRETTY_FORMAT = "psql"
         # hide unwanted settings

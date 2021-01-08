@@ -6,18 +6,7 @@ from cmd2 import with_argparser, with_default_category, CommandSet, style
 from faraday_cli.config import active_config
 
 
-stats_parser = argparse.ArgumentParser()
-stats_parser.add_argument("-w", "--workspace-name", type=str, help="Workspace")
-stats_parser.add_argument(
-    "-t",
-    "--stat-type",
-    choices=["severity", "vulns", "date"],
-    required=True,
-    help="Type of stat",
-)
-
-
-@with_default_category("Reports")
+@with_default_category("Tools Reports")
 class ReportsCommands(CommandSet):
     def __init__(self):
         super().__init__()
@@ -33,7 +22,7 @@ class ReportsCommands(CommandSet):
 
     @with_argparser(report_parser, preserve_quotes=True)
     def do_process_report(self, args):
-        """Send Tool report to Faraday"""
+        """Process Tool report in Faraday"""
         report_path = Path(args.report_path)
         if not report_path.is_file():
             self._cmd.perror(f"File {report_path} dont exists")

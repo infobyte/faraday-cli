@@ -12,7 +12,7 @@ from faraday_cli.shell import utils
 from faraday_cli.shell.exceptions import InvalidJson, InvalidJsonSchema
 
 
-@with_default_category("Agent")
+@with_default_category("Agents")
 class AgentCommands(CommandSet):
     def __init__(self):
         super().__init__()
@@ -29,7 +29,7 @@ class AgentCommands(CommandSet):
     )
 
     @with_argparser(list_agent_parser)
-    def do_list_agent(self, args):
+    def do_list_agents(self, args):
         """List agents"""
         if not args.workspace_name:
             if active_config.workspace:
