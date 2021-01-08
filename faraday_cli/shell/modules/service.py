@@ -25,7 +25,7 @@ HOST_CREATE_JSON_SCHEMA = {
 }
 
 
-@with_default_category("Service")
+@with_default_category("Services")
 class ServiceCommands(CommandSet):
     def __init__(self):
         super().__init__()
@@ -42,7 +42,7 @@ class ServiceCommands(CommandSet):
     )
 
     @with_argparser(list_service_parser)
-    def do_list_service(self, args):
+    def do_list_services(self, args):
         """List services"""
 
         @Halo(

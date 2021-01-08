@@ -25,7 +25,7 @@ HOST_CREATE_JSON_SCHEMA = {
 }
 
 
-@with_default_category("Host")
+@with_default_category("Hosts")
 class HostCommands(CommandSet):
     def __init__(self):
         super().__init__()
@@ -46,7 +46,7 @@ class HostCommands(CommandSet):
     list_host_parser.add_argument("--port", type=int, help="Port number")
 
     @with_argparser(list_host_parser)
-    def do_list_host(self, args):
+    def do_list_hosts(self, args):
         """List hosts"""
 
         @Halo(
@@ -271,8 +271,8 @@ class HostCommands(CommandSet):
     )
 
     @with_argparser(create_host_parser)
-    def do_create_host(self, args):
-        """Create Host"""
+    def do_create_hosts(self, args):
+        """Create Hosts"""
         if not args.workspace_name:
             if active_config.workspace:
                 workspace_name = active_config.workspace
