@@ -1,6 +1,6 @@
 # Using Faraday Cli
 
-Faraday Cli can be used in to ways
+Faraday Cli can be used in two ways
 
 * As individual commands
 * As a shell
@@ -15,7 +15,6 @@ $ faraday-cli list_ws
 NAME      HOSTS    SERVICES  VULNS    ACTIVE    PUBLIC    READONLY
 ------  -------  ----------  -------  --------  --------  ----------
 test         13          13  39       True      False     False
-test1         0           0  -        True      False     False
 ```
 
 

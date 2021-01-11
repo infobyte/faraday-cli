@@ -24,6 +24,10 @@ install_requires = [
 extra_req = {
     "dev": ["giteasychangelog", "flake8", "black", "pre-commit"],
     "test": ["pytest", "pytest-cov", "faradaysec"],
+    "docs": [
+        "mkdocs",
+        "mkdocs-material",
+    ],
 }
 
 with open("README.md") as readme_file:

@@ -23,14 +23,13 @@ class StatsCommands(CommandSet):
 
     stats_parser = argparse.ArgumentParser()
     stats_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace"
+        "stat_type",
+        type=str,
+        choices=["severity", "vulns", "date"],
+        help="Type of stat",
     )
     stats_parser.add_argument(
-        "-t",
-        "--stat-type",
-        choices=["severity", "vulns", "date"],
-        required=True,
-        help="Type of stat",
+        "-w", "--workspace-name", type=str, help="Workspace"
     )
     stats_parser.add_argument(
         "--ignore-info",

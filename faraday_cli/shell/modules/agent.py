@@ -19,13 +19,16 @@ class AgentCommands(CommandSet):
 
     list_agent_parser = argparse.ArgumentParser()
     list_agent_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace"
+        "-w", "--workspace-name", type=str, help="Workspace name"
     )
     list_agent_parser.add_argument(
-        "-j", "--json-output", action="store_true", help="JSON output"
+        "-j", "--json-output", action="store_true", help="Show output in json"
     )
     list_agent_parser.add_argument(
-        "-p", "--pretty", action="store_true", help="Pretty Tables"
+        "-p",
+        "--pretty",
+        action="store_true",
+        help="Show table in a pretty format ",
     )
 
     @with_argparser(list_agent_parser)
@@ -53,11 +56,11 @@ class AgentCommands(CommandSet):
                     data = [
                         OrderedDict(
                             {
-                                "id": x["id"],
-                                "name": x["name"],
-                                "active": x["active"],
-                                "status": x["status"],
-                                "executors": ", ".join(
+                                "ID": x["id"],
+                                "NAME": x["name"],
+                                "ACTIVE": x["active"],
+                                "STATUS": x["status"],
+                                "EXECUTORS": ", ".join(
                                     [i["name"] for i in x["executors"]]
                                 ),
                             }
@@ -74,15 +77,18 @@ class AgentCommands(CommandSet):
                     )
 
     get_agent_parser = argparse.ArgumentParser()
-    get_agent_parser.add_argument("agent_id", type=int, help="Agent ID")
+    get_agent_parser.add_argument("agent_id", type=int, help="ID of the Agent")
     get_agent_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace"
+        "-w", "--workspace-name", type=str, help="Workspace name "
     )
     get_agent_parser.add_argument(
-        "-j", "--json-output", action="store_true", help="JSON output"
+        "-j", "--json-output", action="store_true", help="Show output in json"
     )
     get_agent_parser.add_argument(
-        "-p", "--pretty", action="store_true", help="Pretty Tables"
+        "-p",
+        "--pretty",
+        action="store_true",
+        help="Show table in a pretty format",
     )
 
     @with_argparser(get_agent_parser)
@@ -109,10 +115,10 @@ class AgentCommands(CommandSet):
                 data = [
                     OrderedDict(
                         {
-                            "id": x["id"],
-                            "name": x["name"],
-                            "active": x["active"],
-                            "status": x["status"],
+                            "ID": x["id"],
+                            "NAME": x["name"],
+                            "ACTIVE": x["active"],
+                            "STATUS": x["status"],
                         }
                     )
                     for x in [agent]
@@ -120,10 +126,15 @@ class AgentCommands(CommandSet):
                 executors_data = [
                     OrderedDict(
                         {
-                            "id": x["id"],
-                            "name": x["name"],
-                            "parameters": ", ".join(
-                                [i for i in x["parameters_metadata"].keys()]
+                            "ID": x["id"],
+                            "NAME": x["name"],
+                            "PARAMETERS [REQUIRED]": "".join(
+                                [
+                                    f"{parameter} [{required}]\n"
+                                    for parameter, required in x[
+                                        "parameters_metadata"
+                                    ].items()
+                                ]
                             ),
                         }
                     )
@@ -137,7 +148,7 @@ class AgentCommands(CommandSet):
                         tablefmt="psql" if args.pretty else "simple",
                     )
                 )
-                self._cmd.poutput("Executors:")
+                self._cmd.poutput("\nExecutors:")
                 self._cmd.poutput(
                     tabulate(
                         executors_data,
@@ -148,7 +159,7 @@ class AgentCommands(CommandSet):
 
     run_executor_parser = argparse.ArgumentParser()
     run_executor_parser.add_argument(
-        "-a", "--agent-id", type=int, help="Agent ID", required=True
+        "-a", "--agent-id", type=int, help="ID of the agent", required=True
     )
     run_executor_parser.add_argument(
         "-e", "--executor-name", type=str, help="Executor name", required=True
@@ -163,7 +174,7 @@ class AgentCommands(CommandSet):
         "--stdin", action="store_true", help="Read executor-params from stdin"
     )
     run_executor_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace"
+        "-w", "--workspace-name", type=str, help="Workspace name"
     )
 
     @with_argparser(run_executor_parser)

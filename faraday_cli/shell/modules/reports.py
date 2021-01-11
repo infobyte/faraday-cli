@@ -16,7 +16,10 @@ class ReportsCommands(CommandSet):
         "-w", "--workspace-name", type=str, help="Workspace"
     )
     report_parser.add_argument(
-        "--plugin-id", type=str, help="Plugin ID", required=False
+        "--plugin-id",
+        type=str,
+        help="Plugin ID (force detection)",
+        required=False,
     )
     report_parser.add_argument("report_path", help="Path of the report file")
 

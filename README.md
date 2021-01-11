@@ -43,7 +43,7 @@ Configure auth for farday-cli
 ```shell script
 $ faraday-cli auth
 ```
-![Example](./docs/auth.svg)
+![Example](./docs/docs/images/auth.svg)
 
 ### View faraday-cli status
 
@@ -155,14 +155,14 @@ $ faraday-cli delete_host HOST_ID
 ```shell script
 $ faraday-cli process_report "/path/to/report.xml"
 ```
-![Example](./docs/process_report.svg)
+![Example](./docs/docs/images/process_report.svg)
 
 ### Import vulnerabilities from command
 
 ```shell script
 $ faraday-cli ping -c 1 www.google.com
 ```
-![Example](./docs/command.svg)
+![Example](./docs/docs/images/command.svg)
 
 ### List agents
 
@@ -182,8 +182,8 @@ $ faraday-cli get_agent 8
    8  internal  True      online
 Executors:
   id  name    parameters
-----  ------  ------------
-   9  nmap    target
+----  ------  -------------------------------------------------------------------------------------------
+   9  nmap    target, option_pn, option_sc, option_sv, port_list, top_ports, host_timeout, script_timeout
 ```
 
 ### Run executor
@@ -268,7 +268,7 @@ $ faraday-cli list_host --port 443 -ip | nmap -iL - -oX /tmp/nmap.xml  && farada
 
 Faraday-cli can be used as a shell and have all the same commands you have as a cli
 
-![Example](./docs/shell.svg)
+![Example](./docs/docs/images/shell.svg)
 
 
 ## With Faraday commercial version
