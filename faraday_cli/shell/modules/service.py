@@ -98,7 +98,7 @@ class ServiceCommands(CommandSet):
                                 "PORT": x["value"]["port"],
                                 "PROTOCOL": x["value"]["protocol"],
                                 "HOST": x["value"]["host_id"],
-                                "VULNS": x["value"]["vulns"],
+                                "VULNERABILITIES": x["value"]["vulns"],
                             }
                         )
                         for x in sorted(

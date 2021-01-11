@@ -21,10 +21,13 @@ class ExecutiveReportsCommands(CommandSet):
 
     report_parser = argparse.ArgumentParser()
     report_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace"
+        "-w", "--workspace-name", type=str, help="Workspace name"
     )
     report_parser.add_argument(
-        "-p", "--pretty", action="store_true", help="Pretty Tables"
+        "-p",
+        "--pretty",
+        action="store_true",
+        help="Show table in a pretty format",
     )
 
     @with_argparser(report_parser)
@@ -57,7 +60,7 @@ class ExecutiveReportsCommands(CommandSet):
 
     report_parser = argparse.ArgumentParser()
     report_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace"
+        "-w", "--workspace-name", type=str, help="Workspace name"
     )
     report_parser.add_argument(
         "-t", "--template", type=str, help="Template", required=True

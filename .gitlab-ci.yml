@@ -29,6 +29,7 @@ before_script:
 stages:
     - testing
     - publish
+    - deploy
 
 services:
     - postgres:latest
@@ -165,3 +166,6 @@ publish_pypi:
     rules:
       - if: '$CI_COMMIT_TAG'
         when: on_success
+
+include:
+  - local: docs/.gitlab-ci.yml

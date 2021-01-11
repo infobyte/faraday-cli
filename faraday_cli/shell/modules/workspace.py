@@ -41,10 +41,13 @@ class WorkspaceCommands(CommandSet):
 
     list_ws_parser = argparse.ArgumentParser()
     list_ws_parser.add_argument(
-        "-j", "--json-output", action="store_true", help="JSON output"
+        "-j", "--json-output", action="store_true", help="Show output in json"
     )
     list_ws_parser.add_argument(
-        "-p", "--pretty", action="store_true", help="Pretty Tables"
+        "-p",
+        "--pretty",
+        action="store_true",
+        help="Show table in a pretty format",
     )
 
     @with_argparser(list_ws_parser)
@@ -87,13 +90,20 @@ class WorkspaceCommands(CommandSet):
 
     get_ws_parser = argparse.ArgumentParser()
     get_ws_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace", required=False
+        "-w",
+        "--workspace-name",
+        type=str,
+        help="Workspace name",
+        required=False,
     )
     get_ws_parser.add_argument(
-        "-j", "--json-output", action="store_true", help="JSON output"
+        "-j", "--json-output", action="store_true", help="Show output in json"
     )
     get_ws_parser.add_argument(
-        "-p", "--pretty", action="store_true", help="Pretty Tables"
+        "-p",
+        "--pretty",
+        action="store_true",
+        help="Show table in a pretty format",
     )
 
     @with_argparser(get_ws_parser)

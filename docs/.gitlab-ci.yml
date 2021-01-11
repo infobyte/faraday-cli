@@ -1,0 +1,43 @@
+
+.pages_base:
+  image: python:3.8
+  before_script:
+    - pip install .[docs]
+  script:
+    - cd docs
+    - mkdocs build --strict
+    - mv site ../public
+  artifacts:
+    paths:
+    - public
+    expire_in: 7 days
+
+pages:
+  extends: .pages_base
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^(dev|master)$/'
+      when: on_success
+    - if: $BUILD_DOCS
+      when: on_success
+
+test_pages:
+  extends: .pages_base
+  stage: testing
+  rules:
+    - if: $TEST_DOCS
+      when: always
+  allow_failure: true
+
+publish_pages:
+    image: python:3
+    stage: deploy
+    before_script:
+      - pip install .[docs]
+      - git config remote.github.url >/dev/null || git remote add github https://${GH_TOKEN}@github.com/infobyte/faraday-cli.git
+    script:
+      - cd docs
+      - mkdocs gh-deploy --remote-branch gh-pages --remote-name github --force
+    rules:
+      - if: '$CI_COMMIT_TAG'
+        when: on_success

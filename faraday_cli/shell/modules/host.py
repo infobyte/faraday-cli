@@ -32,18 +32,21 @@ class HostCommands(CommandSet):
 
     list_host_parser = argparse.ArgumentParser()
     list_host_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace"
+        "-w", "--workspace-name", type=str, help="Workspace name"
     )
     list_host_parser.add_argument(
-        "-j", "--json-output", action="store_true", help="JSON output"
+        "-j", "--json-output", action="store_true", help="Show output in json"
     )
     list_host_parser.add_argument(
-        "-ip", "--list-ip", action="store_true", help="List ip only"
+        "-ip", "--show-ip", action="store_true", help="Show ip only"
     )
     list_host_parser.add_argument(
-        "-p", "--pretty", action="store_true", help="Pretty Tables"
+        "-p",
+        "--pretty",
+        action="store_true",
+        help="Show table in a pretty format",
     )
-    list_host_parser.add_argument("--port", type=int, help="Port number")
+    list_host_parser.add_argument("--port", type=int, help="Listen in port")
 
     @with_argparser(list_host_parser)
     def do_list_hosts(self, args):
@@ -77,7 +80,7 @@ class HostCommands(CommandSet):
             else:
                 if args.json_output:
                     self._cmd.poutput(json.dumps(hosts["rows"], indent=4))
-                elif args.list_ip:
+                elif args.show_ip:
                     for host in hosts["rows"]:
                         self._cmd.poutput(host["value"]["ip"])
                 else:
@@ -109,20 +112,27 @@ class HostCommands(CommandSet):
                     )
 
     get_host_parser = argparse.ArgumentParser()
-    get_host_parser.add_argument("host_id", type=int, help="Host ID")
+    get_host_parser.add_argument("host_id", type=int, help="ID of the host")
     get_host_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace", required=False
+        "-w",
+        "--workspace-name",
+        type=str,
+        help="Workspace name",
+        required=False,
     )
     get_host_parser.add_argument(
-        "-j", "--json-output", action="store_true", help="JSON output"
+        "-j", "--json-output", action="store_true", help="Show output in json"
     )
     get_host_parser.add_argument(
-        "-p", "--pretty", action="store_true", help="Pretty Tables"
+        "-p",
+        "--pretty",
+        action="store_true",
+        help="Show table in a pretty format",
     )
 
     @with_argparser(get_host_parser)
     def do_get_host(self, args):
-        """Get Host"""
+        """Get host information"""
         if not args.workspace_name:
             if active_config.workspace:
                 workspace_name = active_config.workspace
@@ -231,9 +241,13 @@ class HostCommands(CommandSet):
                     )
 
     delete_host_parser = argparse.ArgumentParser()
-    delete_host_parser.add_argument("host_id", type=int, help="Host ID")
+    delete_host_parser.add_argument("host_id", type=int, help="ID of the host")
     delete_host_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace", required=False
+        "-w",
+        "--workspace-name",
+        type=str,
+        help="Workspace name",
+        required=False,
     )
 
     @with_argparser(delete_host_parser)
@@ -254,20 +268,24 @@ class HostCommands(CommandSet):
         except Exception as e:
             self._cmd.perror(f"{e}")
         else:
-            self._cmd.poutput(style("Deleted host", fg="green"))
+            self._cmd.poutput(style("Host deleted", fg="green"))
 
     create_host_parser = argparse.ArgumentParser()
     create_host_parser.add_argument(
         "-d",
         "--host-data",
         type=str,
-        help=f"json schema:{HOST_CREATE_JSON_SCHEMA}",
+        help=f"Host data in json format: {HOST_CREATE_JSON_SCHEMA}",
     )
     create_host_parser.add_argument(
         "--stdin", action="store_true", help="Read host-data from stdin"
     )
     create_host_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace", required=False
+        "-w",
+        "--workspace-name",
+        type=str,
+        help="Workspace name",
+        required=False,
     )
 
     @with_argparser(create_host_parser)

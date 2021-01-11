@@ -24,6 +24,10 @@ install_requires = [
 extra_req = {
     "dev": ["giteasychangelog", "flake8", "black", "pre-commit"],
     "test": ["pytest", "pytest-cov", "faradaysec"],
+    "docs": [
+        "mkdocs",
+        "mkdocs-material",
+    ],
 }
 
 with open("README.md") as readme_file:
@@ -49,6 +53,7 @@ setup(
     ],
     license="GNU General Public License v3",
     author="Faradaysec",
+    python_requires=">3.7.0",
     author_email="devel@faradaysec.com",
     long_description=readme + "\n\n" + history,
     long_description_content_type="text/markdown",

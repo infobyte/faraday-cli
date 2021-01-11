@@ -1,0 +1,61 @@
+site_name: Faraday Cli
+site_description: Faraday command line tool
+site_author: Faradaysec
+site_url: https://faradaysec.com
+repo_name: infobyte/faraday-cli
+repo_url: https://github.com/infobyte/faraday-cli
+
+theme:
+  name: material
+  logo: images/logo.svg
+  icon:
+    repo: fontawesome/brands/github-alt
+  favicon: images/favicon.png
+  language: en
+
+nav:
+  - Home: index.md
+  - Getting started: getting_started.md
+  - Using: using.md
+  - Commands: commands/commands.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.keys
+  - pymdownx.smartsymbols
+  - pymdownx.tabbed
+  - pymdownx.tasklist:
+      custom_checkbox: True
+  - codehilite:
+      linenums: true
+      noclasses: True
+  - toc:
+      permalink: true
+  - pymdownx.magiclink:
+      repo_url_shortener: True
+      repo_url_shorthand: True
+      social_url_shorthand: True
+      # more options on magiclink https://facelessuser.github.io/pymdown-extensions/extensions/magiclink/#options
+      provider: 'github'
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_div_format
+
+extra:
+  social:
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/infobyte/faraday-cli
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/faradaysec
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/faradaysec/
+    - icon: fontawesome/brands/instagram
+      link: https://instagram.com/faradaysec
+
+
+extra_css:
+  - css/faraday_doc.css
