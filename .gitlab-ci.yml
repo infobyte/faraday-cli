@@ -29,6 +29,7 @@ before_script:
 stages:
     - testing
     - publish
+    - deploy
 
 services:
     - postgres:latest
