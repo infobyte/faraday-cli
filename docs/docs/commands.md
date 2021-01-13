@@ -466,9 +466,9 @@ List all configured agents for a workspace.
 
 ```
 $ faraday-cli faraday-cli list_agents
-  id  name    active    status    executors
+  ID  NAME    ACTIVE    STATUS    EXECUTORS
 ----  ------  --------  --------  -----------
-   1  agent   True      online    nmap
+   2  nico    True      online    nmap
 ```
 
 ### get_agent
@@ -490,16 +490,22 @@ Get information of and agent and its executors.
 | `-j/--json-output`      | Show output in json     |
 
 ```
-$ faraday-cli  faraday-cli get_agent 1
-  id  name    active    status
+$   ID  NAME    ACTIVE    STATUS
 ----  ------  --------  --------
-   1  agent   True      online
-Executors:
-  id  name    parameters [required]
-----  ------  ----------------------------------------------------------------------------------------------------------------------------------------------------------
-   1  nmap    target [True], option_pn [False], option_sc [False], option_sv [False], port_list [False], top_ports [False], host_timeout [False], script_timeout [False]
-```
+   2  nico    True      online
 
+Executors:
+  ID  NAME    PARAMETERS [REQUIRED]
+----  ------  -----------------------
+   2  nmap    target [True]
+              option_pn [False]
+              option_sc [False]
+              option_sv [False]
+              port_list [False]
+              top_ports [False]
+              host_timeout [False]
+              script_timeout [False]
+```
 ### run_executor
 
 Run an executor.
@@ -522,7 +528,7 @@ Run an executor.
 !!! info
     You can pass the executor parameters via stdin.
     ```
-    $ echo '{"target": "www.google.com"}'' | faraday-cli  run_executor -a 1 -e nmap --stdin
+    $ echo '{"target": "www.google.com"}' | faraday-cli  run_executor -a 1 -e nmap --stdin
     ```
 
 !!! warning

@@ -144,13 +144,15 @@ class FaradayShell(Cmd):
         ignore_ssl = args.ignore_ssl
         if not faraday_url:
             faraday_url = utils.validate_url(
-                click.prompt("Faraday url", default=active_config.faraday_url)
+                click.prompt(
+                    "\nFaraday url", default=active_config.faraday_url
+                )
             )
             url_data = urlparse(faraday_url)
             if url_data.scheme == "https":
                 ignore_ssl = (
                     click.prompt(
-                        f"Validate SSL certificate for [{faraday_url}]",
+                        f"\nValidate SSL certificate for [{faraday_url}]",
                         type=click.Choice(
                             choices=["Y", "N"], case_sensitive=False
                         ),
@@ -161,9 +163,9 @@ class FaradayShell(Cmd):
         else:
             faraday_url = utils.validate_url(faraday_url)
         if not user:
-            user = click.prompt("User")
+            user = click.prompt("\nUser")
         if not password:
-            password = click.prompt("Password", hide_input=True)
+            password = click.prompt("\nPassword", hide_input=True)
         try:
             api_client = FaradayApi(faraday_url, ignore_ssl=ignore_ssl)
             login_ok = api_client.login(user, password)
