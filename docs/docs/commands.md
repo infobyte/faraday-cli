@@ -1,43 +1,19 @@
 # Commands
 
-## help
-
-Using the help command you can get info of any command.
-```
-$ faraday-cli help -v
-
-Documented commands (use 'help -v' for verbose/'help <topic>' for details):
-
-Agents
---------------------------------------------------------------------------------
-get_agent           Get agent
-list_agents         List agents
-run_executor        Run executor
-...
-```
-
-```
-$  faraday-cli help auth
-usage: auth [-h] [-f FARADAY_URL] [-i] [-u USER] [-p PASSWORD]
-
-Authenticate with a faraday server
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -f FARADAY_URL, --faraday-url FARADAY_URL
-                        Faraday server URL
-  -i, --ignore-ssl      Ignore SSL verification
-  -u USER, --user USER  Faraday user
-  -p PASSWORD, --password PASSWORD
-                        Faraday password
-```
-
 ## Authentication
 
 ### auth
 
 Authenticate with your faraday server.
 
+```
+$ faraday-cli auth
+Faraday url [http://localhost:5985]: http://localhost:5985
+User: faraday
+Password:
+Saving config
+✔ Authenticated with faraday: http://localhost:5985
+```
 *Optional rguments:*
 
 | Syntax      | Description |
@@ -48,14 +24,13 @@ Authenticate with your faraday server.
 | `-u/--user USER`  | Faraday user       |
 | `-p/--password PASSWORD`  | Faraday password       |
 
-```
-$ faraday-cli auth
-Faraday url [http://localhost:5985]: http://localhost:5985
-User: faraday
-Password:
-Saving config
-✔ Authenticated with faraday: http://localhost:5985
-```
+!!! info "Faraday token expiration"
+    You may want to change the faraday token expiration time, so you don't have to authenticate so often.
+
+    The default is 12 hours.
+
+    To do it change de value of ```api_token_expiration```(expressed in seconds) in your faraday ````server.ini````
+
 
 ### status
 
@@ -74,13 +49,6 @@ http://localhost:5985  False         community-3.14  ✔              test
 
 List workspaces created in faraday.
 
-*Optional Arguments:*
-
-| Syntax      | Description |
-|:-----	|------:	|
-| `-j/--json-output`     | Show output in json     |
-| `-p/--pretty`   | Show table in a pretty format       |
-
 ```
 $ faraday-cli list_ws -p
 +--------+---------+------------+---------+----------+----------+------------+
@@ -90,15 +58,17 @@ $ faraday-cli list_ws -p
 +--------+---------+------------+---------+----------+----------+------------+
 ```
 
-### delete_ws
-
-Delete workspace from faraday.
-
-*Required Arguments:*
+*Optional Arguments:*
 
 | Syntax      | Description |
 |:-----	|------:	|
-| `WORKSPACE_NAME`     | Workspace name     |
+| `-j/--json-output`     | Show output in json     |
+| `-p/--pretty`   | Show table in a pretty format       |
+
+
+### delete_ws
+
+Delete workspace from faraday.
 
 ```
 $ faraday-cli delete_ws test1
@@ -106,17 +76,15 @@ Deleting workspace: test1
 Deleted workspace: test1
 ```
 
-### get_ws
-
-Get details of a workspace.
-
-*Optional Arguments:*
+*Required Arguments:*
 
 | Syntax      | Description |
 |:-----	|------:	|
-| `-w WORKSPACE_NAME`      | Workspace name     |
-| `-j/--json-output`      | Show output in json     |
-| `-p/--pretty`   | Show table in a pretty format       |
+| `WORKSPACE_NAME`     | Workspace name     |
+
+### get_ws
+
+Get details of a workspace.
 
 ```
 $ faraday-cli get_ws -p
@@ -127,9 +95,23 @@ $ faraday-cli get_ws -p
 +--------+----------+----------+------------+---------+------------+---------+
 ```
 
+*Optional Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `-w WORKSPACE_NAME`      | Workspace name     |
+| `-j/--json-output`      | Show output in json     |
+| `-p/--pretty`   | Show table in a pretty format       |
+
 ### select_ws
 
 Select your active workspace, unless you use the ```-w``` argument all the commands will use this workspace.
+
+
+```
+$ faraday-cli select_ws test
+✔ Selected workspace: test
+```
 
 *Required Arguments:*
 
@@ -137,14 +119,15 @@ Select your active workspace, unless you use the ```-w``` argument all the comma
 |:-----	|------:	|
 | `WORKSPACE_NAME`      | Workspace name     |
 
-```
-$ faraday-cli select_ws test
-✔ Selected workspace: test
-```
-
 ### create_ws
 
 Create a new workspace in faraday.
+
+
+```
+$ faraday-cli create_ws test_workspace
+✔ Created workspace: test_workspace
+```
 
 *Required Arguments:*
 
@@ -158,26 +141,12 @@ Create a new workspace in faraday.
 |:-----	|------:	|
 | `-d/--dont-select`      | Dont select after create     |
 
-```
-$ faraday-cli create_ws test_workspace
-✔ Created workspace: test_workspace
-```
-
 ## Hosts
 
 ### list_hosts
 
 List hosts in a workspace.
 
-*Optional Arguments:*
-
-| Syntax      | Description |
-|:-----	|------:	|
-| `-w WORKSPACE_NAME`     | Workspace name    |
-| `-p/--pretty`   | Show table in a pretty format       |
-| `-j/--json-output`      | Show output in json     |
-| `-ip/--list-ip`   | Show ip only      |
-| `--port PORT`   | Listen in port      |
 
 ```
 $ faraday-cli list_hosts -p
@@ -200,16 +169,6 @@ $ faraday-cli list_hosts -p
 +------+------------+---------+-------------+------------+---------+
 ```
 
-### get_host
-
-Get host information.
-
-*Requirement Arguments:*
-
-| Syntax      | Description |
-|:-----	|------:	|
-| `host_id`    | ID of the host    |
-
 *Optional Arguments:*
 
 | Syntax      | Description |
@@ -217,6 +176,13 @@ Get host information.
 | `-w WORKSPACE_NAME`     | Workspace name    |
 | `-p/--pretty`   | Show table in a pretty format       |
 | `-j/--json-output`      | Show output in json     |
+| `-ip/--list-ip`   | Show ip only      |
+| `--port PORT`   | Listen in port      |
+
+### get_host
+
+Get host information.
+
 
 ```
 $ faraday-cli get_host 13 -p
@@ -244,9 +210,29 @@ Vulnerabilities:
 +------+------------------------------------------+------------+----------+-------------+---------+
 ```
 
+*Requirement Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `host_id`    | ID of the host    |
+
+*Optional Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `-w WORKSPACE_NAME`     | Workspace name    |
+| `-p/--pretty`   | Show table in a pretty format       |
+| `-j/--json-output`      | Show output in json     |
+
 ### delete_host
 
 Delete host.
+
+
+```
+$ faraday-cli delete_host 13
+Host deleted
+```
 
 *Requirement Arguments:*
 
@@ -260,14 +246,17 @@ Delete host.
 |:-----	|------:	|
 | `-w WORKSPACE_NAME`     | Workspace name    |
 
-```
-$ faraday-cli delete_host 13
-Host deleted
-```
-
 ### create_hosts
 
 Create hosts.
+
+
+
+!!! info
+    You can pass the host data via stdin.
+    ```
+    $ echo '[{"ip": "1.1.1.5", "description": "some text"}]' | faraday-cli create_host --stdin
+    ```
 
 *Optional Arguments:*
 
@@ -284,12 +273,6 @@ Create hosts.
     'hostnames': {'type': 'array'}}, 'required': ['ip', 'description']}}
 ```
 
-!!! info
-    You can pass the host data via stdin.
-    ```
-    $ echo '[{"ip": "1.1.1.5", "description": "some text"}]' | faraday-cli create_host --stdin
-    ```
-
 !!! warning
     If you pass the host data as an argument it needs to be escaped like this (only in command mode, not in shell mode).
     ```
@@ -302,13 +285,6 @@ Create hosts.
 
 List services in a workspace.
 
-*Optional Arguments:*
-
-| Syntax      | Description |
-|:-----	|------:	|
-| `-w WORKSPACE_NAME`     | Workspace name    |
-| `-p/--pretty`   | Show table in a pretty format       |
-| `-j/--json-output`      | Show output in json     |
 
 ```
 $ faraday-cli list_services -p
@@ -330,11 +306,23 @@ $ faraday-cli list_services -p
 +------+--------+--------------+------------+--------+------------+--------+---------+
 ```
 
+
+*Optional Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `-w WORKSPACE_NAME`     | Workspace name    |
+| `-p/--pretty`   | Show table in a pretty format       |
+| `-j/--json-output`      | Show output in json     |
+
 ## Vulnerabilities Stats
 
 ### stats
 
 Different stats about the vulnerabilities in Faraday.
+
+
+![Example](./images/faraday_cli_stats.jpeg)
 
 *Required Arguments:*
 
@@ -351,28 +339,6 @@ Different stats about the vulnerabilities in Faraday.
 | `--severity [SEVERITY [SEVERITY ...]]`      | Filter by severity informational/critical/high/medium/low/unclassified     |
 | `--confirmed`   | Confirmed vulnerabilities       |
 
-```
-$ faraday-cli stats vulns
-# Vulnerability stats [test]
-
-▇ vulns
-
-
-127.0.0.8 : ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 3
-127.0.0.3 : ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 3
-127.0.0.10: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 3
-127.0.0.6 : ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 3
-127.0.0.12: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 3
-127.0.0.11: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 3
-127.0.0.13: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 3
-127.0.0.7 : ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 3
-127.0.0.4 : ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 3
-127.0.0.5 : ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 3
-127.0.0.1 : ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 3
-127.0.0.9 : ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 3
-127.0.0.2 : ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 3
-```
-
 ## Tools Reports
 
 ### process_report
@@ -381,6 +347,14 @@ Process different tools reports and upload the information into faraday.
 
 !!! info
     Check our [Faraday Plugins](https://github.com/infobyte/faraday_plugins) repo for information about compatible tools.
+
+
+```
+$ faraday-cli process_report $HOME/Downloads/openvas-report.xml
+📄 Processing Openvas report
+⬆ Sending data to workspace: test
+✔ Done
+```
 
 *Required Arguments:*
 
@@ -394,13 +368,6 @@ Process different tools reports and upload the information into faraday.
 |:-----	|------:	|
 | `-w WORKSPACE_NAME`     | Workspace name    |
 | `--plugin-id`   | Plugin ID (force detection)       |
-
-```
-$ faraday-cli process_report $HOME/Downloads/openvas-report.xml
-📄 Processing Openvas report
-⬆ Sending data to workspace: test
-✔ Done
-```
 
 ## Run tools inside faraday-cli
 
@@ -456,13 +423,6 @@ $ faraday-cli list_services
 
 List all configured agents for a workspace.
 
-*Optional Arguments:*
-
-| Syntax      | Description |
-|:-----	|------:	|
-| `-w WORKSPACE_NAME`     | Workspace name    |
-| `-p/--pretty`   | Show table in a pretty format       |
-| `-j/--json-output`      | Show output in json     |
 
 ```
 $ faraday-cli faraday-cli list_agents
@@ -471,15 +431,6 @@ $ faraday-cli faraday-cli list_agents
    2  nico    True      online    nmap
 ```
 
-### get_agent
-
-Get information of and agent and its executors.
-
-*Required Arguments:*
-
-| Syntax      | Description |
-|:-----	|------:	|
-| `AGENT_ID`     | ID of the Agent    |
 
 *Optional Arguments:*
 
@@ -488,6 +439,11 @@ Get information of and agent and its executors.
 | `-w WORKSPACE_NAME`     | Workspace name    |
 | `-p/--pretty`   | Show table in a pretty format       |
 | `-j/--json-output`      | Show output in json     |
+
+### get_agent
+
+Get information of and agent and its executors.
+
 
 ```
 $   ID  NAME    ACTIVE    STATUS
@@ -506,9 +462,38 @@ Executors:
               host_timeout [False]
               script_timeout [False]
 ```
+
+*Required Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `AGENT_ID`     | ID of the Agent    |
+
+*Optional Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `-w WORKSPACE_NAME`     | Workspace name    |
+| `-p/--pretty`   | Show table in a pretty format       |
+| `-j/--json-output`      | Show output in json     |
+
 ### run_executor
 
 Run an executor.
+
+
+!!! info
+    You can pass the executor parameters via stdin.
+    ```
+    $ echo '{"target": "www.google.com"}' | faraday-cli  run_executor -a 1 -e nmap --stdin
+    ```
+
+!!! warning
+    If you pass the executor parameters as an argument it needs to be escaped like this (only in command mode, not in shell mode).
+    ```
+    $ faraday-cli  run_executor -a 1 -e nmap -p \''{"target": "www.google.com"}'\'
+    Run executor: agent/nmap [{'command_id': 5}]
+    ```
 
 *Required Arguments:*
 
@@ -525,18 +510,6 @@ Run an executor.
 | `--stdin`   | Read executor-params from stdin       |
 | `-w WORKSPACE_NAME`     | Workspace name    |
 
-!!! info
-    You can pass the executor parameters via stdin.
-    ```
-    $ echo '{"target": "www.google.com"}' | faraday-cli  run_executor -a 1 -e nmap --stdin
-    ```
-
-!!! warning
-    If you pass the executor parameters as an argument it needs to be escaped like this (only in command mode, not in shell mode).
-    ```
-    $ faraday-cli  run_executor -a 1 -e nmap -p \''{"target": "www.google.com"}'\'
-    Run executor: agent/nmap [{'command_id': 5}]
-    ```
 
 ## Executive Reports
 
@@ -548,12 +521,6 @@ Run an executor.
 
 List the templates available to generate Executive Reports.
 
-*Optional Arguments:*
-
-| Syntax      | Description |
-|:-----	|------:	|
-| `-w WORKSPACE_NAME`     | Workspace name    |
-| `-p/--pretty`   | Show table in a pretty format       |
 
 ```
 $ faraday-cli list_executive_reports_templates -p
@@ -567,9 +534,22 @@ $ faraday-cli list_executive_reports_templates -p
 +------------------------------------------------------------------+-----------+
 ```
 
+
+*Optional Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `-w WORKSPACE_NAME`     | Workspace name    |
+| `-p/--pretty`   | Show table in a pretty format       |
+
 ### generate_executive_report
 
 Generate an executive report with a given template.
+
+```
+$ faraday-cli generate_executive_report -t \'"generic_default.html (generic) (PDF)"\'  --title title --summary summary --enterprise company  -o /tmp/test.pdf  --ignore-info
+Report generated: /tmp/test.pdf
+```
 
 *Optional Arguments:*
 
@@ -586,7 +566,34 @@ Generate an executive report with a given template.
 | `-o/--output OUTPUT`   | Report output      |
 
 
+## help
+
+Using the help command you can get info of any command.
 ```
-$ faraday-cli generate_executive_report -t \'"generic_default.html (generic) (PDF)"\'  --title title --summary summary --enterprise company  -o /tmp/test.pdf  --ignore-info
-Report generated: /tmp/test.pdf
+$ faraday-cli help -v
+
+Documented commands (use 'help -v' for verbose/'help <topic>' for details):
+
+Agents
+--------------------------------------------------------------------------------
+get_agent           Get agent
+list_agents         List agents
+run_executor        Run executor
+...
+```
+
+```
+$  faraday-cli help auth
+usage: auth [-h] [-f FARADAY_URL] [-i] [-u USER] [-p PASSWORD]
+
+Authenticate with a faraday server
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -f FARADAY_URL, --faraday-url FARADAY_URL
+                        Faraday server URL
+  -i, --ignore-ssl      Ignore SSL verification
+  -u USER, --user USER  Faraday user
+  -p PASSWORD, --password PASSWORD
+                        Faraday password
 ```

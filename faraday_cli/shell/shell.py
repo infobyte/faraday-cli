@@ -329,6 +329,7 @@ class FaradayShell(Cmd):
 
     def default(self, statement: Statement):
         if not active_config.workspace:
+            self.perror("No active Workspace")
             os.system(statement.raw)
         else:
             plugin = self.command_analyzer.get_plugin(statement.raw)
