@@ -32,7 +32,7 @@ Saving config
 ✔ Authenticated with faraday: http://localhost:5985
 ```
 
-## Select am active Workspace
+## Select an active Workspace
 
 ```
 $ faraday-cli select_ws test
@@ -118,3 +118,6 @@ Nmap done: 1 IP address (1 host up) scanned in 5.45 seconds
 ✔ Done
 [ws:test]>
 ```
+
+!!! info
+    For more information check out our [commands](../commands/) section.
