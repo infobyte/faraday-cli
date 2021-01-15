@@ -1,7 +1,6 @@
 # Faraday on the terminal
 Use faraday directly from your favorite terminal
 
-
 ## Install from source
 ```shell script
 git clone https://github.com/infobyte/faraday-cli.git
@@ -9,12 +8,12 @@ cd faraday-cli
 pip install .
 ```
 
-
 ## Install from pip
 
 ```
 pip install faraday-cli
 ```
+
 
 ## Use it like a command
 
@@ -284,3 +283,9 @@ You can filter vulnerabilities
 $ faraday-cli generate_executive_report -t \'"generic_default.docx (generic)"\'  --title title --summary summary --enterprise company  -o /tmp/test.docx  --ignore-info
 Report generated: /tmp/test.docx
 ```
+
+# Documentation
+
+For more info you can check our [documentation][doc]
+
+[doc]: https://docs.faraday-cli.faradaysec.com
