@@ -14,26 +14,12 @@ pip install .
 pip install faraday-cli
 ```
 
+## Documentation
+
+For more info you can check our [documentation][doc]
+
 
 ## Use it like a command
-
-### Get help
-Get help of any command
-
-```shell script
-$ faraday-cli help create_ws
-usage: create_ws [-h] [-d] workspace_name
-
-Create Workspace
-
-positional arguments:
-  workspace_name     Workspace name
-
-optional arguments:
-  -h, --help         show this help message and exit
-  -d, --dont-select  Dont select after create
-```
-
 
 ### Login
 
@@ -43,15 +29,6 @@ Configure auth for farday-cli
 $ faraday-cli auth
 ```
 ![Example](./docs/docs/images/auth.svg)
-
-### View faraday-cli status
-
-```shell script
-$ faraday-cli status
-FARADAY SERVER         IGNORE SSL    VERSION    VALID TOKEN    WORKSPACE
----------------------  ------------  ---------  -------------  -----------
-http://localhost:5985  False         corp-3.12  ✔
-```
 
 
 ### Create a workspace
@@ -75,12 +52,6 @@ $ faraday-cli list_ws
 NAME         HOSTS    SERVICES    VULNS  ACTIVE    PUBLIC    READONLY
 ---------  -------  ----------  -------  --------  --------  ----------
 some_name       14          13       39  True      False     False
-```
-
-### Delete a workspace
-
-```shell script
-$ faraday-cli delete_ws some_name
 ```
 
 ### List hosts of a workspace
@@ -143,11 +114,6 @@ $ echo '[{"ip": "1.1.1.5", "description": "some text"}]' | faraday-cli create_ho
 **The escaping of the single quotes (\\') is only needed when using it as a command.
 In the shell or using pipes it not necessary**
 
-### Delete host
-
-```shell script
-$ faraday-cli delete_host HOST_ID
-```
 
 ### Import vulnerabilities from tool report
 
@@ -172,19 +138,6 @@ $ faraday-cli list_agent
    8  internal  True      online    nmap
 ```
 
-### Get agent executors
-
-```shell script
-$ faraday-cli get_agent 8
-  id  name      active    status
-----  --------  --------  --------
-   8  internal  True      online
-Executors:
-  id  name    parameters
-----  ------  -------------------------------------------------------------------------------------------
-   9  nmap    target, option_pn, option_sc, option_sv, port_list, top_ports, host_timeout, script_timeout
-```
-
 ### Run executor
 
 ```shell script
@@ -192,69 +145,15 @@ $ faraday-cli run_executor -a 1 -e nmap -p \''{"target": "www.google.com"}'\'
 Run executor: internal/nmap [{'successful': True}]
 ```
 
-### Different output
-
-Most of the commands support different ways to show output
-* In json (-j)
-* In a pretty table (-p)
-
-```shell script
-$ faraday-cli list_ws
-NAME         HOSTS    SERVICES    VULNS  ACTIVE    PUBLIC    READONLY
----------  -------  ----------  -------  --------  --------  ----------
-some_name       14          13       39  True      False     False
-
-$ faraday-cli list_ws -p
-+-----------+---------+------------+---------+----------+----------+------------+
-| NAME      |   HOSTS |   SERVICES |   VULNS | ACTIVE   | PUBLIC   | READONLY   |
-|-----------+---------+------------+---------+----------+----------+------------|
-| some_name |      14 |         13 |      39 | True     | False    | False      |
-+-----------+---------+------------+---------+----------+----------+------------+
 
 
-$ faraday-cli list_ws -j
-[
-    {
-        "update_date": "2020-12-04T18:46:46.473892+00:00",
-        "name": "some_name",
-        "scope": [],
-        "_id": 116,
-        "id": 116,
-        "public": false,
-        "readonly": false,
-        "active_agents_count": 0,
-        "duration": {
-            "start_date": null,
-            "end_date": null
-        },
-        "stats": {
-            "code_vulns": 0,
-            "critical_vulns": 0,
-            "unclassified_vulns": 0,
-            "hosts": 14,
-            "medium_vulns": 13,
-            "high_vulns": 0,
-            "web_vulns": 0,
-            "low_vulns": 26,
-            "info_vulns": 0,
-            "total_vulns": 39,
-            "services": 13,
-            "std_vulns": 39
-        },
-        "create_date": "2020-12-04T18:46:46.453040+00:00",
-        "description": "",
-        "active": true,
-        "customer": ""
-    }
-]
+## Use it like a shell
 
-```
+Faraday-cli can be used as a shell and have all the same commands you have as a cli
 
+![Example](./docs/docs/images/shell.svg)
 
-### Specify workspace
-
-The commands use by default the active workspace, but you can specify other with the "-w" parameter
-
+## Use cases
 
 ### Continuous scan your assets with faraday
 
@@ -263,29 +162,15 @@ For example run nmap for all the hosts in faraday that listen on the 443 port an
 $ faraday-cli list_host --port 443 -ip | nmap -iL - -oX /tmp/nmap.xml  && faraday-cli process_report /tmp/nmap.xml
 ```
 
-## Use it like a shell
+### Scan your subdomains
 
-Faraday-cli can be used as a shell and have all the same commands you have as a cli
-
-![Example](./docs/docs/images/shell.svg)
-
-
-## With Faraday commercial version
-
-If you have a Faraday commercial version you can automate report generation and download
-
-You can filter vulnerabilities
-* --ignore-info (ignore info/unclassified vulnerabilities)
-* --severity (only include vulnerabilities with the selected severities)
-* --confirmed (only include confirmed vulnerabilities)
+Use a tool like assetfinder to do a domains lookup, scan them with nmap and send de results to faraday
 
 ```shell
-$ faraday-cli generate_executive_report -t \'"generic_default.docx (generic)"\'  --title title --summary summary --enterprise company  -o /tmp/test.docx  --ignore-info
-Report generated: /tmp/test.docx
+$ assetfinder -subs-only example.com| sort | uniq |awk 'BEGIN { ORS = ""; print " {\"target\":\""}
+{ printf "%s%s", separator, $1, $2
+separator = ","}END { print "\"}" }' | faraday-cli  run_executor -a 1 -e nmap --stdin
 ```
 
-# Documentation
-
-For more info you can check our [documentation][doc]
 
 [doc]: https://docs.faraday-cli.faradaysec.com
