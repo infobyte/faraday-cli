@@ -1,6 +1,10 @@
 # Faraday on the terminal
 Use faraday directly from your favorite terminal
 
+![Example](./docs/docs/images/faraday-cli.svg)
+
+faraday-cli is the official client that make automating your security workflows, easier.
+
 ## Install from source
 ```shell script
 git clone https://github.com/infobyte/faraday-cli.git
