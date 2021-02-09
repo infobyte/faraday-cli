@@ -59,7 +59,9 @@ class FaradayApi:
                     "Invalid credentials, run 'faraday-cli auth'"
                 )
             except ClientConnectionError as e:
-                raise Exception(f"Connection to error: {e}")
+                raise Exception(
+                    f"Connection error: {e} (check you faraday server)"
+                )
             except DuplicatedError as e:
                 raise Exception(f"{e}")
             except NotFoundError:
@@ -124,11 +126,10 @@ class FaradayApi:
         else:
             return True
 
-    def get_token(self, user, password, second_factor=None):
+    def get_token(self, second_factor=None):
         if not self.token:
-            login_body = {"email": user, "password": password}
             try:
-                self.faraday_api.login.auth(body=login_body)
+                # self.faraday_api.login.auth(body=login_body)
                 if second_factor:
                     second_factor_body = {"secret": second_factor}
                     try:

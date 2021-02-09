@@ -175,7 +175,7 @@ class FaradayShell(Cmd):
                     second_factor = click.prompt("2FA")
                 else:
                     second_factor = None
-                token = api_client.get_token(user, password, second_factor)
+                token = api_client.get_token(second_factor)
                 active_config.faraday_url = faraday_url
                 active_config.ignore_ssl = args.ignore_ssl
                 active_config.token = token
@@ -209,7 +209,7 @@ class FaradayShell(Cmd):
             if self.run_as_shell:
                 sys.exit(1)
         except ClientConnectionError as e:
-            self.perror(f"Connection refused: {e}")
+            self.perror(f"Connection refused: {e} (check your Faraday server)")
             if self.run_as_shell:
                 sys.exit(1)
         except Exception as e:
