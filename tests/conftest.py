@@ -44,7 +44,8 @@ def token():
     global TOKEN
     if not TOKEN:
         api_client = FaradayApi(FARADAY_URL, ignore_ssl=False)
-        token = api_client.get_token(FARADAY_USER, FARADAY_PASSWORD)
+        api_client.login(FARADAY_USER, FARADAY_PASSWORD)
+        token = api_client.get_token()
         TOKEN = token
     return TOKEN
 
