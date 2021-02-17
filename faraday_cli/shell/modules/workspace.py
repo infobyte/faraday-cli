@@ -49,11 +49,16 @@ class WorkspaceCommands(CommandSet):
         action="store_true",
         help="Show table in a pretty format",
     )
+    list_ws_parser.add_argument(
+        "--show-inactive", action="store_true", help="Show inactive workspaces"
+    )
 
     @with_argparser(list_ws_parser)
     def do_list_ws(self, args):
         """List Workspaces"""
-        workspaces = self._cmd.api_client.get_workspaces()
+        workspaces = self._cmd.api_client.get_workspaces(
+            get_inactives=args.show_inactive
+        )
         if args.json_output:
             self._cmd.poutput(json.dumps(workspaces, indent=4))
             return
