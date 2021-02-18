@@ -64,6 +64,7 @@ $ faraday-cli list_ws -p
 |:-----	|------:	|
 | `-j/--json-output`     | Show output in json     |
 | `-p/--pretty`   | Show table in a pretty format       |
+| `--show-inactive`   | Include inactive workspaces      |
 
 
 ### delete_ws

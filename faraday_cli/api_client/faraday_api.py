@@ -177,9 +177,14 @@ class FaradayApi:
         return {"product": product, "version": version}
 
     @handle_errors
-    def get_workspaces(self):
+    def get_workspaces(self, get_inactives=False):
         response = self.faraday_api.workspace.list()
-        return response.body
+        if get_inactives:
+            return response.body
+        else:
+            return [
+                workspace for workspace in response.body if workspace["active"]
+            ]
 
     @handle_errors
     def get_workspace(self, workspace_name: str):
