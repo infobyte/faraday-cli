@@ -340,7 +340,7 @@ Different stats about the vulnerabilities in Faraday.
 | `--severity [SEVERITY [SEVERITY ...]]`      | Filter by severity informational/critical/high/medium/low/unclassified     |
 | `--confirmed`   | Confirmed vulnerabilities       |
 
-## Tools Reports
+## Tools and Reports
 
 ### process_report
 
@@ -370,16 +370,64 @@ $ faraday-cli process_report $HOME/Downloads/openvas-report.xml
 | `-w WORKSPACE_NAME`     | Workspace name    |
 | `--plugin-id`   | Plugin ID (force detection)       |
 
-## Run tools inside faraday-cli
+### process_tool
 
-You can execute tools compatible with our plugins and faraday-cli will process the output and send it to faraday.
-
+Execute a tool and upload the information into faraday.
 
 !!! info
     Check our [Faraday Plugins](https://github.com/infobyte/faraday_plugins) repo for information about compatible tools.
 
+
 ```
-$ faraday-cli nmap -sV stan.local
+$ faraday-cli process_tool \"nmap www.exampledomain.com\"
+💻 Processing Nmap command
+Starting Nmap 7.80 ( https://nmap.org ) at 2021-02-22 14:13 -03
+Nmap scan report for www.exampledomain.com (10.196.205.130)
+Host is up (0.17s latency).
+rDNS record for 10.196.205.130: 10.196.205.130.bc.googleusercontent.com
+Not shown: 996 filtered ports
+PORT     STATE  SERVICE
+80/tcp   open   http
+443/tcp  open   https
+2222/tcp open   EtherNetIP-1
+3306/tcp closed mysql
+
+Nmap done: 1 IP address (1 host up) scanned in 11.12 seconds
+⬆ Sending data to workspace: test
+✔ Done
+```
+
+*Required Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `command`     | Command of the tool to process    |
+
+*Optional Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `-w WORKSPACE_NAME`     | Workspace name    |
+| `--plugin-id`   | Plugin ID (force detection)       |
+| `-j/--json-output`   | Show output in json (dont send it to faraday)       |
+
+## Run tools like a shell in faraday-cli
+
+You also can run commands like a shell without the ```process_tool```command.
+
+
+```
+$ faraday-cli
+
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+
+Server: http://localhost:5985
+[ws:test]> nmap -sV stan.local
 💻 Processing Nmap command
 Starting Nmap 7.80 ( https://nmap.org ) at 2021-01-11 14:42 -03
 Nmap scan report for stan.local (192.168.1.100)
@@ -401,7 +449,7 @@ Nmap done: 1 IP address (1 host up) scanned in 125.84 seconds
 ⬆ Sending data to workspace: local
 ✔ Done
 
-$ faraday-cli list_services
+[ws:test]> list_services
   ID  NAME          SUMMARY                                               IP                PORT  PROTOCOL      HOST    VULNS
 ----  ------------  ----------------------------------------------------  --------------  ------  ----------  ------  -------
   27  ssh           (22/tcp) ssh (OpenSSH 7.8)                            192.168.1.100       22  tcp             28        0
