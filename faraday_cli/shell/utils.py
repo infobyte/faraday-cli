@@ -1,4 +1,10 @@
 import json
+import os
+import getpass
+import sys
+import subprocess
+import shlex
+import io
 from socket import gethostbyname, inet_aton
 import jsonschema
 
@@ -119,3 +125,38 @@ def get_confirmed_filter() -> dict:
         "filters": [{"name": "confirmed", "op": "==", "val": "true"}]
     }
     return query_filter
+
+
+def run_tool(plugin, user, command, show_output=True):
+    current_path = os.path.abspath(os.getcwd())
+    modified_command = plugin.processCommandString(
+        getpass.getuser(), current_path, command
+    )
+    if modified_command:
+        command = modified_command
+    p = subprocess.Popen(
+        shlex.split(command),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    output = io.StringIO()
+    while True:
+        retcode = p.poll()
+        line = p.stdout.readline().decode("utf-8")
+        if show_output:
+            sys.stdout.write(line)
+        output.write(line)
+        if retcode is not None:
+            extra_lines = map(
+                lambda x: x.decode("utf-8"), p.stdout.readlines()
+            )
+            if show_output:
+                sys.stdout.writelines(line)
+            output.writelines(extra_lines)
+            break
+    output_value = output.getvalue()
+    if retcode == 0:
+        plugin.processOutput(output_value)
+        return plugin.get_data()
+    else:
+        return None

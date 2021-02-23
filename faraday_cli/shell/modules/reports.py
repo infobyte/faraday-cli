@@ -1,6 +1,7 @@
 from pathlib import Path
 import argparse
 import getpass
+import json
 
 from cmd2 import with_argparser, with_default_category, CommandSet, style
 from faraday_cli.config import active_config
@@ -20,6 +21,12 @@ class ReportsCommands(CommandSet):
         type=str,
         help="Plugin ID (force detection)",
         required=False,
+    )
+    report_parser.add_argument(
+        "-j",
+        "--json-output",
+        action="store_true",
+        help="Show output in json (dont send to faraday)",
     )
     report_parser.add_argument("report_path", help="Path of the report file")
 
@@ -56,18 +63,24 @@ class ReportsCommands(CommandSet):
                     f"Failed to detect report: {report_path}"
                 )
                 return
-        self._cmd.poutput(
-            style(
-                f"{self._cmd.emojis['page']} Processing {plugin.id} report",
-                fg="green",
+        if not args.json_output:
+            self._cmd.poutput(
+                style(
+                    f"{self._cmd.emojis['page']} "
+                    f"Processing {plugin.id} report",
+                    fg="green",
+                )
             )
-        )
         plugin.processReport(
             report_path.absolute().as_posix(), getpass.getuser()
         )
-        self._cmd.data_queue.put(
-            {
-                "workspace": destination_workspace,
-                "json_data": plugin.get_data(),
-            }
-        )
+        report_json = plugin.get_data()
+        if args.json_output:
+            self._cmd.poutput(json.dumps(report_json, indent=4))
+        else:
+            self._cmd.data_queue.put(
+                {
+                    "workspace": destination_workspace,
+                    "json_data": report_json,
+                }
+            )

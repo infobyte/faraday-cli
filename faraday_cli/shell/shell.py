@@ -338,7 +338,7 @@ class FaradayShell(Cmd):
                     f"{self.emojis['laptop']} Processing {plugin.id} command",
                     fg="green",
                 )
-                command_json = self.run_command(
+                command_json = utils.run_tool(
                     plugin, getpass.getuser(), statement.raw
                 )
                 if not command_json:
