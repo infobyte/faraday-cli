@@ -256,7 +256,7 @@ Create hosts.
 !!! info
     You can pass the host data via stdin.
     ```
-    $ echo '[{"ip": "1.1.1.5", "description": "some text"}]' | faraday-cli create_host --stdin
+    $ echo '[{"ip": "1.1.1.5", "description": "some text"}]' | faraday-cli create_hosts --stdin
     ```
 
 *Optional Arguments:*
@@ -277,7 +277,7 @@ Create hosts.
 !!! warning
     If you pass the host data as an argument it needs to be escaped like this (only in command mode, not in shell mode).
     ```
-    $ faraday-cli create_host -d \\''[{"ip": "stan.local", "description": "some server"}]'\\'
+    $ faraday-cli create_hosts -d \''[{"ip": "stan.local", "description": "some server"}]'\'
     ```
 
 ## Services
