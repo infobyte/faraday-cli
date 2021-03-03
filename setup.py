@@ -6,18 +6,17 @@ with open("faraday_cli/__init__.py", "rt", encoding="utf8") as f:
 
 
 install_requires = [
-    "Click",
-    "colorama",
-    "faraday-plugins",
-    "jsonschema",
-    "PyYAML",
-    "simple-rest-client",
-    "tabulate",
-    "validators",
-    "spinners",
-    "log_symbols",
-    "termcolor",
-    "cmd2",
+    "click>=7.1.2",
+    "colorama>=0.4.4",
+    "faraday-plugins>=1.4.1",
+    "jsonschema>=3.2.0",
+    "PyYAML>=5.4.1",
+    "simple-rest-client>=1.0.8",
+    "tabulate>=0.8.9",
+    "validators>=0.18.2",
+    "spinners>=0.0.24",
+    "termcolor>=1.1.0",
+    "cmd2>=1.5.0",
 ]
 
 
