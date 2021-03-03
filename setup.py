@@ -17,6 +17,7 @@ install_requires = [
     "spinners>=0.0.24",
     "termcolor>=1.1.0",
     "cmd2>=1.5.0",
+    "log-symbols>=0.0.14",
 ]
 
 
