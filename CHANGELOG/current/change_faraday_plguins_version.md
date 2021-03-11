@@ -1,0 +1,1 @@
+Update faraday_plugins version dependency
