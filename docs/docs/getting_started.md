@@ -126,7 +126,7 @@ Nmap done: 1 IP address (1 host up) scanned in 5.45 seconds
 
 You can change some settings from the cli itself.
 
-* _custom_plugins_path_ **(path from where the cli will look for custom plugins)**
+* _custom_plugins_path_ **(Path where the cli will look for custom plugins)**
 * _ignore_info_severity_ **(If set to True the cli will ignore all INFORMATIONAL vulnerabilities)** [DEFAULT: False]
 
 ```
