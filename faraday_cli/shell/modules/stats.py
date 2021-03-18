@@ -1,5 +1,4 @@
 import argparse
-import json
 from collections import defaultdict
 from datetime import datetime
 import dateutil.parser
@@ -140,9 +139,7 @@ class StatsCommands(CommandSet):
 
         @Halo(text="Gathering data", text_color="green", spinner="dots")
         def graph_stats(gather_data_func, filter_to_apply):
-            vulns = self._cmd.api_client.get_vulns(
-                workspace, json.dumps(filter_to_apply)
-            )
+            vulns = self._cmd.api_client.get_vulns(workspace, filter_to_apply)
             args_data = gather_data_func(vulns)
             if args_data:
                 _, labels, data, colors = termgraph.read_data(args_data)

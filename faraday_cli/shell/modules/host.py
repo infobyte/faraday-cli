@@ -75,14 +75,16 @@ class HostCommands(CommandSet):
         except NotFoundError:
             self._cmd.perror("Workspace not found")
         else:
-            if not hosts["rows"]:
-                self._cmd.perror(f"No hosts in workspace: {workspace_name}")
+            if args.json_output:
+                self._cmd.poutput(json.dumps(hosts["rows"], indent=4))
+            elif args.show_ip:
+                for host in hosts["rows"]:
+                    self._cmd.poutput(host["value"]["ip"])
             else:
-                if args.json_output:
-                    self._cmd.poutput(json.dumps(hosts["rows"], indent=4))
-                elif args.show_ip:
-                    for host in hosts["rows"]:
-                        self._cmd.poutput(host["value"]["ip"])
+                if not hosts["rows"]:
+                    self._cmd.perror(
+                        f"No hosts in workspace: {workspace_name}"
+                    )
                 else:
                     data = [
                         OrderedDict(

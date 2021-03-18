@@ -1,7 +1,7 @@
 import os
 import re
 from urllib.parse import urljoin
-
+import json
 import click
 from faraday_cli.api_client.exceptions import (
     DuplicatedError,
@@ -208,13 +208,14 @@ class FaradayApi:
 
     @handle_errors
     def get_vulns(self, workspace_name: str, query_filter: dict = None):
-        if query_filter:
-            # encoded_query = urllib.parse.urlencode({'q': query_filter})
+        if query_filter.get("filters"):
             response = self.faraday_api.vuln.filter(
-                workspace_name, params={"q": query_filter}
+                workspace_name, params={"q": json.dumps(query_filter)}
             )
         else:
-            response = self.faraday_api.vuln.list(workspace_name)
+            response = self.faraday_api.vuln.list(
+                workspace_name, params={"sort": "severity", "sort_dir": "asc"}
+            )
         return response.body
 
     @handle_errors
