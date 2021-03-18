@@ -166,6 +166,11 @@ class FaradayApi:
             return True
 
     @handle_errors
+    def get_user(self):
+        response = self.faraday_api.login.whoami()
+        return response.body
+
+    @handle_errors
     def get_version(self):
         version_regex = r"(?P<product>\w)?-?(?P<version>\d+\.\d+)"
         response = self.faraday_api.config.config()

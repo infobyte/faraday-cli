@@ -4,6 +4,7 @@ from simple_rest_client.resource import Resource
 class LoginResource(Resource):
     actions = {
         "auth": {"method": "POST", "url": "login"},
+        "whoami": {"method": "GET", "url": "v2/whoami"},
         "get_token": {"method": "GET", "url": "v2/token/"},
         "validate": {"method": "GET", "url": "v2/preferences/"},
         "second_factor": {"method": "POST", "url": "confirmation"},
