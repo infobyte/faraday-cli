@@ -121,3 +121,27 @@ Nmap done: 1 IP address (1 host up) scanned in 5.45 seconds
 
 !!! info
     For more information check out our [commands](../commands/) section.
+
+### Change settings
+
+You can change some settings from the cli itself.
+
+* _custom_plugins_path_ **(Path where the cli will look for custom plugins)**
+* _ignore_info_severity_ **(If set to True the cli will ignore all INFORMATIONAL vulnerabilities)** [DEFAULT: False]
+
+```
+$ faraday-cli
+
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+
+Server: http://localhost:5985
+[ws:test]> set ignore_info_severity true
+ignore_info_severity - was: False
+now: True
+[ws:test]>
+```

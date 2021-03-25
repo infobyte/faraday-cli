@@ -68,6 +68,7 @@ class FaradayShell(Cmd):
         super().__init__(
             persistent_history_file="~/.faraday-cli_history", *args, **kwargs
         )
+
         self.hidden_commands += ["EOF", "cd", "alias"]
         self.run_as_shell = False
         self.TABLE_PRETTY_FORMAT = "psql"
@@ -90,9 +91,10 @@ class FaradayShell(Cmd):
             intro.append(
                 style("Missing faraday server, run 'auth'", fg="yellow")
             )
+        self.custom_plugins_path = active_config.custom_plugins_path
+        self.ignore_info_severity = active_config.ignore_info_severity
         self.intro = "\n".join(intro)
         self.data_queue = queue.Queue()
-        self.custom_plugins_path = None
         self.update_prompt()
         self.add_settable(
             Settable(
@@ -102,8 +104,20 @@ class FaradayShell(Cmd):
                 onchange_cb=self._onchange_custom_plugins_path,
             )
         )
+        self.add_settable(
+            Settable(
+                "ignore_info_severity",
+                bool,
+                "Ignore Informational vulnerabilities "
+                "from reports and commands",
+                onchange_cb=self._onchange_ignore_info_severity,
+            )
+        )
+        self._create_plugin_manager()
+
+    def _create_plugin_manager(self):
         self.plugins_manager = PluginsManager(
-            active_config.custom_plugins_folder
+            self.custom_plugins_path, ignore_info=self.ignore_info_severity
         )
         self.report_analyzer = ReportAnalyzer(self.plugins_manager)
         self.command_analyzer = CommandAnalyzer(self.plugins_manager)
@@ -113,7 +127,19 @@ class FaradayShell(Cmd):
         if custom_plugins_path.is_dir():
             active_config.custom_plugins_path = new
             active_config.save()
+            self.custom_plugins_path = new
+            self._create_plugin_manager()
+        else:
+            self.perror(f"Invalid Path: {new}")
+            self.custom_plugins_path = old
 
+    def _onchange_ignore_info_severity(self, param_name, old, new):
+        active_config.ignore_info_severity = new
+        active_config.save()
+        self.ignore_info_severity = new
+        self._create_plugin_manager()
+
+    # Auth
     auth_parser = argparse.ArgumentParser()
     auth_parser.add_argument(
         "-f",
@@ -250,6 +276,7 @@ class FaradayShell(Cmd):
         else:
             return style("Faraday> ", fg="blue")
 
+    # Status
     status_parser = argparse.ArgumentParser()
     status_parser.add_argument(
         "-p", "--pretty", action="store_true", help="Pretty Tables"
@@ -285,6 +312,7 @@ class FaradayShell(Cmd):
             )
         )
 
+    # Run Command
     def run_command(self, plugin, user, command):
         current_path = os.path.abspath(os.getcwd())
         modified_command = plugin.processCommandString(
@@ -355,6 +383,3 @@ class FaradayShell(Cmd):
                     )
             else:
                 os.system(statement.raw)
-
-    # do_EOF = do_exit
-    # help_EOF = help_exit

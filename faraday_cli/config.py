@@ -14,7 +14,8 @@ class Config:
         self.token = None
         self.ignore_ssl = False
         self.workspace = None
-        self.custom_plugins_folder = None
+        self.custom_plugins_path = None
+        self.ignore_info_severity = False
         self.load()
 
     def config_exists(self) -> bool:
@@ -33,9 +34,12 @@ class Config:
                 self.workspace = config_data.get("faraday", {}).get(
                     "workspace"
                 )
-                self.custom_plugins_folder = config_data.get(
+                self.custom_plugins_path = config_data.get("settings", {}).get(
+                    "custom_plugins_path"
+                )
+                self.ignore_info_severity = config_data.get(
                     "settings", {}
-                ).get("custom_plugins_folder")
+                ).get("ignore_info_severity", False)
         except KeyError:
             pass
 
@@ -47,7 +51,10 @@ class Config:
                 "ignore_ssl": self.ignore_ssl,
             },
             "faraday": {"workspace": self.workspace},
-            "settings": {"custom_plugins_folder": self.custom_plugins_folder},
+            "settings": {
+                "custom_plugins_path": self.custom_plugins_path,
+                "ignore_info_severity": self.ignore_info_severity,
+            },
         }
         with open(self.config_file, "w") as f:
             yaml.dump(config_data, f)
