@@ -270,7 +270,7 @@ class FaradayShell(Cmd):
                 "FARADAY SERVER": active_config.faraday_url,
                 "IGNORE SSL": active_config.ignore_ssl,
                 "VERSION": version,
-                "USER": user["loggerUser"]["name"] if user else "-",
+                "USER": user if user else "-",
                 "VALID TOKEN": "\U00002714" if valid_token else "\U0000274c",
                 "WORKSPACE": active_config.workspace,
             }
