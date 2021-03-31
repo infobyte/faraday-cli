@@ -166,6 +166,15 @@ class FaradayApi:
             return True
 
     @handle_errors
+    def get_user(self):
+        try:
+            response = self.faraday_api.login.whoami()
+        except NotFoundError:
+            return "faraday"  # Community dont have the whoami endpoint
+        else:
+            return response.body["loggerUser"]["name"]
+
+    @handle_errors
     def get_version(self):
         version_regex = r"(?P<product>\w)?-?(?P<version>\d+\.\d+)"
         response = self.faraday_api.config.config()

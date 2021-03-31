@@ -286,15 +286,18 @@ class FaradayShell(Cmd):
     def do_status(self, args):
         """Show Cli status"""
         valid_token = self.api_client.is_token_valid()
+        user = None
         version = "-"
         if valid_token:
             version_data = self.api_client.get_version()
             version = f"{version_data['product']}-{version_data['version']}"
+            user = self.api_client.get_user()
         data = [
             {
                 "FARADAY SERVER": active_config.faraday_url,
                 "IGNORE SSL": active_config.ignore_ssl,
                 "VERSION": version,
+                "USER": user if user else "-",
                 "VALID TOKEN": "\U00002714" if valid_token else "\U0000274c",
                 "WORKSPACE": active_config.workspace,
             }

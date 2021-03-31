@@ -38,10 +38,15 @@ Show the status of your current authentication.
 
 ```
 $ faraday-cli status
-FARADAY SERVER         IGNORE SSL    VERSION         VALID TOKEN    WORKSPACE
----------------------  ------------  --------------  -------------  -----------
-http://localhost:5985  False         community-3.14  ✔              test
+FARADAY SERVER         IGNORE SSL    VERSION    USER     VALID TOKEN    WORKSPACE
+---------------------  ------------  ---------  -------  -------------  -----------
+http://localhost:5985  False         corp-3.14  faraday  ✔              test
 ```
+*Optional Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `-p/--pretty`   | Show table in a pretty format       |
 
 ## Workspaces
 
