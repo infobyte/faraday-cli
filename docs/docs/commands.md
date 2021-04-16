@@ -14,7 +14,7 @@ Password:
 Saving config
 ✔ Authenticated with faraday: http://localhost:5985
 ```
-*Optional rguments:*
+*Optional arguments:*
 
 | Syntax      | Description |
 |:-----	|------:	|
@@ -418,7 +418,11 @@ $ faraday-cli process_report $HOME/Downloads/openvas-report.xml
 | Syntax      | Description |
 |:-----	|------:	|
 | `-w WORKSPACE_NAME`     | Workspace name    |
-| `--plugin-id`   | Plugin ID (force detection)       |
+| `--plugin-id PLUGIN_ID`   | Plugin ID (force detection)       |
+| `-j/--json-output`   | Show output in json (dont send it to faraday)       |
+| `--tag-vuln TAG_VULN`   | Tag to add to vulnerabilities       |
+| `--tag-host TAG_HOST`   | Tag to add to hosts       |
+| `--tag-service TAG_SERVICE`   | Tag to add to services      |
 
 ### process_tool
 
@@ -458,8 +462,11 @@ Nmap done: 1 IP address (1 host up) scanned in 11.12 seconds
 | Syntax      | Description |
 |:-----	|------:	|
 | `-w WORKSPACE_NAME`     | Workspace name    |
-| `--plugin-id`   | Plugin ID (force detection)       |
+| `--plugin-id PLUGIN_ID`   | Plugin ID (force detection)       |
 | `-j/--json-output`   | Show output in json (dont send it to faraday)       |
+| `--tag-vuln TAG_VULN`   | Tag to add to vulnerabilities       |
+| `--tag-host TAG_HOST`   | Tag to add to hosts       |
+| `--tag-service TAG_SERVICE`   | Tag to add to services      |
 
 ## Run tools like a shell in faraday-cli
 
