@@ -3,6 +3,7 @@ import argparse
 import getpass
 import json
 
+from faraday_cli.shell.utils import apply_tags
 from cmd2 import with_argparser, with_default_category, CommandSet, style
 from faraday_cli.config import active_config
 
@@ -28,6 +29,24 @@ class ReportsCommands(CommandSet):
         action="store_true",
         help="Show output in json (dont send to faraday)",
     )
+    report_parser.add_argument(
+        "--tag-vuln",
+        type=str,
+        help="Tag to add to vulnerabilities",
+        required=False,
+    )
+    report_parser.add_argument(
+        "--tag-host",
+        type=str,
+        help="Tag to add to hosts",
+        required=False,
+    )
+    report_parser.add_argument(
+        "--tag-service",
+        type=str,
+        help="Tag to add to services",
+        required=False,
+    )
     report_parser.add_argument("report_path", help="Path of the report file")
 
     @with_argparser(report_parser, preserve_quotes=True)
@@ -37,19 +56,20 @@ class ReportsCommands(CommandSet):
         if not report_path.is_file():
             self._cmd.perror(f"File {report_path} dont exists")
             return
-        if not args.workspace_name:
-            if active_config.workspace:
-                workspace_name = active_config.workspace
+        if not args.json_output:
+            if not args.workspace_name:
+                if active_config.workspace:
+                    workspace_name = active_config.workspace
+                else:
+                    self._cmd.perror("No active Workspace")
+                    return
             else:
-                self._cmd.perror("No active Workspace")
+                workspace_name = args.workspace_name
+            if not self._cmd.api_client.is_workspace_valid(workspace_name):
+                self._cmd.perror(f"Invalid workspace: {workspace_name}")
                 return
-        else:
-            workspace_name = args.workspace_name
-        if not self._cmd.api_client.is_workspace_valid(workspace_name):
-            self._cmd.perror(f"Invalid workspace: {workspace_name}")
-            return
-        else:
-            destination_workspace = workspace_name
+            else:
+                destination_workspace = workspace_name
         if args.plugin_id:
             plugin = self._cmd.plugins_manager.get_plugin(args.plugin_id)
             if not plugin:
@@ -74,7 +94,9 @@ class ReportsCommands(CommandSet):
         plugin.processReport(
             report_path.absolute().as_posix(), getpass.getuser()
         )
-        report_json = plugin.get_data()
+        report_json = apply_tags(
+            plugin.get_data(), args.tag_host, args.tag_service, args.tag_vuln
+        )
         if args.json_output:
             self._cmd.poutput(json.dumps(report_json, indent=4))
         else:

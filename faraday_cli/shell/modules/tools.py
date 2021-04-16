@@ -28,20 +28,43 @@ class ToolCommands(CommandSet):
         action="store_true",
         help="Show output in json (dont send it to faraday)",
     )
-
+    tool_parser.add_argument(
+        "--tag-vuln",
+        type=str,
+        help="Tag to add to vulnerabilities",
+        required=False,
+    )
+    tool_parser.add_argument(
+        "--tag-host",
+        type=str,
+        help="Tag to add to hosts",
+        required=False,
+    )
+    tool_parser.add_argument(
+        "--tag-service",
+        type=str,
+        help="Tag to add to services",
+        required=False,
+    )
     tool_parser.add_argument("command", help="Command of the tool to process")
 
     @with_argparser(tool_parser, preserve_quotes=False)
     def do_process_tool(self, args):
         """Process Tool execution in Faraday"""
-        if not args.workspace_name:
-            if active_config.workspace:
-                workspace_name = active_config.workspace
+        if not args.json_output:
+            if not args.workspace_name:
+                if active_config.workspace:
+                    workspace_name = active_config.workspace
+                else:
+                    self._cmd.perror("No active Workspace")
+                    return
             else:
-                self._cmd.perror("No active Workspace")
+                workspace_name = args.workspace_name
+            if not self._cmd.api_client.is_workspace_valid(workspace_name):
+                self._cmd.perror(f"Invalid workspace: {workspace_name}")
                 return
-        else:
-            workspace_name = args.workspace_name
+            else:
+                destination_workspace = workspace_name
 
         if args.plugin_id:
             plugin = self._cmd.plugins_manager.get_plugin(args.plugin_id)
@@ -72,12 +95,18 @@ class ToolCommands(CommandSet):
                     f"{self.emojis['cross']} Command execution error!!"
                 )
             else:
+                command_json = utils.apply_tags(
+                    command_json,
+                    args.tag_host,
+                    args.tag_service,
+                    args.tag_vuln,
+                )
                 if args.json_output:
                     self._cmd.poutput(json.dumps(command_json, indent=4))
                 else:
                     self._cmd.data_queue.put(
                         {
-                            "workspace": workspace_name,
+                            "workspace": destination_workspace,
                             "json_data": command_json,
                         }
                     )
