@@ -1,3 +1,16 @@
+1.1.0 [Apr 16th, 2021]:
+---
+ * Add new command to process a tool execution
+ * Add command to list vulnerabilities
+ * Add versions to dependencies
+ * Add setting to ignore INFO vulns
+ * Show only active workspaces by default unless you use the --show-inactive parameter
+ * [MOD] Add support for tags
+ * Update faraday_plugins version dependency
+ * Fix create_hosts docs typo
+ * Show user in status
+ * [MOD] Update faraday-plugins
+
 1.0.2 [Feb 17th, 2021]:
 ---
  * ADD documentation (made with mkdocs)
