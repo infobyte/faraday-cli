@@ -5,33 +5,38 @@ import time
 from pathlib import Path
 import urllib.parse
 
-from faraday_cli.api_client.filter import FaradayFilter
+import cmd2
 from tabulate import tabulate
-from cmd2 import with_argparser, with_default_category, CommandSet
 
+from faraday_cli.api_client.filter import FaradayFilter
 from faraday_cli.extras.halo.halo import Halo
 from faraday_cli.config import active_config
 from faraday_cli.shell.utils import IGNORE_SEVERITIES, SEVERITIES
 
 
-@with_default_category("Executive Reports")
-class ExecutiveReportsCommands(CommandSet):
+@cmd2.with_default_category("Executive Reports")
+class ExecutiveReportsCommands(cmd2.CommandSet):
     def __init__(self):
         super().__init__()
 
-    report_parser = argparse.ArgumentParser()
-    report_parser.add_argument(
+    list_templates_parser = argparse.ArgumentParser()
+    list_templates_parser.add_argument(
         "-w", "--workspace-name", type=str, help="Workspace name"
     )
-    report_parser.add_argument(
+    list_templates_parser.add_argument(
         "-p",
         "--pretty",
         action="store_true",
         help="Show table in a pretty format",
     )
 
-    @with_argparser(report_parser)
-    def do_list_executive_reports_templates(self, args):
+    @cmd2.as_subcommand_to(
+        "list",
+        "executive-templates",
+        list_templates_parser,
+        help="list executive reports templates",
+    )
+    def list_executive_reports_templates(self, args):
         """List executive report templates"""
         if not args.workspace_name:
             if active_config.workspace:
@@ -93,8 +98,13 @@ class ExecutiveReportsCommands(CommandSet):
         "-o", "--output", type=str, help="Report output"
     )
 
-    @with_argparser(report_parser)
-    def do_generate_executive_report(self, args):
+    @cmd2.as_subcommand_to(
+        "create",
+        "executive-report",
+        report_parser,
+        help="create an executive report",
+    )
+    def generate_executive_report(self, args):
         """Generate executive report"""
 
         @Halo(

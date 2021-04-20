@@ -17,6 +17,7 @@ from cmd2 import (
     Statement,
     Settable,
     with_default_category,
+    with_category,
 )
 import click
 from faraday_plugins.plugins.manager import (
@@ -29,6 +30,7 @@ from tabulate import tabulate
 
 from simple_rest_client.exceptions import ClientError
 
+from faraday_cli import __version__
 from faraday_cli.extras.halo.halo import Halo
 from faraday_cli.config import active_config
 from faraday_cli.shell import utils
@@ -63,13 +65,16 @@ class FaradayShell(Cmd):
     }
     delattr(Cmd, "do_run_pyscript")
     delattr(Cmd, "do_run_script")
+    delattr(Cmd, "do_edit")
+    delattr(Cmd, "do_shell")
+    delattr(Cmd, "do_shortcuts")
+    delattr(Cmd, "do_py")
 
     def __init__(self, *args, **kwargs):
         super().__init__(
             persistent_history_file="~/.faraday-cli_history", *args, **kwargs
         )
-
-        self.hidden_commands += ["EOF", "cd", "alias"]
+        self.hidden_commands += ["EOF", "cd", "alias", "macro"]
         self.run_as_shell = False
         self.TABLE_PRETTY_FORMAT = "psql"
         # hide unwanted settings
@@ -114,6 +119,10 @@ class FaradayShell(Cmd):
             )
         )
         self._create_plugin_manager()
+
+    def do_version(self, _):
+        """Faraday cli version"""
+        self.poutput(f"faraday-cli: {__version__}")
 
     def _create_plugin_manager(self):
         self.plugins_manager = PluginsManager(
@@ -314,6 +323,138 @@ class FaradayShell(Cmd):
                 fg="green",
             )
         )
+
+    # Create
+    create_parser = argparse.ArgumentParser()
+    create_subparsers = create_parser.add_subparsers(title="item")
+
+    @with_argparser(create_parser)
+    @with_category("Actions")
+    def do_create(self, ns: argparse.Namespace):
+        """Create items"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            # Call whatever subcommand function was selected
+            handler(ns)
+        else:
+            # No subcommand was provided, so call help
+            self.poutput(
+                "This command does nothing without sub-parsers registered"
+            )
+            self.do_help("create")
+
+    # Delete
+    delete_parser = argparse.ArgumentParser()
+    delete_subparsers = delete_parser.add_subparsers(title="item")
+
+    @with_argparser(delete_parser)
+    @with_category("Actions")
+    def do_delete(self, ns: argparse.Namespace):
+        """Delete items"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            # Call whatever subcommand function was selected
+            handler(ns)
+        else:
+            # No subcommand was provided, so call help
+            self.poutput(
+                "This command does nothing without sub-parsers registered"
+            )
+            self.do_help("delete")
+
+    # Get
+    get_parser = argparse.ArgumentParser()
+    get_subparsers = get_parser.add_subparsers(title="item")
+
+    @with_argparser(get_parser)
+    @with_category("Actions")
+    def do_get(self, ns: argparse.Namespace):
+        """Get items"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            # Call whatever subcommand function was selected
+            handler(ns)
+        else:
+            # No subcommand was provided, so call help
+            self.poutput(
+                "This command does nothing without sub-parsers registered"
+            )
+            self.do_help("get")
+
+    # Listing
+    list_parser = argparse.ArgumentParser()
+    list_subparsers = list_parser.add_subparsers(title="item")
+
+    @with_argparser(list_parser)
+    @with_category("Actions")
+    def do_list(self, ns: argparse.Namespace):
+        """List items"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            # Call whatever subcommand function was selected
+            handler(ns)
+        else:
+            # No subcommand was provided, so call help
+            self.poutput(
+                "This command does nothing without sub-parsers registered"
+            )
+            self.do_help("list")
+
+    # Process
+    process_parser = argparse.ArgumentParser()
+    process_subparsers = process_parser.add_subparsers(title="item")
+
+    @with_argparser(process_parser)
+    @with_category("Actions")
+    def do_process(self, ns: argparse.Namespace):
+        """Process something"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            # Call whatever subcommand function was selected
+            handler(ns)
+        else:
+            # No subcommand was provided, so call help
+            self.poutput(
+                "This command does nothing without sub-parsers registered"
+            )
+            self.do_help("process")
+
+    # Select
+    select_parser = argparse.ArgumentParser()
+    select_subparsers = select_parser.add_subparsers(title="item")
+
+    @with_argparser(select_parser)
+    @with_category("Actions")
+    def do_select(self, ns: argparse.Namespace):
+        """Select something"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            # Call whatever subcommand function was selected
+            handler(ns)
+        else:
+            # No subcommand was provided, so call help
+            self.poutput(
+                "This command does nothing without sub-parsers registered"
+            )
+            self.do_help("select")
+
+    # Run
+    run_parser = argparse.ArgumentParser()
+    run_subparsers = run_parser.add_subparsers(title="item")
+
+    @with_argparser(run_parser)
+    @with_category("Actions")
+    def do_run(self, ns: argparse.Namespace):
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            # Call whatever subcommand function was selected
+            handler(ns)
+        else:
+            # No subcommand was provided, so call help
+            self.poutput(
+                "This command does nothing without sub-parsers registered"
+            )
+            self.do_help("run")
 
     # Run Command
     def run_command(self, plugin, user, command):
