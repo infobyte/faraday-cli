@@ -33,7 +33,7 @@ class AgentCommands(cmd2.CommandSet):
     )
 
     @cmd2.as_subcommand_to(
-        "list", "agents", list_agent_parser, help="list agents"
+        "agent", "list", list_agent_parser, help="list agents"
     )
     def list_agents(self, args: argparse.Namespace):
         """List agents"""
@@ -95,7 +95,7 @@ class AgentCommands(cmd2.CommandSet):
     )
 
     @cmd2.as_subcommand_to(
-        "get", "agent", get_agent_parser, help="get an agent"
+        "agent", "get", get_agent_parser, help="get an agent"
     )
     def get_agent(self, args: argparse.Namespace):
         """Get agent"""
@@ -183,7 +183,7 @@ class AgentCommands(cmd2.CommandSet):
     )
 
     @cmd2.as_subcommand_to(
-        "run", "executor", run_executor_parser, help="run an executor"
+        "agent", "run", run_executor_parser, help="run an executor"
     )
     def run_executor(self, args):
         """Run executor"""

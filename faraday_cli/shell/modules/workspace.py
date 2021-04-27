@@ -19,7 +19,7 @@ class WorkspaceCommands(cmd2.CommandSet):
     )
 
     @cmd2.as_subcommand_to(
-        "select", "workspace", select_ws_parser, help="select active workspace"
+        "workspace", "select", select_ws_parser, help="select active workspace"
     )
     def select_ws(self, args: argparse.Namespace):
         """Select active Workspace"""
@@ -56,7 +56,7 @@ class WorkspaceCommands(cmd2.CommandSet):
     )
 
     @cmd2.as_subcommand_to(
-        "get", "workspace", get_ws_parser, help="get a workspace"
+        "workspace", "get", get_ws_parser, help="get a workspace"
     )
     def get_ws(self, args: argparse.Namespace):
         """Get Workspace"""
@@ -111,7 +111,7 @@ class WorkspaceCommands(cmd2.CommandSet):
     )
 
     @cmd2.as_subcommand_to(
-        "delete", "workspace", delete_ws_parser, help="delete a workspace"
+        "workspace", "delete", delete_ws_parser, help="delete a workspace"
     )
     def delete_ws(self, args: argparse.Namespace):
         """Delete Workspace"""
@@ -144,7 +144,7 @@ class WorkspaceCommands(cmd2.CommandSet):
     )
 
     @cmd2.as_subcommand_to(
-        "create", "workspace", create_ws_parser, help="create a workspace"
+        "workspace", "create", create_ws_parser, help="create a workspace"
     )
     def create_ws(self, args: argparse.Namespace):
         """Create Workspace"""
@@ -182,7 +182,7 @@ class WorkspaceCommands(cmd2.CommandSet):
     )
 
     @cmd2.as_subcommand_to(
-        "list", "workspaces", list_ws_parser, help="list workspaces"
+        "workspace", "list", list_ws_parser, help="list workspaces"
     )
     def list_workspace(self, args: argparse.Namespace):
         """List Workspaces"""

@@ -42,7 +42,7 @@ class ServiceCommands(cmd2.CommandSet):
     )
 
     @cmd2.as_subcommand_to(
-        "list", "services", list_service_parser, help="list services"
+        "service", "list", list_service_parser, help="list services"
     )
     def list_services(self, args: argparse.Namespace):
         """List services"""

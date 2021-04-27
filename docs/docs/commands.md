@@ -55,7 +55,7 @@ http://localhost:5985  False         corp-3.14  faraday  ✔              test
 List workspaces created in faraday.
 
 ```
-$ faraday-cli list workspaces -p
+$ faraday-cli workspace list -p
 +--------+---------+------------+---------+----------+----------+------------+
 | NAME   |   HOSTS |   SERVICES | VULNS   | ACTIVE   | PUBLIC   | READONLY   |
 |--------+---------+------------+---------+----------+----------+------------|
@@ -77,7 +77,7 @@ $ faraday-cli list workspaces -p
 Delete workspace from faraday.
 
 ```
-$ faraday-cli delete workspace test
+$ faraday-cli workspace delete test
 Deleting workspace: test
 Deleted workspace: test
 ```
@@ -93,7 +93,7 @@ Deleted workspace: test
 Get details of a workspace.
 
 ```
-$ faraday-cli get workspace -p test
+$ faraday-cli workspace get -p test
 +--------+----------+----------+------------+---------+------------+---------+
 | NAME   | ACTIVE   | PUBLIC   | READONLY   |   HOSTS |   SERVICES |   VULNS |
 |--------+----------+----------+------------+---------+------------+---------|
@@ -121,7 +121,7 @@ Select your active workspace, unless you use the ```-w``` argument all the comma
 
 
 ```
-$ faraday-cli select workspace test
+$ faraday-cli workspace select test
 ✔ Selected workspace: test
 ```
 
@@ -137,7 +137,7 @@ Create a new workspace in faraday.
 
 
 ```
-$ faraday-cli create workspace test_workspace
+$ faraday-cli workspace create test_workspace
 ✔ Created workspace: test_workspace
 ```
 
@@ -161,7 +161,7 @@ List hosts in a workspace.
 
 
 ```
-$ faraday-cli list hosts -p
+$ faraday-cli host list -p
 +------+------------+---------+-------------+------------+---------+
 |   ID | IP         | OS      | HOSTNAMES   |   SERVICES |   VULNS |
 |------+------------+---------+-------------+------------+---------|
@@ -197,7 +197,7 @@ Get host information.
 
 
 ```
-$ faraday-cli get host 13 -p
+$ faraday-cli host get 13 -p
 Host:
 +------+-----------+---------+-------------+---------+---------+---------+
 |   ID | IP        | OS      | HOSTNAMES   | OWNER   | OWNED   |   VULNS |
@@ -242,7 +242,7 @@ Delete host.
 
 
 ```
-$ faraday-cli delete host 13
+$ faraday-cli host delete 13
 Host deleted
 ```
 
@@ -267,7 +267,7 @@ Create hosts.
 !!! info
     You can pass the host data via stdin.
     ```
-    $ echo '[{"ip": "1.1.1.5", "description": "some text"}]' | faraday-cli create hosts --stdin
+    $ echo '[{"ip": "1.1.1.5", "description": "some text"}]' | faraday-cli host create --stdin
     ```
 
 *Optional Arguments:*
@@ -299,7 +299,7 @@ List services in a workspace.
 
 
 ```
-$ faraday-cli list services -p
+$ faraday-cli service list -p
 +------+--------+--------------+------------+--------+------------+--------+---------+
 |   ID | NAME   | SUMMARY      | IP         |   PORT | PROTOCOL   |   HOST |   VULNS |
 |------+--------+--------------+------------+--------+------------+--------+---------|
@@ -335,7 +335,7 @@ List vulnerabilities in a workspace.
 
 
 ```
-$ faraday-cli list vulns -p
+$ faraday-cli vuln list -p
 +------+-----------------------------------------------------------------------------+------------+----------+-------------+--------------------------------------------------+-------------+
 |   ID | NAME                                                                        | SEVERITY   | STATUS   | CONFIRMED   | ASSET                                            | HOSTNAMES   |
 |------+-----------------------------------------------------------------------------+------------+----------+-------------+--------------------------------------------------+-------------|
@@ -407,7 +407,7 @@ Process different tools reports and upload the information into faraday.
 
 
 ```
-$ faraday-cli process report $HOME/Downloads/openvas-report.xml
+$ faraday-cli tool report $HOME/Downloads/openvas-report.xml
 📄 Processing Openvas report
 ⬆ Sending data to workspace: test
 ✔ Done
@@ -439,7 +439,7 @@ Execute a tool and upload the information into faraday.
 
 
 ```
-$ faraday-cli process tool \"nmap www.exampledomain.com\"
+$ faraday-cli tool run \"nmap www.exampledomain.com\"
 💻 Processing Nmap command
 Starting Nmap 7.80 ( https://nmap.org ) at 2021-02-22 14:13 -03
 Nmap scan report for www.exampledomain.com (10.196.205.130)
@@ -512,7 +512,7 @@ Nmap done: 1 IP address (1 host up) scanned in 125.84 seconds
 ⬆ Sending data to workspace: local
 ✔ Done
 
-[ws:test]> list_services
+[ws:test]> service list
   ID  NAME          SUMMARY                                               IP                PORT  PROTOCOL      HOST    VULNS
 ----  ------------  ----------------------------------------------------  --------------  ------  ----------  ------  -------
   27  ssh           (22/tcp) ssh (OpenSSH 7.8)                            192.168.1.100       22  tcp             28        0
@@ -537,7 +537,7 @@ List all configured agents for a workspace.
 
 
 ```
-$ faraday-cli faraday-cli list agents
+$ faraday-cli agent list
   ID  NAME    ACTIVE    STATUS    EXECUTORS
 ----  ------  --------  --------  -----------
    2  nico    True      online    nmap
@@ -558,7 +558,8 @@ Get information of and agent and its executors.
 
 
 ```
-$   ID  NAME    ACTIVE    STATUS
+$ faraday-cli agent get 2
+   ID  NAME    ACTIVE    STATUS
 ----  ------  --------  --------
    2  nico    True      online
 
@@ -597,13 +598,13 @@ Run an executor.
 !!! info
     You can pass the executor parameters via stdin.
     ```
-    $ echo '{"target": "www.google.com"}' | faraday-cli  run executor -a 1 -e nmap --stdin
+    $ echo '{"target": "www.google.com"}' | faraday-cli agent run -a 1 -e nmap --stdin
     ```
 
 !!! warning
     If you pass the executor parameters as an argument it needs to be escaped like this (only in command mode, not in shell mode).
     ```
-    $ faraday-cli  run_executor -a 1 -e nmap -p \''{"target": "www.google.com"}'\'
+    $ faraday-cli  agent run -a 1 -e nmap -p \''{"target": "www.google.com"}'\'
     Run executor: agent/nmap [{'command_id': 5}]
     ```
 
@@ -635,7 +636,7 @@ List the templates available to generate Executive Reports.
 
 
 ```
-$ faraday-cli list executive-reports-templates -p
+$ faraday-cli executive_report list-templates -p
 +------------------------------------------------------------------+-----------+
 | NAME                                                             | GROUPED   |
 |------------------------------------------------------------------+-----------|
@@ -659,7 +660,7 @@ $ faraday-cli list executive-reports-templates -p
 Generate an executive report with a given template.
 
 ```
-$ faraday-cli create executive-report -t \'"generic_default.html (generic) (PDF)"\'  --title title --summary summary --enterprise company  -o /tmp/test.pdf  --ignore-info
+$ faraday-cli executive_report create -t \'"generic_default.html (generic) (PDF)"\'  --title title --summary summary --enterprise company  -o /tmp/test.pdf  --ignore-info
 Report created: /tmp/test.pdf
 ```
 
@@ -686,11 +687,22 @@ $ faraday-cli help -v
 
 Documented commands (use 'help -v' for verbose/'help <topic>' for details):
 
-Agents
+Core
 --------------------------------------------------------------------------------
-get_agent           Get agent
-list_agents         List agents
-run_executor        Run executor
+auth                Authenticate with a faraday server
+exit                exit the application. Shorthand: Ctrl-D.
+status              Show Cli status
+version             Faraday cli version
+
+Objects
+--------------------------------------------------------------------------------
+agent               agent actions
+executive_report    executive_report actions
+host                host actions
+service             service actions
+tool                tool actions
+vuln                vulnerabilities actions
+workspace           workspace actions
 ...
 ```
 

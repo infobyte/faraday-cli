@@ -48,7 +48,7 @@ class ToolCommands(cmd2.CommandSet):
     tool_parser.add_argument("command", help="Command of the tool to process")
 
     @cmd2.as_subcommand_to(
-        "process", "tool", tool_parser, help="run a tool and process it"
+        "tool", "run", tool_parser, help="run a tool and process it"
     )
     def process_tool(self, args):
         """Process Tool execution in Faraday"""

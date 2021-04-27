@@ -48,9 +48,7 @@ class HostCommands(cmd2.CommandSet):
     )
     list_host_parser.add_argument("--port", type=int, help="Listen in port")
 
-    @cmd2.as_subcommand_to(
-        "list", "hosts", list_host_parser, help="list hosts"
-    )
+    @cmd2.as_subcommand_to("host", "list", list_host_parser, help="list hosts")
     def list_hosts(self, args: argparse.Namespace):
         """List hosts"""
 
@@ -134,7 +132,7 @@ class HostCommands(cmd2.CommandSet):
         help="Show table in a pretty format",
     )
 
-    @cmd2.as_subcommand_to("get", "host", get_host_parser, help="get a host")
+    @cmd2.as_subcommand_to("host", "get", get_host_parser, help="get a host")
     def get_host(self, args: argparse.Namespace):
         """Get host information"""
         if not args.workspace_name:
@@ -256,7 +254,7 @@ class HostCommands(cmd2.CommandSet):
     )
 
     @cmd2.as_subcommand_to(
-        "delete", "host", delete_host_parser, help="delete a host"
+        "host", "delete", delete_host_parser, help="delete a host"
     )
     def delete_host(self, args):
         """Delete Host"""
@@ -297,7 +295,7 @@ class HostCommands(cmd2.CommandSet):
     )
 
     @cmd2.as_subcommand_to(
-        "create", "hosts", create_host_parser, help="create hosts"
+        "host", "create", create_host_parser, help="create hosts"
     )
     def create_hosts(self, args: argparse.Namespace):
         """Create Hosts"""

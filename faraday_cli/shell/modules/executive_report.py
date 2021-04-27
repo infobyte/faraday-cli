@@ -31,8 +31,8 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
     )
 
     @cmd2.as_subcommand_to(
-        "list",
-        "executive-templates",
+        "executive_report",
+        "list-templates",
         list_templates_parser,
         help="list executive reports templates",
     )
@@ -99,8 +99,8 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
     )
 
     @cmd2.as_subcommand_to(
+        "executive_report",
         "create",
-        "executive-report",
         report_parser,
         help="create an executive report",
     )

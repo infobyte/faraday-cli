@@ -50,7 +50,7 @@ class ReportsCommands(cmd2.CommandSet):
     report_parser.add_argument("report_path", help="Path of the report file")
 
     @cmd2.as_subcommand_to(
-        "process", "report", report_parser, help="process a report from a tool"
+        "tool", "report", report_parser, help="process a report from a tool"
     )
     def process_report(self, args: argparse.Namespace):
         """Process Tool report in Faraday"""
