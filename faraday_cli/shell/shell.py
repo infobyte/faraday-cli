@@ -255,16 +255,29 @@ class FaradayShell(Cmd):
         def send_to_faraday(ws, data):
             spinner = Halo(text="Sending", text_color="green", spinner="dots")
             spinner.start()
-            self.api_client.bulk_create(ws, data)
-            spinner.stop()
+            try:
+                self.api_client.bulk_create(ws, data)
+            except Exception as e:
+                return str(e)
+            else:
+                spinner.stop()
+                return None
 
         while not self.data_queue.empty():
             data = self.data_queue.get()
             message = f"{self.emojis['arrow_up']} Sending data to workspace: {data['workspace']}"  # noqa: E501
             self.poutput(style(message, fg="green"))
-            send_to_faraday(data["workspace"], data["json_data"])
-            self.poutput(style(f"{self.emojis['check']} Done", fg="green"))
-
+            upload_error = send_to_faraday(
+                data["workspace"], data["json_data"]
+            )
+            if upload_error is not None:
+                self.poutput(
+                    style(f"\n{self.emojis['cross']} {upload_error}", fg="red")
+                )
+            else:
+                self.poutput(
+                    style(f"\n{self.emojis['check']} Done", fg="green")
+                )
         return Cmd.postcmd(self, stop, line)
 
     def update_prompt(self) -> None:

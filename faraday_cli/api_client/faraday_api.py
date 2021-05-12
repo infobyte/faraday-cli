@@ -8,6 +8,7 @@ from faraday_cli.api_client.exceptions import (
     InvalidCredentials,
     Invalid2FA,
     MissingConfig,
+    ExpiredLicense,
 )
 from simple_rest_client.api import API
 
@@ -66,7 +67,9 @@ class FaradayApi:
                 raise Exception(f"{e}")
             except NotFoundError:
                 raise
-            except ClientError:
+            except ClientError as e:
+                if e.response.status_code == 402:
+                    raise ExpiredLicense("Your Faraday license is expired")
                 raise
             except Exception as e:
                 raise Exception(f"Unknown error: {type(e)} - {e}")
