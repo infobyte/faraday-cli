@@ -258,6 +258,7 @@ class FaradayShell(Cmd):
             try:
                 self.api_client.bulk_create(ws, data)
             except Exception as e:
+                spinner.stop()
                 return str(e)
             else:
                 spinner.stop()
