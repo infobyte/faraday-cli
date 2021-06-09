@@ -4,21 +4,8 @@ from re import search
 with open("faraday_cli/__init__.py", "rt", encoding="utf8") as f:
     version = search(r"__version__ = \"(.*?)\"", f.read()).group(1)
 
-
-install_requires = [
-    "click>=7.1.2",
-    "colorama>=0.4.4",
-    "faraday-plugins>=1.4.5",
-    "jsonschema>=3.2.0",
-    "PyYAML>=5.4.1",
-    "simple-rest-client>=1.0.8",
-    "tabulate>=0.8.9",
-    "validators>=0.18.2",
-    "spinners>=0.0.24",
-    "termcolor>=1.1.0",
-    "cmd2>=1.5.0",
-    "log-symbols>=0.0.14",
-]
+with open("requirements.txt") as fp:
+    required = fp.read().splitlines()
 
 
 extra_req = {
@@ -59,7 +46,7 @@ setup(
     long_description_content_type="text/markdown",
     description="Faraday cli package",
     include_package_data=True,
-    install_requires=install_requires,
+    install_requires=required,
     extras_require=extra_req,
     entry_points={
         "console_scripts": ["faraday-cli=faraday_cli.shell.main:main"],
