@@ -12,3 +12,7 @@ class Invalid2FA(Exception):
 
 class MissingConfig(Exception):
     pass
+
+
+class ExpiredLicense(Exception):
+    pass
