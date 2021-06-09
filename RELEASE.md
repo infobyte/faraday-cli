@@ -1,3 +1,7 @@
+1.1.1 [Jun 9th, 2021]:
+---
+ * Fix to use cmd2 2.0 and update requirements
+
 1.1.0 [Apr 16th, 2021]:
 ---
  * Add new command to process a tool execution
