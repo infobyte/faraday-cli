@@ -107,6 +107,7 @@ class FaradayShell(Cmd):
                 str,
                 "Path of custom plugins",
                 onchange_cb=self._onchange_custom_plugins_path,
+                settable_object=self,
             )
         )
         self.add_settable(
@@ -116,6 +117,7 @@ class FaradayShell(Cmd):
                 "Ignore Informational vulnerabilities "
                 "from reports and commands",
                 onchange_cb=self._onchange_ignore_info_severity,
+                settable_object=self,
             )
         )
         self._create_plugin_manager()

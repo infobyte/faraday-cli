@@ -1,0 +1,1963 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+
+        <meta name="description" content="Faraday command line tool">
+
+
+
+        <meta name="author" content="Faradaysec">
+
+
+        <link rel="canonical" href="https://faradaysec.com/commands/">
+
+      <link rel="shortcut icon" href="../images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.2.4">
+
+
+
+        <title>Commands - Faraday Cli</title>
+
+
+
+      <link rel="stylesheet" href="../assets/stylesheets/main.15aa0b43.min.css">
+
+
+        <link rel="stylesheet" href="../assets/stylesheets/palette.75751829.min.css">
+
+
+
+
+
+
+
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+
+
+
+
+      <link rel="stylesheet" href="../css/faraday_doc.css">
+
+
+
+
+
+  </head>
+
+
+
+
+
+
+
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+
+
+
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+
+
+        <a href="#commands" class="md-skip">
+          Skip to content
+        </a>
+
+    </div>
+    <div data-md-component="announce">
+
+    </div>
+
+
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="https://faradaysec.com" title="Faraday Cli" class="md-header-nav__button md-logo" aria-label="Faraday Cli">
+
+  <img src="../images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      <div class="md-header-nav__ellipsis">
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
+            Faraday Cli
+          </span>
+        </div>
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
+
+              Commands
+
+          </span>
+        </div>
+      </div>
+    </div>
+
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+      <div class="md-header-nav__source">
+
+<a href="https://github.com/infobyte/faraday-cli/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    infobyte/faraday-cli
+  </div>
+</a>
+      </div>
+
+  </nav>
+</header>
+
+    <div class="md-container" data-md-component="container">
+
+
+
+
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+
+
+
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://faradaysec.com" title="Faraday Cli" class="md-nav__button md-logo" aria-label="Faraday Cli">
+
+  <img src="../images/logo.svg" alt="logo">
+
+    </a>
+    Faraday Cli
+  </label>
+
+    <div class="md-nav__source">
+
+<a href="https://github.com/infobyte/faraday-cli/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    infobyte/faraday-cli
+  </div>
+</a>
+    </div>
+
+  <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+  <li class="md-nav__item">
+    <a href=".." class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+
+
+
+
+
+
+
+  <li class="md-nav__item">
+    <a href="../getting_started/" class="md-nav__link">
+      Getting started
+    </a>
+  </li>
+
+
+
+
+
+
+
+
+
+
+  <li class="md-nav__item md-nav__item--active">
+
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+
+
+
+
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Commands
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+
+    <a href="./" class="md-nav__link md-nav__link--active">
+      Commands
+    </a>
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    Authentication
+  </a>
+
+    <nav class="md-nav" aria-label="Authentication">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#auth" class="md-nav__link">
+    auth
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#status" class="md-nav__link">
+    status
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#workspaces" class="md-nav__link">
+    Workspaces
+  </a>
+
+    <nav class="md-nav" aria-label="Workspaces">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#list_ws" class="md-nav__link">
+    list_ws
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#delete_ws" class="md-nav__link">
+    delete_ws
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#get_ws" class="md-nav__link">
+    get_ws
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#select_ws" class="md-nav__link">
+    select_ws
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#create_ws" class="md-nav__link">
+    create_ws
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#hosts" class="md-nav__link">
+    Hosts
+  </a>
+
+    <nav class="md-nav" aria-label="Hosts">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#list_hosts" class="md-nav__link">
+    list_hosts
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#get_host" class="md-nav__link">
+    get_host
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#delete_host" class="md-nav__link">
+    delete_host
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#create_hosts" class="md-nav__link">
+    create_hosts
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#services" class="md-nav__link">
+    Services
+  </a>
+
+    <nav class="md-nav" aria-label="Services">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#list_services" class="md-nav__link">
+    list_services
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#vulnerabilities" class="md-nav__link">
+    Vulnerabilities
+  </a>
+
+    <nav class="md-nav" aria-label="Vulnerabilities">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#list_vulns" class="md-nav__link">
+    list_vulns
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#vulnerabilities-stats" class="md-nav__link">
+    Vulnerabilities Stats
+  </a>
+
+    <nav class="md-nav" aria-label="Vulnerabilities Stats">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#stats" class="md-nav__link">
+    stats
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#tools-and-reports" class="md-nav__link">
+    Tools and Reports
+  </a>
+
+    <nav class="md-nav" aria-label="Tools and Reports">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#process_report" class="md-nav__link">
+    process_report
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#process_tool" class="md-nav__link">
+    process_tool
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#run-tools-like-a-shell-in-faraday-cli" class="md-nav__link">
+    Run tools like a shell in faraday-cli
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#agents" class="md-nav__link">
+    Agents
+  </a>
+
+    <nav class="md-nav" aria-label="Agents">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#list_agents" class="md-nav__link">
+    list_agents
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#get_agent" class="md-nav__link">
+    get_agent
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#run_executor" class="md-nav__link">
+    run_executor
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#executive-reports" class="md-nav__link">
+    Executive Reports
+  </a>
+
+    <nav class="md-nav" aria-label="Executive Reports">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#list_executive_reports_templates" class="md-nav__link">
+    list_executive_reports_templates
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#generate_executive_report" class="md-nav__link">
+    generate_executive_report
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#help" class="md-nav__link">
+    help
+  </a>
+
+</li>
+
+    </ul>
+
+</nav>
+
+  </li>
+
+
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    Authentication
+  </a>
+
+    <nav class="md-nav" aria-label="Authentication">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#auth" class="md-nav__link">
+    auth
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#status" class="md-nav__link">
+    status
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#workspaces" class="md-nav__link">
+    Workspaces
+  </a>
+
+    <nav class="md-nav" aria-label="Workspaces">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#list_ws" class="md-nav__link">
+    list_ws
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#delete_ws" class="md-nav__link">
+    delete_ws
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#get_ws" class="md-nav__link">
+    get_ws
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#select_ws" class="md-nav__link">
+    select_ws
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#create_ws" class="md-nav__link">
+    create_ws
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#hosts" class="md-nav__link">
+    Hosts
+  </a>
+
+    <nav class="md-nav" aria-label="Hosts">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#list_hosts" class="md-nav__link">
+    list_hosts
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#get_host" class="md-nav__link">
+    get_host
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#delete_host" class="md-nav__link">
+    delete_host
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#create_hosts" class="md-nav__link">
+    create_hosts
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#services" class="md-nav__link">
+    Services
+  </a>
+
+    <nav class="md-nav" aria-label="Services">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#list_services" class="md-nav__link">
+    list_services
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#vulnerabilities" class="md-nav__link">
+    Vulnerabilities
+  </a>
+
+    <nav class="md-nav" aria-label="Vulnerabilities">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#list_vulns" class="md-nav__link">
+    list_vulns
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#vulnerabilities-stats" class="md-nav__link">
+    Vulnerabilities Stats
+  </a>
+
+    <nav class="md-nav" aria-label="Vulnerabilities Stats">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#stats" class="md-nav__link">
+    stats
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#tools-and-reports" class="md-nav__link">
+    Tools and Reports
+  </a>
+
+    <nav class="md-nav" aria-label="Tools and Reports">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#process_report" class="md-nav__link">
+    process_report
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#process_tool" class="md-nav__link">
+    process_tool
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#run-tools-like-a-shell-in-faraday-cli" class="md-nav__link">
+    Run tools like a shell in faraday-cli
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#agents" class="md-nav__link">
+    Agents
+  </a>
+
+    <nav class="md-nav" aria-label="Agents">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#list_agents" class="md-nav__link">
+    list_agents
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#get_agent" class="md-nav__link">
+    get_agent
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#run_executor" class="md-nav__link">
+    run_executor
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#executive-reports" class="md-nav__link">
+    Executive Reports
+  </a>
+
+    <nav class="md-nav" aria-label="Executive Reports">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#list_executive_reports_templates" class="md-nav__link">
+    list_executive_reports_templates
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#generate_executive_report" class="md-nav__link">
+    generate_executive_report
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#help" class="md-nav__link">
+    help
+  </a>
+
+</li>
+
+    </ul>
+
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+
+
+                  <a href="https://github.com/infobyte/faraday-cli/edit/master/docs/commands.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+
+
+                <h1 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">&para;</a></h1>
+<h2 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h2>
+<h3 id="auth">auth<a class="headerlink" href="#auth" title="Permanent link">&para;</a></h3>
+<p>Authenticate with your faraday server.</p>
+<p><div class="highlight"><pre><span></span><code>$ faraday-cli auth
+Faraday url [http://localhost:5985]: http://localhost:5985
+User: faraday
+Password:
+Saving config
+✔ Authenticated with faraday: http://localhost:5985
+</code></pre></div>
+<em>Optional arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-f/--faraday-url FARADAY_URL</code></td>
+<td align="right">url of your faraday server</td>
+</tr>
+<tr>
+<td align="left"><code>-i/--ignore-ssl</code></td>
+<td align="right">Ignore SSL certificate validation</td>
+</tr>
+<tr>
+<td align="left"><code>-i/--ignore-ssl</code></td>
+<td align="right">Ignore SSL certificate validation</td>
+</tr>
+<tr>
+<td align="left"><code>-u/--user USER</code></td>
+<td align="right">Faraday user</td>
+</tr>
+<tr>
+<td align="left"><code>-p/--password PASSWORD</code></td>
+<td align="right">Faraday password</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">Faraday token expiration</p>
+<p>You may want to change the faraday token expiration time, so you don't have to authenticate so often.</p>
+<p>The default is 12 hours.</p>
+<p>To do it change de value of <code>api_token_expiration</code>(expressed in seconds) in your faraday <code>server.ini</code></p>
+</div>
+<h3 id="status">status<a class="headerlink" href="#status" title="Permanent link">&para;</a></h3>
+<p>Show the status of your current authentication.</p>
+<p><div class="highlight"><pre><span></span><code>$ faraday-cli status
+FARADAY SERVER         IGNORE SSL    VERSION    USER     VALID TOKEN    WORKSPACE
+---------------------  ------------  ---------  -------  -------------  -----------
+http://localhost:5985  False         corp-3.14  faraday  ✔              test
+</code></pre></div>
+<em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-p/--pretty</code></td>
+<td align="right">Show table in a pretty format</td>
+</tr>
+</tbody>
+</table>
+<h2 id="workspaces">Workspaces<a class="headerlink" href="#workspaces" title="Permanent link">&para;</a></h2>
+<h3 id="list_ws">list_ws<a class="headerlink" href="#list_ws" title="Permanent link">&para;</a></h3>
+<p>List workspaces created in faraday.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli list_ws -p
++--------+---------+------------+---------+----------+----------+------------+
+| NAME   |   HOSTS |   SERVICES | VULNS   | ACTIVE   | PUBLIC   | READONLY   |
+|--------+---------+------------+---------+----------+----------+------------|
+| test   |      13 |         13 | 39      | True     | False    | False      |
++--------+---------+------------+---------+----------+----------+------------+
+</code></pre></div>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-j/--json-output</code></td>
+<td align="right">Show output in json</td>
+</tr>
+<tr>
+<td align="left"><code>-p/--pretty</code></td>
+<td align="right">Show table in a pretty format</td>
+</tr>
+<tr>
+<td align="left"><code>--show-inactive</code></td>
+<td align="right">Include inactive workspaces</td>
+</tr>
+</tbody>
+</table>
+<h3 id="delete_ws">delete_ws<a class="headerlink" href="#delete_ws" title="Permanent link">&para;</a></h3>
+<p>Delete workspace from faraday.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli delete_ws test1
+Deleting workspace: test1
+Deleted workspace: test1
+</code></pre></div>
+<p><em>Required Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+</tbody>
+</table>
+<h3 id="get_ws">get_ws<a class="headerlink" href="#get_ws" title="Permanent link">&para;</a></h3>
+<p>Get details of a workspace.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli get_ws -p
++--------+----------+----------+------------+---------+------------+---------+
+| NAME   | ACTIVE   | PUBLIC   | READONLY   |   HOSTS |   SERVICES |   VULNS |
+|--------+----------+----------+------------+---------+------------+---------|
+| test   | True     | False    | False      |      13 |         13 |      39 |
++--------+----------+----------+------------+---------+------------+---------+
+</code></pre></div>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+<tr>
+<td align="left"><code>-j/--json-output</code></td>
+<td align="right">Show output in json</td>
+</tr>
+<tr>
+<td align="left"><code>-p/--pretty</code></td>
+<td align="right">Show table in a pretty format</td>
+</tr>
+</tbody>
+</table>
+<h3 id="select_ws">select_ws<a class="headerlink" href="#select_ws" title="Permanent link">&para;</a></h3>
+<p>Select your active workspace, unless you use the <code>-w</code> argument all the commands will use this workspace.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli select_ws test
+✔ Selected workspace: test
+</code></pre></div>
+<p><em>Required Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+</tbody>
+</table>
+<h3 id="create_ws">create_ws<a class="headerlink" href="#create_ws" title="Permanent link">&para;</a></h3>
+<p>Create a new workspace in faraday.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli create_ws test_workspace
+✔ Created workspace: test_workspace
+</code></pre></div>
+<p><em>Required Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+</tbody>
+</table>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-d/--dont-select</code></td>
+<td align="right">Dont select after create</td>
+</tr>
+</tbody>
+</table>
+<h2 id="hosts">Hosts<a class="headerlink" href="#hosts" title="Permanent link">&para;</a></h2>
+<h3 id="list_hosts">list_hosts<a class="headerlink" href="#list_hosts" title="Permanent link">&para;</a></h3>
+<p>List hosts in a workspace.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli list_hosts -p
++------+------------+---------+-------------+------------+---------+
+|   ID | IP         | OS      | HOSTNAMES   |   SERVICES |   VULNS |
+|------+------------+---------+-------------+------------+---------|
+|   11 | 127.0.0.1  | unknown |             |          1 |       3 |
+|    3 | 127.0.0.10 | unknown |             |          1 |       3 |
+|    6 | 127.0.0.11 | unknown |             |          1 |       3 |
+|    5 | 127.0.0.12 | unknown |             |          1 |       3 |
+|    7 | 127.0.0.13 | unknown |             |          1 |       3 |
+|   13 | 127.0.0.2  | unknown |             |          1 |       3 |
+|    2 | 127.0.0.3  | unknown |             |          1 |       3 |
+|    9 | 127.0.0.4  | unknown |             |          1 |       3 |
+|   10 | 127.0.0.5  | unknown |             |          1 |       3 |
+|    4 | 127.0.0.6  | unknown |             |          1 |       3 |
+|    8 | 127.0.0.7  | unknown |             |          1 |       3 |
+|    1 | 127.0.0.8  | unknown |             |          1 |       3 |
+|   12 | 127.0.0.9  | unknown |             |          1 |       3 |
++------+------------+---------+-------------+------------+---------+
+</code></pre></div>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+<tr>
+<td align="left"><code>-p/--pretty</code></td>
+<td align="right">Show table in a pretty format</td>
+</tr>
+<tr>
+<td align="left"><code>-j/--json-output</code></td>
+<td align="right">Show output in json</td>
+</tr>
+<tr>
+<td align="left"><code>-ip/--list-ip</code></td>
+<td align="right">Show ip only</td>
+</tr>
+<tr>
+<td align="left"><code>--port PORT</code></td>
+<td align="right">Listen in port</td>
+</tr>
+</tbody>
+</table>
+<h3 id="get_host">get_host<a class="headerlink" href="#get_host" title="Permanent link">&para;</a></h3>
+<p>Get host information.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli get_host 13 -p
+Host:
++------+-----------+---------+-------------+---------+---------+---------+
+|   ID | IP        | OS      | HOSTNAMES   | OWNER   | OWNED   |   VULNS |
+|------+-----------+---------+-------------+---------+---------+---------|
+|   13 | 127.0.0.2 | unknown |             | faraday | False   |       3 |
++------+-----------+---------+-------------+---------+---------+---------+
+
+Services:
++------+--------+---------------+------------+--------+-----------+----------+---------+
+|   ID | NAME   | DESCRIPTION   | PROTOCOL   |   PORT | VERSION   | STATUS   |   VULNS |
+|------+--------+---------------+------------+--------+-----------+----------+---------|
+|   13 | ssh    |               | tcp        |     22 | unknown   | open     |       2 |
++------+--------+---------------+------------+--------+-----------+----------+---------+
+
+Vulnerabilities:
++------+------------------------------------------+------------+----------+-------------+---------+
+|   ID | NAME                                     | SEVERITY   | STATUS   | CONFIRMED   | TOOL    |
+|------+------------------------------------------+------------+----------+-------------+---------|
+|   37 | SSH Weak Encryption Algorithms Supported | MED        | opened   | False       | Openvas |
+|   38 | SSH Weak MAC Algorithms Supported        | LOW        | opened   | False       | Openvas |
+|   39 | TCP timestamps                           | LOW        | opened   | False       | Openvas |
++------+------------------------------------------+------------+----------+-------------+---------+
+</code></pre></div>
+<p><em>Requirement Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>host_id</code></td>
+<td align="right">ID of the host</td>
+</tr>
+</tbody>
+</table>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+<tr>
+<td align="left"><code>-p/--pretty</code></td>
+<td align="right">Show table in a pretty format</td>
+</tr>
+<tr>
+<td align="left"><code>-j/--json-output</code></td>
+<td align="right">Show output in json</td>
+</tr>
+</tbody>
+</table>
+<h3 id="delete_host">delete_host<a class="headerlink" href="#delete_host" title="Permanent link">&para;</a></h3>
+<p>Delete host.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli delete_host 13
+Host deleted
+</code></pre></div>
+<p><em>Requirement Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>host_id</code></td>
+<td align="right">ID of the host</td>
+</tr>
+</tbody>
+</table>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+</tbody>
+</table>
+<h3 id="create_hosts">create_hosts<a class="headerlink" href="#create_hosts" title="Permanent link">&para;</a></h3>
+<p>Create hosts.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>You can pass the host data via stdin.
+<div class="highlight"><pre><span></span><code>$ echo &#39;[{&quot;ip&quot;: &quot;1.1.1.5&quot;, &quot;description&quot;: &quot;some text&quot;}]&#39; | faraday-cli create_hosts --stdin
+</code></pre></div></p>
+</div>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+<tr>
+<td align="left"><code>-d/--host-data HOST_DATA</code></td>
+<td align="right">Host data in json format</td>
+</tr>
+<tr>
+<td align="left"><code>--stdin</code></td>
+<td align="right">Read host-data from stdin</td>
+</tr>
+</tbody>
+</table>
+<p><em>host data schema</em>:
+<div class="highlight"><pre><span></span><code>{&#39;type&#39;: &#39;array&#39;, &#39;items&#39;: {&#39;type&#39;: &#39;object&#39;, &#39;properties&#39;:
+    {&#39;ip&#39;: {&#39;type&#39;: &#39;string&#39;}, &#39;description&#39;: {&#39;type&#39;: &#39;string&#39;},
+    &#39;hostnames&#39;: {&#39;type&#39;: &#39;array&#39;}}, &#39;required&#39;: [&#39;ip&#39;, &#39;description&#39;]}}
+</code></pre></div></p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you pass the host data as an argument it needs to be escaped like this (only in command mode, not in shell mode).
+<div class="highlight"><pre><span></span><code>$ faraday-cli create_hosts -d \&#39;&#39;[{&quot;ip&quot;: &quot;stan.local&quot;, &quot;description&quot;: &quot;some server&quot;}]&#39;\&#39;
+</code></pre></div></p>
+</div>
+<h2 id="services">Services<a class="headerlink" href="#services" title="Permanent link">&para;</a></h2>
+<h3 id="list_services">list_services<a class="headerlink" href="#list_services" title="Permanent link">&para;</a></h3>
+<p>List services in a workspace.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli list_services -p
++------+--------+--------------+------------+--------+------------+--------+---------+
+|   ID | NAME   | SUMMARY      | IP         |   PORT | PROTOCOL   |   HOST |   VULNS |
+|------+--------+--------------+------------+--------+------------+--------+---------|
+|    1 | ssh    | (22/tcp) ssh | 127.0.0.8  |     22 | tcp        |      1 |       2 |
+|    2 | ssh    | (22/tcp) ssh | 127.0.0.3  |     22 | tcp        |      2 |       2 |
+|    3 | ssh    | (22/tcp) ssh | 127.0.0.10 |     22 | tcp        |      3 |       2 |
+|    4 | ssh    | (22/tcp) ssh | 127.0.0.6  |     22 | tcp        |      4 |       2 |
+|    5 | ssh    | (22/tcp) ssh | 127.0.0.12 |     22 | tcp        |      5 |       2 |
+|    6 | ssh    | (22/tcp) ssh | 127.0.0.11 |     22 | tcp        |      6 |       2 |
+|    7 | ssh    | (22/tcp) ssh | 127.0.0.13 |     22 | tcp        |      7 |       2 |
+|    8 | ssh    | (22/tcp) ssh | 127.0.0.7  |     22 | tcp        |      8 |       2 |
+|    9 | ssh    | (22/tcp) ssh | 127.0.0.4  |     22 | tcp        |      9 |       2 |
+|   10 | ssh    | (22/tcp) ssh | 127.0.0.5  |     22 | tcp        |     10 |       2 |
+|   11 | ssh    | (22/tcp) ssh | 127.0.0.1  |     22 | tcp        |     11 |       2 |
+|   12 | ssh    | (22/tcp) ssh | 127.0.0.9  |     22 | tcp        |     12 |       2 |
++------+--------+--------------+------------+--------+------------+--------+---------+
+</code></pre></div>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+<tr>
+<td align="left"><code>-p/--pretty</code></td>
+<td align="right">Show table in a pretty format</td>
+</tr>
+<tr>
+<td align="left"><code>-j/--json-output</code></td>
+<td align="right">Show output in json</td>
+</tr>
+</tbody>
+</table>
+<h2 id="vulnerabilities">Vulnerabilities<a class="headerlink" href="#vulnerabilities" title="Permanent link">&para;</a></h2>
+<h3 id="list_vulns">list_vulns<a class="headerlink" href="#list_vulns" title="Permanent link">&para;</a></h3>
+<p>List vulnerabilities in a workspace.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli list_vulns -p
++------+-----------------------------------------------------------------------------+------------+----------+-------------+--------------------------------------------------+-------------+
+|   ID | NAME                                                                        | SEVERITY   | STATUS   | CONFIRMED   | ASSET                                            | HOSTNAMES   |
+|------+-----------------------------------------------------------------------------+------------+----------+-------------+--------------------------------------------------+-------------|
+| 5200 | Terminal Services Encryption Level is Medium or Low                         | med        | opened   | False       | 10.33.112.22 [Service - (3389/tcp) msrdp]        | qa3app02    |
+| 5198 | Microsoft Windows Remote Desktop Protocol Server Man-in-the-Middle Weakness | med        | opened   | False       | 10.33.112.22 [Service - (3389/tcp) msrdp]        | qa3app02    |
+| 5120 | SMB Signing Disabled                                                        | med        | opened   | False       | 10.33.112.24 [Service - (445/tcp) cifs]          | qa3app04    |
+| 5069 | Terminal Services Encryption Level is Medium or Low                         | med        | opened   | False       | 10.33.112.25 [Service - (3389/tcp) msrdp]        | qa3app05    |
+| 5034 | Terminal Services Encryption Level is Medium or Low                         | med        | opened   | False       | 10.33.112.26 [Service - (3389/tcp) msrdp]        | qa3app06    |
+| 5116 | Terminal Services Encryption Level is Medium or Low                         | med        | opened   | False       | 10.33.112.24 [Service - (3389/tcp) msrdp]        | qa3app04    |
+| 5237 | Microsoft Windows Remote Desktop Protocol Server Man-in-the-Middle Weakness | med        | opened   | False       | 10.33.112.21 [Service - (3389/tcp) msrdp]        | qa3app01    |
+| 5079 | SMB Signing Disabled                                                        | med        | opened   | False       | 10.33.112.25 [Service - (445/tcp) cifs]          | qa3app05    |
+| 4997 | SMB Signing Disabled                                                        | med        | opened   | False       | 10.33.112.29 [Service - (445/tcp) cifs]          | qa3app09    |
+| 5151 | Terminal Services Encryption Level is Medium or Low                         | med        | opened   | False       | 10.33.112.23 [Service - (3389/tcp) msrdp]        | qa3app03    |
+| 5239 | Terminal Services Encryption Level is Medium or Low                         | med        | opened   | False       | 10.33.112.21 [Service - (3389/tcp) msrdp]        | qa3app01    |
+| 5161 | SMB Signing Disabled                                                        | med        | opened   | False       | 10.33.112.23 [Service - (445/tcp) cifs]          | qa3app03    |
+| 5235 | Terminal Services Doesn&#39;t Use Network Level Authentication (NLA)            | med        | opened   | False       | 10.33.112.21 [Service - (3389/tcp) msrdp]        | qa3app01    |
+| 5249 | SMB Signing Disabled                                                        | med        | opened   | False       | 10.33.112.21 [Service - (445/tcp) cifs]          | qa3app01    |
+| 4983 | Terminal Services Doesn&#39;t Use Network Level Authentication (NLA)            | med        | opened   | False       | 10.33.112.29 [Service - (3389/tcp) msrdp]        | qa3app09    |
+| 5067 | Microsoft Windows Remote Desktop Protocol Server Man-in-the-Middle Weakness | med        | opened   | False       | 10.33.112.25 [Service - (3389/tcp) msrdp]        | qa3app05    |
+| 5038 | SMB Signing Disabled                                                        | med        | opened   | False       | 10.33.112.26 [Service - (445/tcp) cifs]          | qa3app06    |
+| 4987 | Terminal Services Encryption Level is Medium or Low                         | med        | opened   | False       | 10.33.112.29 [Service - (3389/tcp) msrdp]        | qa3app09    |
+| 5272 | Ethernet Card Manufacturer Detection                                        | info       | opened   | False       | 10.33.112.21 [Host - ID:72]                      | qa3app01    |
+| 5142 | OS Identification                                                           | info       | opened   | False       | 10.33.112.24 [Host - ID:69]                      | qa3app04    |
+| 5228 | OS Identification                                                           | info       | opened   | False       | 10.33.112.22 [Host - ID:71]                      | qa3app02    |
++------+-----------------------------------------------------------------------------+------------+----------+-------------+--------------------------------------------------+-------------+
+</code></pre></div>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+<tr>
+<td align="left"><code>-p/--pretty</code></td>
+<td align="right">Show table in a pretty format</td>
+</tr>
+<tr>
+<td align="left"><code>-j/--json-output</code></td>
+<td align="right">Show output in json</td>
+</tr>
+</tbody>
+</table>
+<h2 id="vulnerabilities-stats">Vulnerabilities Stats<a class="headerlink" href="#vulnerabilities-stats" title="Permanent link">&para;</a></h2>
+<h3 id="stats">stats<a class="headerlink" href="#stats" title="Permanent link">&para;</a></h3>
+<p>Different stats about the vulnerabilities in Faraday.</p>
+<p><img alt="Example" src="../images/faraday_cli_stats.jpeg" /></p>
+<p><em>Required Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>STAT_TYPE {severity,vulns,date}</code></td>
+<td align="right">Type of stat</td>
+</tr>
+</tbody>
+</table>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+<tr>
+<td align="left"><code>--ignore-info</code></td>
+<td align="right">Ignore informational/unclassified vulnerabilities</td>
+</tr>
+<tr>
+<td align="left"><code>--severity [SEVERITY [SEVERITY ...]]</code></td>
+<td align="right">Filter by severity informational/critical/high/medium/low/unclassified</td>
+</tr>
+<tr>
+<td align="left"><code>--confirmed</code></td>
+<td align="right">Confirmed vulnerabilities</td>
+</tr>
+</tbody>
+</table>
+<h2 id="tools-and-reports">Tools and Reports<a class="headerlink" href="#tools-and-reports" title="Permanent link">&para;</a></h2>
+<h3 id="process_report">process_report<a class="headerlink" href="#process_report" title="Permanent link">&para;</a></h3>
+<p>Process different tools reports and upload the information into faraday.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>Check our <a href="https://github.com/infobyte/faraday_plugins">Faraday Plugins</a> repo for information about compatible tools.</p>
+</div>
+<div class="highlight"><pre><span></span><code>$ faraday-cli process_report $HOME/Downloads/openvas-report.xml
+📄 Processing Openvas report
+⬆ Sending data to workspace: test
+✔ Done
+</code></pre></div>
+<p><em>Required Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>report_path</code></td>
+<td align="right">Path of the report file</td>
+</tr>
+</tbody>
+</table>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+<tr>
+<td align="left"><code>--plugin-id PLUGIN_ID</code></td>
+<td align="right">Plugin ID (force detection)</td>
+</tr>
+<tr>
+<td align="left"><code>-j/--json-output</code></td>
+<td align="right">Show output in json (dont send it to faraday)</td>
+</tr>
+<tr>
+<td align="left"><code>--tag-vuln TAG_VULN</code></td>
+<td align="right">Tag to add to vulnerabilities</td>
+</tr>
+<tr>
+<td align="left"><code>--tag-host TAG_HOST</code></td>
+<td align="right">Tag to add to hosts</td>
+</tr>
+<tr>
+<td align="left"><code>--tag-service TAG_SERVICE</code></td>
+<td align="right">Tag to add to services</td>
+</tr>
+</tbody>
+</table>
+<h3 id="process_tool">process_tool<a class="headerlink" href="#process_tool" title="Permanent link">&para;</a></h3>
+<p>Execute a tool and upload the information into faraday.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>Check our <a href="https://github.com/infobyte/faraday_plugins">Faraday Plugins</a> repo for information about compatible tools.</p>
+</div>
+<div class="highlight"><pre><span></span><code>$ faraday-cli process_tool \&quot;nmap www.exampledomain.com\&quot;
+💻 Processing Nmap command
+Starting Nmap 7.80 ( https://nmap.org ) at 2021-02-22 14:13 -03
+Nmap scan report for www.exampledomain.com (10.196.205.130)
+Host is up (0.17s latency).
+rDNS record for 10.196.205.130: 10.196.205.130.bc.googleusercontent.com
+Not shown: 996 filtered ports
+PORT     STATE  SERVICE
+80/tcp   open   http
+443/tcp  open   https
+2222/tcp open   EtherNetIP-1
+3306/tcp closed mysql
+
+Nmap done: 1 IP address (1 host up) scanned in 11.12 seconds
+⬆ Sending data to workspace: test
+✔ Done
+</code></pre></div>
+<p><em>Required Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>command</code></td>
+<td align="right">Command of the tool to process</td>
+</tr>
+</tbody>
+</table>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+<tr>
+<td align="left"><code>--plugin-id PLUGIN_ID</code></td>
+<td align="right">Plugin ID (force detection)</td>
+</tr>
+<tr>
+<td align="left"><code>-j/--json-output</code></td>
+<td align="right">Show output in json (dont send it to faraday)</td>
+</tr>
+<tr>
+<td align="left"><code>--tag-vuln TAG_VULN</code></td>
+<td align="right">Tag to add to vulnerabilities</td>
+</tr>
+<tr>
+<td align="left"><code>--tag-host TAG_HOST</code></td>
+<td align="right">Tag to add to hosts</td>
+</tr>
+<tr>
+<td align="left"><code>--tag-service TAG_SERVICE</code></td>
+<td align="right">Tag to add to services</td>
+</tr>
+</tbody>
+</table>
+<h2 id="run-tools-like-a-shell-in-faraday-cli">Run tools like a shell in faraday-cli<a class="headerlink" href="#run-tools-like-a-shell-in-faraday-cli" title="Permanent link">&para;</a></h2>
+<p>You also can run commands like a shell without the <code>process_tool</code>command.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli
+
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+
+Server: http://localhost:5985
+[ws:test]&gt; nmap -sV stan.local
+💻 Processing Nmap command
+Starting Nmap 7.80 ( https://nmap.org ) at 2021-01-11 14:42 -03
+Nmap scan report for stan.local (192.168.1.100)
+Host is up (0.00083s latency).
+Other addresses for stan.local (not scanned): fe80::c0f:a595:453a:e406
+Not shown: 749 closed ports, 243 filtered ports
+PORT     STATE SERVICE       VERSION
+22/tcp   open  ssh           OpenSSH 7.8 (protocol 2.0)
+80/tcp   open  http          nginx 1.19.5
+88/tcp   open  kerberos-sec  Heimdal Kerberos (server time: 2021-01-11 17:42:14Z)
+443/tcp  open  ssl/http      nginx 1.19.5
+445/tcp  open  microsoft-ds?
+5432/tcp open  postgresql    PostgreSQL DB 9.6.0 or later
+5900/tcp open  vnc           Apple remote desktop vnc
+9000/tcp open  cslistener?
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 125.84 seconds
+⬆ Sending data to workspace: local
+✔ Done
+
+[ws:test]&gt; list_services
+  ID  NAME          SUMMARY                                               IP                PORT  PROTOCOL      HOST    VULNS
+----  ------------  ----------------------------------------------------  --------------  ------  ----------  ------  -------
+  27  ssh           (22/tcp) ssh (OpenSSH 7.8)                            192.168.1.100       22  tcp             28        0
+  28  http          (80/tcp) http (nginx 1.19.5)                          192.168.1.100       80  tcp             28        0
+  29  kerberos-sec  (88/tcp) kerberos-sec (Heimdal Kerberos)              192.168.1.100       88  tcp             28        0
+  30  https         (443/tcp) https (nginx 1.19.5)                        192.168.1.100      443  tcp             28        0
+  31  microsoft-ds  (445/tcp) microsoft-ds                                192.168.1.100      445  tcp             28        0
+  32  postgresql    (5432/tcp) postgresql (PostgreSQL DB 9.6.0 or later)  192.168.1.100     5432  tcp             28        0
+  33  vnc           (5900/tcp) vnc (Apple remote desktop vnc)             192.168.1.100     5900  tcp             28        0
+  34  cslistener    (9000/tcp) cslistener                                 192.168.1.100     9000  tcp             28        0
+</code></pre></div>
+<h2 id="agents">Agents<a class="headerlink" href="#agents" title="Permanent link">&para;</a></h2>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>For these commands you need to have our <a href="https://github.com/infobyte/faraday_agent_dispatcher">Faraday Agents</a> configured.</p>
+</div>
+<h3 id="list_agents">list_agents<a class="headerlink" href="#list_agents" title="Permanent link">&para;</a></h3>
+<p>List all configured agents for a workspace.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli faraday-cli list_agents
+  ID  NAME    ACTIVE    STATUS    EXECUTORS
+----  ------  --------  --------  -----------
+   2  nico    True      online    nmap
+</code></pre></div>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+<tr>
+<td align="left"><code>-p/--pretty</code></td>
+<td align="right">Show table in a pretty format</td>
+</tr>
+<tr>
+<td align="left"><code>-j/--json-output</code></td>
+<td align="right">Show output in json</td>
+</tr>
+</tbody>
+</table>
+<h3 id="get_agent">get_agent<a class="headerlink" href="#get_agent" title="Permanent link">&para;</a></h3>
+<p>Get information of and agent and its executors.</p>
+<div class="highlight"><pre><span></span><code>$   ID  NAME    ACTIVE    STATUS
+----  ------  --------  --------
+   2  nico    True      online
+
+Executors:
+  ID  NAME    PARAMETERS [REQUIRED]
+----  ------  -----------------------
+   2  nmap    target [True]
+              option_pn [False]
+              option_sc [False]
+              option_sv [False]
+              port_list [False]
+              top_ports [False]
+              host_timeout [False]
+              script_timeout [False]
+</code></pre></div>
+<p><em>Required Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>AGENT_ID</code></td>
+<td align="right">ID of the Agent</td>
+</tr>
+</tbody>
+</table>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+<tr>
+<td align="left"><code>-p/--pretty</code></td>
+<td align="right">Show table in a pretty format</td>
+</tr>
+<tr>
+<td align="left"><code>-j/--json-output</code></td>
+<td align="right">Show output in json</td>
+</tr>
+</tbody>
+</table>
+<h3 id="run_executor">run_executor<a class="headerlink" href="#run_executor" title="Permanent link">&para;</a></h3>
+<p>Run an executor.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>You can pass the executor parameters via stdin.
+<div class="highlight"><pre><span></span><code>$ echo &#39;{&quot;target&quot;: &quot;www.google.com&quot;}&#39; | faraday-cli  run_executor -a 1 -e nmap --stdin
+</code></pre></div></p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you pass the executor parameters as an argument it needs to be escaped like this (only in command mode, not in shell mode).
+<div class="highlight"><pre><span></span><code>$ faraday-cli  run_executor -a 1 -e nmap -p \&#39;&#39;{&quot;target&quot;: &quot;www.google.com&quot;}&#39;\&#39;
+Run executor: agent/nmap [{&#39;command_id&#39;: 5}]
+</code></pre></div></p>
+</div>
+<p><em>Required Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-a/--agent-id AGENT_ID</code></td>
+<td align="right">ID of the agent</td>
+</tr>
+<tr>
+<td align="left"><code>-e/--executor-name EXECUTOR_NAME</code></td>
+<td align="right">Executor name</td>
+</tr>
+<tr>
+<td align="left"><code>-p/--executor-params EXECUTOR_PARAMS</code></td>
+<td align="right">Executor Params in json</td>
+</tr>
+</tbody>
+</table>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>--stdin</code></td>
+<td align="right">Read executor-params from stdin</td>
+</tr>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+</tbody>
+</table>
+<h2 id="executive-reports">Executive Reports<a class="headerlink" href="#executive-reports" title="Permanent link">&para;</a></h2>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>These commands only work with the commercial version of <a href="https://www.faradaysec.com">Faraday</a>.</p>
+</div>
+<h3 id="list_executive_reports_templates">list_executive_reports_templates<a class="headerlink" href="#list_executive_reports_templates" title="Permanent link">&para;</a></h3>
+<p>List the templates available to generate Executive Reports.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli list_executive_reports_templates -p
++------------------------------------------------------------------+-----------+
+| NAME                                                             | GROUPED   |
+|------------------------------------------------------------------+-----------|
+| generic_default.docx (generic) (Word)                            | False     |
+| generic_default.html (generic) (PDF)                             | False     |
+| group_default.docx (grouped) (Word)                              | True      |
+| group_default.html (grouped) (PDF)                               | True      |
++------------------------------------------------------------------+-----------+
+</code></pre></div>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+<tr>
+<td align="left"><code>-p/--pretty</code></td>
+<td align="right">Show table in a pretty format</td>
+</tr>
+</tbody>
+</table>
+<h3 id="generate_executive_report">generate_executive_report<a class="headerlink" href="#generate_executive_report" title="Permanent link">&para;</a></h3>
+<p>Generate an executive report with a given template.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli generate_executive_report -t \&#39;&quot;generic_default.html (generic) (PDF)&quot;\&#39;  --title title --summary summary --enterprise company  -o /tmp/test.pdf  --ignore-info
+Report generated: /tmp/test.pdf
+</code></pre></div>
+<p><em>Optional Arguments:</em></p>
+<table>
+<thead>
+<tr>
+<th align="left">Syntax</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>-w WORKSPACE_NAME</code></td>
+<td align="right">Workspace name</td>
+</tr>
+<tr>
+<td align="left"><code>-t/--template TEMPLATE</code></td>
+<td align="right">Template</td>
+</tr>
+<tr>
+<td align="left"><code>--title TITLE</code></td>
+<td align="right">Report title</td>
+</tr>
+<tr>
+<td align="left"><code>--summary SUMMARY</code></td>
+<td align="right">Report summary</td>
+</tr>
+<tr>
+<td align="left"><code>--enterprise ENTERPRISE</code></td>
+<td align="right">Enterprise name</td>
+</tr>
+<tr>
+<td align="left"><code>--confirmed</code></td>
+<td align="right">Confirmed vulnerabilities</td>
+</tr>
+<tr>
+<td align="left"><code>--severity [SEVERITY [SEVERITY ...]]</code></td>
+<td align="right">Filter by severity informational/critical/high/medium/low/unclassified</td>
+</tr>
+<tr>
+<td align="left"><code>--ignore-info</code></td>
+<td align="right">Ignore informational/unclassified vulnerabilities</td>
+</tr>
+<tr>
+<td align="left"><code>-o/--output OUTPUT</code></td>
+<td align="right">Report output</td>
+</tr>
+</tbody>
+</table>
+<h2 id="help">help<a class="headerlink" href="#help" title="Permanent link">&para;</a></h2>
+<p>Using the help command you can get info of any command.
+<div class="highlight"><pre><span></span><code>$ faraday-cli help -v
+
+Documented commands (use &#39;help -v&#39; for verbose/&#39;help &lt;topic&gt;&#39; for details):
+
+Agents
+--------------------------------------------------------------------------------
+get_agent           Get agent
+list_agents         List agents
+run_executor        Run executor
+...
+</code></pre></div></p>
+<div class="highlight"><pre><span></span><code>$  faraday-cli help auth
+usage: auth [-h] [-f FARADAY_URL] [-i] [-u USER] [-p PASSWORD]
+
+Authenticate with a faraday server
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -f FARADAY_URL, --faraday-url FARADAY_URL
+                        Faraday server URL
+  -i, --ignore-ssl      Ignore SSL verification
+  -u USER, --user USER  Faraday user
+  -p PASSWORD, --password PASSWORD
+                        Faraday password
+</code></pre></div>
+
+
+
+
+
+
+
+            </article>
+          </div>
+        </div>
+      </main>
+
+
+<footer class="md-footer">
+
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+
+          <a href="../getting_started/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Getting started
+              </div>
+            </div>
+          </a>
+
+
+      </nav>
+    </div>
+
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+
+  <div class="md-footer-social">
+
+
+
+
+
+
+      <a href="https://github.com/infobyte/faraday-cli" target="_blank" rel="noopener" title="github.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+      </a>
+
+
+
+
+
+
+      <a href="https://twitter.com/faradaysec" target="_blank" rel="noopener" title="twitter.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+      </a>
+
+
+
+
+
+
+      <a href="https://www.linkedin.com/company/faradaysec/" target="_blank" rel="noopener" title="www.linkedin.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>
+      </a>
+
+
+
+
+
+
+      <a href="https://instagram.com/faradaysec" target="_blank" rel="noopener" title="instagram.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
+      </a>
+
+  </div>
+
+    </div>
+  </div>
+</footer>
+
+    </div>
+
+      <script src="../assets/javascripts/vendor.93c04032.min.js"></script>
+      <script src="../assets/javascripts/bundle.83e5331e.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+
+      <script>
+        app = initialize({
+          base: "..",
+          features: [],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.8c7e0a7e.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+
+
+  </body>
+</html>
