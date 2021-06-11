@@ -357,7 +357,7 @@ class FaradayShell(Cmd):
             self.poutput(
                 "This command does nothing without sub-parsers registered"
             )
-            self.do_help("workspace")
+            self.do_help(ns)
 
     # Host
     host_parser = argparse.ArgumentParser()
@@ -376,7 +376,7 @@ class FaradayShell(Cmd):
             self.poutput(
                 "This command does nothing without sub-parsers registered"
             )
-            self.do_help("host")
+            self.do_help(ns)
 
     # Service
     service_parser = argparse.ArgumentParser()
@@ -395,7 +395,7 @@ class FaradayShell(Cmd):
             self.poutput(
                 "This command does nothing without sub-parsers registered"
             )
-            self.do_help("service")
+            self.do_help(ns)
 
     # Vulnerability
     vulnerability_parser = argparse.ArgumentParser()
@@ -416,7 +416,7 @@ class FaradayShell(Cmd):
             self.poutput(
                 "This command does nothing without sub-parsers registered"
             )
-            self.do_help("vuln")
+            self.do_help(ns)
 
     # Agent
     agent_parser = argparse.ArgumentParser()
@@ -435,7 +435,7 @@ class FaradayShell(Cmd):
             self.poutput(
                 "This command does nothing without sub-parsers registered"
             )
-            self.do_help("agent")
+            self.do_help(ns)
 
     # Executive Report
     executive_report_parser = argparse.ArgumentParser()
@@ -456,7 +456,7 @@ class FaradayShell(Cmd):
             self.poutput(
                 "This command does nothing without sub-parsers registered"
             )
-            self.do_help("executive_report")
+            self.do_help(ns)
 
     # Tool
     tool_report_parser = argparse.ArgumentParser()
@@ -475,7 +475,7 @@ class FaradayShell(Cmd):
             self.poutput(
                 "This command does nothing without sub-parsers registered"
             )
-            self.do_help("tool")
+            self.do_help(ns)
 
     # Run Command
     def run_command(self, plugin, user, command):
