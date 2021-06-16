@@ -332,6 +332,28 @@ class FaradayApi:
             return response.body
 
     @handle_errors
+    def disable_workspace(self, workspace_name: str):
+        try:
+            response = self.faraday_api.workspace.update(
+                workspace_name, body={"active": False}
+            )
+        except ClientError:
+            raise
+        else:
+            return response.body
+
+    @handle_errors
+    def enable_workspace(self, workspace_name: str):
+        try:
+            response = self.faraday_api.workspace.update(
+                workspace_name, body={"active": True}
+            )
+        except ClientError:
+            raise
+        else:
+            return response.body
+
+    @handle_errors
     def delete_workspace(self, workspace_name: str):
         response = self.faraday_api.workspace.delete(workspace_name)
         return response

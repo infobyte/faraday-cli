@@ -178,7 +178,10 @@ class WorkspaceCommands(cmd2.CommandSet):
         help="Show table in a pretty format",
     )
     list_ws_parser.add_argument(
-        "--show-inactive", action="store_true", help="Show inactive workspaces"
+        "-i",
+        "--show-inactive",
+        action="store_true",
+        help="Show inactive workspaces",
     )
 
     @cmd2.as_subcommand_to(
@@ -222,3 +225,59 @@ class WorkspaceCommands(cmd2.CommandSet):
                         else "simple",
                     )
                 )
+
+    # Disable Workspace
+    disable_ws_parser = argparse.ArgumentParser()
+    disable_ws_parser.add_argument(
+        "workspace_name", type=str, help="Workspace"
+    )
+
+    @cmd2.as_subcommand_to(
+        "workspace", "disable", disable_ws_parser, help="disable a workspace"
+    )
+    def disable_ws(self, args: argparse.Namespace):
+        """Disable Workspace"""
+        workspace_name = args.workspace_name
+        try:
+            self._cmd.api_client.disable_workspace(workspace_name)
+        except NotFoundError:
+            self._cmd.perror(f"Invalid Workspace: {workspace_name}")
+        except Exception as e:
+            self._cmd.perror(f"{e}")
+        else:
+            self._cmd.poutput(
+                cmd2.style(
+                    f"{self._cmd.emojis['check']} "
+                    f"Disabled workspace: {workspace_name}",
+                    fg="green",
+                )
+            )
+        if active_config.workspace == workspace_name:
+            active_config.workspace = None
+            active_config.save()
+        self._cmd.update_prompt()
+
+    # Enable Workspace
+    enable_ws_parser = argparse.ArgumentParser()
+    enable_ws_parser.add_argument("workspace_name", type=str, help="Workspace")
+
+    @cmd2.as_subcommand_to(
+        "workspace", "enable", enable_ws_parser, help="enable a workspace"
+    )
+    def enable_ws(self, args: argparse.Namespace):
+        """Enable Workspace"""
+        workspace_name = args.workspace_name
+        try:
+            self._cmd.api_client.enable_workspace(workspace_name)
+        except NotFoundError:
+            self._cmd.perror(f"Invalid Workspace: {workspace_name}")
+        except Exception as e:
+            self._cmd.perror(f"{e}")
+        else:
+            self._cmd.poutput(
+                cmd2.style(
+                    f"{self._cmd.emojis['check']} "
+                    f"Enable workspace: {workspace_name}",
+                    fg="green",
+                )
+            )

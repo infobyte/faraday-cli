@@ -23,6 +23,7 @@ class WorkspaceResource(Resource):
         "get": {"method": "GET", "url": "v3/ws/{}"},
         "create": {"method": "POST", "url": "v3/ws"},
         "delete": {"method": "DELETE", "url": "v3/ws/{}"},
+        "update": {"method": "PATCH", "url": "v3/ws/{}"},
     }
 
 
