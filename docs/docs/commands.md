@@ -153,6 +153,28 @@ $ faraday-cli workspace create test_workspace
 |:-----	|------:	|
 | `-d/--dont-select`      | Dont select after create     |
 
+### workspaces dashboard
+
+Show a dahboard with different information of the workspaces.
+
+
+```
+$ faraday-cli workspace dashboard
+✔ Created workspace: test_workspace
+```
+
+*Required Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `WORKSPACE_NAME`      | Workspace name     |
+
+*Optional Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `-d/--dont-select`      | Dont select after create     |
+
 ## Hosts
 
 ### list hosts

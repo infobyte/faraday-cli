@@ -250,7 +250,7 @@ class WorkspaceCommands(cmd2.CommandSet):
             ("total_vulns", "vulns", None),
         )
         INFO_KEYS = (
-            ("users", "users", lambda x: len(x)),
+            ("users", "users", lambda x: len(x) if x else "-"),
             ("readonly", "readonly", None),
             ("public", "public", None),
             (
@@ -338,31 +338,31 @@ class WorkspaceCommands(cmd2.CommandSet):
                     }
                 )
                 for key, severity in SEVERITY_COUNTER_KEYS:
-                    value = workspace_info["stats"][key]
+                    value = workspace_info["stats"].get(key)
                     severity_text = cmd2.style(
                         severity, fg=SEVERITY_COLORS[severity]
                     )
                     text = f"{severity_text}:" f" {value}"
                     workspace_data["severities"].append(text)
                 for key, name, parser in INFO_KEYS:
-                    value = workspace_info[key]
+                    value = workspace_info.get(key)
                     value_text = value if not parser else parser(value)
                     workspace_data["info"].append(f"{name}: {value_text}")
                 for key, name, parser in SUMMARY_COUNTER_KEYS:
-                    value = workspace_info["stats"][key]
+                    value = workspace_info["stats"].get(key)
                     value_text = value if not parser else parser(value)
                     workspace_data["summary"].append(f"{name}: {value_text}")
                 for activity in last_activities:
                     activity_data = []
                     for key, parser, send_full in ACTIVITIES_KEYS:
                         if send_full:
-                            value = activity[key]
+                            value = activity.get(key)
                             value_text = (
                                 value if not parser else parser(activity)
                             )
                             activity_data.append(f"{value_text}")
                         else:
-                            value = activity[key]
+                            value = activity.get(key)
                             value_text = value if not parser else parser(value)
                             activity_data.append(f"{value_text}")
                     workspace_data["activities"].append(
