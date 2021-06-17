@@ -127,6 +127,11 @@ def get_confirmed_filter() -> dict:
     return query_filter
 
 
+def get_active_workspaces_filter() -> dict:
+    query_filter = {"filters": [{"name": "active", "op": "eq", "val": "true"}]}
+    return query_filter
+
+
 def run_tool(plugin, user, command, show_output=True):
     current_path = os.path.abspath(os.getcwd())
     modified_command = plugin.processCommandString(

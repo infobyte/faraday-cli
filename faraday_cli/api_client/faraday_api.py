@@ -204,6 +204,13 @@ class FaradayApi:
         return response.body
 
     @handle_errors
+    def filter_workspaces(self, query_filter: dict):
+        response = self.faraday_api.workspace.filter(
+            params={"q": json.dumps(query_filter)}
+        )
+        return response.body
+
+    @handle_errors
     def get_hosts(self, workspace_name: str, port: int = None):
         if port:
             response = self.faraday_api.host.list(

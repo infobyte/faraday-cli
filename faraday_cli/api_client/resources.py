@@ -21,6 +21,7 @@ class WorkspaceResource(Resource):
     actions = {
         "list": {"method": "GET", "url": "v3/ws"},
         "get": {"method": "GET", "url": "v3/ws/{}"},
+        "filter": {"method": "GET", "url": "v3/ws/filter"},
         "create": {"method": "POST", "url": "v3/ws"},
         "delete": {"method": "DELETE", "url": "v3/ws/{}"},
     }

@@ -7,6 +7,10 @@ from simple_rest_client.exceptions import NotFoundError
 from tabulate import tabulate
 
 from faraday_cli.config import active_config
+from faraday_cli.shell.utils import (
+    get_active_workspaces_filter,
+    SEVERITY_COLORS,
+)
 
 
 class WorkspaceCommands(cmd2.CommandSet):
@@ -222,3 +226,67 @@ class WorkspaceCommands(cmd2.CommandSet):
                         else "simple",
                     )
                 )
+
+    # Workspace Dashboard
+    @cmd2.as_subcommand_to(
+        "workspace", "dashboard", list_ws_parser, help="workspaces dashboard"
+    )
+    def workspaces_dashboard(self, args: argparse.Namespace):
+        """Workspaces Dashboard """
+        SEVERITY_COUNTER_KEYS = (
+            ("critical_vulns", "critical"),
+            ("high_vulns", "high"),
+            ("medium_vulns", "med"),
+            ("low_vulns", "low"),
+            ("info_vulns", "info"),
+            ("unclassified_vulns", "unclassified"),
+        )
+        ASSETS_COUNTER_KEYS = (
+            ("hosts", "hosts"),
+            ("services", "services"),
+            ("total_vulns", "vulns"),
+        )
+        INFO_KEYS = (
+            ("create_date", "created", lambda x: x),
+            ("update_date", "updated", lambda x: x),
+        )
+        workspaces_info = self._cmd.api_client.filter_workspaces(
+            query_filter=get_active_workspaces_filter()
+        )
+        if not workspaces_info:
+            self._cmd.poutput("No workspaces available")
+            return
+        else:
+            data = []
+            data_headers = ["Workspace", "Info", "Severities", "Assets"]
+            for workspace_info in workspaces_info:
+                workspace_data = OrderedDict(
+                    {
+                        "name": workspace_info["name"],
+                        "info": [],
+                        "severities": [],
+                        "assets": [],
+                    }
+                )
+                for key, severity in SEVERITY_COUNTER_KEYS:
+                    value = workspace_info["stats"][key]
+                    severity_text = cmd2.style(
+                        severity, fg=SEVERITY_COLORS[severity]
+                    )
+                    text = f"{severity_text}:" f" {value}"
+                    workspace_data["severities"].append(text)
+                for key, name, parser in INFO_KEYS:
+                    value = workspace_info[key]
+                    workspace_data["info"].append(
+                        f"{name}\n[{value if not parser else parser(value)}]"
+                    )
+                for key, name in ASSETS_COUNTER_KEYS:
+                    value = workspace_info["stats"][key]
+                    workspace_data["assets"].append(f"{name}: {value}")
+                data.append(
+                    [
+                        "\n".join(item) if type(item) == list else item
+                        for item in workspace_data.values()
+                    ]
+                )
+            self._cmd.poutput(tabulate(data, data_headers, "grid"))
