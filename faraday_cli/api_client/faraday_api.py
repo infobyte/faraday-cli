@@ -211,6 +211,11 @@ class FaradayApi:
         return response.body
 
     @handle_errors
+    def get_workspace_activities(self, workspace_name: str):
+        response = self.faraday_api.workspace.activities(workspace_name)
+        return response.body
+
+    @handle_errors
     def get_hosts(self, workspace_name: str, port: int = None):
         if port:
             response = self.faraday_api.host.list(

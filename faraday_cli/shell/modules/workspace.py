@@ -1,10 +1,12 @@
 import json
 import argparse
 from collections import OrderedDict
+from datetime import datetime
 
 import cmd2
 from simple_rest_client.exceptions import NotFoundError
 from tabulate import tabulate
+from dateutil.parser import parse as date_parser
 
 from faraday_cli.config import active_config
 from faraday_cli.shell.utils import (
@@ -233,22 +235,67 @@ class WorkspaceCommands(cmd2.CommandSet):
     )
     def workspaces_dashboard(self, args: argparse.Namespace):
         """Workspaces Dashboard """
+        MAX_ACTIVITIES = 10
         SEVERITY_COUNTER_KEYS = (
             ("critical_vulns", "critical"),
             ("high_vulns", "high"),
             ("medium_vulns", "med"),
             ("low_vulns", "low"),
             ("info_vulns", "info"),
-            ("unclassified_vulns", "unclassified"),
         )
-        ASSETS_COUNTER_KEYS = (
-            ("hosts", "hosts"),
-            ("services", "services"),
-            ("total_vulns", "vulns"),
+        SUMMARY_COUNTER_KEYS = (
+            ("hosts", "hosts", None),
+            ("services", "services", None),
+            ("total_vulns", "vulns", None),
         )
         INFO_KEYS = (
-            ("create_date", "created", lambda x: x),
-            ("update_date", "updated", lambda x: x),
+            ("users", "users", lambda x: len(x)),
+            ("readonly", "readonly", None),
+            ("public", "public", None),
+            (
+                "update_date",
+                "updated",
+                lambda x: date_parser(x).strftime("%D %T"),
+            ),
+        )
+
+        def activities_vulns_parser(activity_data):
+            critical_text = cmd2.style(
+                activity_data["criticalIssue"], fg=SEVERITY_COLORS["critical"]
+            )
+            high_text = cmd2.style(
+                activity_data["highIssue"], fg=SEVERITY_COLORS["high"]
+            )
+            med_text = cmd2.style(
+                activity_data["mediumIssue"], fg=SEVERITY_COLORS["med"]
+            )
+            low_text = cmd2.style(
+                activity_data["lowIssue"], fg=SEVERITY_COLORS["low"]
+            )
+            info_text = cmd2.style(
+                activity_data["infoIssue"], fg=SEVERITY_COLORS["info"]
+            )
+            vulns_text = (
+                f"{activity_data['vulnerabilities_count']}("
+                f"{critical_text}/"
+                f"{high_text}/"
+                f"{med_text}/"
+                f"{low_text}/"
+                f"{info_text})"
+            )
+            return vulns_text
+
+        ACTIVITIES_KEYS = (
+            ("tool", "tool", None, False),
+            (
+                "date",
+                "date",
+                lambda x: datetime.fromtimestamp(x / 1000).strftime("%D %T"),
+                False,
+            ),
+            ("hosts_count", "hosts", None, False),
+            ("services_count", "services", None, False),
+            ("vulnerabilities_count", "vulns", activities_vulns_parser, True),
         )
         workspaces_info = self._cmd.api_client.filter_workspaces(
             query_filter=get_active_workspaces_filter()
@@ -258,14 +305,32 @@ class WorkspaceCommands(cmd2.CommandSet):
             return
         else:
             data = []
-            data_headers = ["Workspace", "Info", "Severities", "Assets"]
+            data_headers = [
+                "WORKSPACE",
+                "INFO",
+                "SEVERITIES",
+                "SUMMARY",
+                "ACTIVITY",
+            ]
             for workspace_info in workspaces_info:
+                activities_info = (
+                    self._cmd.api_client.get_workspace_activities(
+                        workspace_info["name"]
+                    )
+                )
+                activities_info["activities"].sort(
+                    reverse=True, key=lambda x: x["date"]
+                )
+                last_activities = activities_info["activities"][
+                    :MAX_ACTIVITIES
+                ]
                 workspace_data = OrderedDict(
                     {
                         "name": workspace_info["name"],
                         "info": [],
                         "severities": [],
                         "assets": [],
+                        "activities": [],
                     }
                 )
                 for key, severity in SEVERITY_COUNTER_KEYS:
@@ -277,12 +342,28 @@ class WorkspaceCommands(cmd2.CommandSet):
                     workspace_data["severities"].append(text)
                 for key, name, parser in INFO_KEYS:
                     value = workspace_info[key]
-                    workspace_data["info"].append(
-                        f"{name}\n[{value if not parser else parser(value)}]"
-                    )
-                for key, name in ASSETS_COUNTER_KEYS:
+                    value_text = value if not parser else parser(value)
+                    workspace_data["info"].append(f"{name}: {value_text}")
+                for key, name, parser in SUMMARY_COUNTER_KEYS:
                     value = workspace_info["stats"][key]
-                    workspace_data["assets"].append(f"{name}: {value}")
+                    value_text = value if not parser else parser(value)
+                    workspace_data["assets"].append(f"{name}: {value_text}")
+                for activity in last_activities:
+                    activity_data = []
+                    for key, name, parser, send_full in ACTIVITIES_KEYS:
+                        if send_full:
+                            value = activity[key]
+                            value_text = (
+                                value if not parser else parser(activity)
+                            )
+                            activity_data.append(f"{name}={value_text}")
+                        else:
+                            value = activity[key]
+                            value_text = value if not parser else parser(value)
+                            activity_data.append(f"{name}={value_text}")
+                    workspace_data["activities"].append(
+                        " ".join(activity_data)
+                    )
                 data.append(
                     [
                         "\n".join(item) if type(item) == list else item
