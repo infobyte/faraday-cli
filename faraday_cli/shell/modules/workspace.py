@@ -234,7 +234,7 @@ class WorkspaceCommands(cmd2.CommandSet):
         "workspace", "dashboard", list_ws_parser, help="workspaces dashboard"
     )
     def workspaces_dashboard(self, args: argparse.Namespace):
-        """Workspaces Dashboard """
+        """Workspaces Dashboard"""
         MAX_ACTIVITIES = 10
         EXCLUDE_TOOLS = ("Searcher",)
         SEVERITY_COUNTER_KEYS = (
