@@ -1,7 +1,7 @@
 import json
 import argparse
 from collections import OrderedDict
-from datetime import datetime
+import arrow
 
 import cmd2
 from simple_rest_client.exceptions import NotFoundError
@@ -236,6 +236,7 @@ class WorkspaceCommands(cmd2.CommandSet):
     def workspaces_dashboard(self, args: argparse.Namespace):
         """Workspaces Dashboard """
         MAX_ACTIVITIES = 10
+        EXCLUDE_TOOLS = ("Searcher",)
         SEVERITY_COUNTER_KEYS = (
             ("critical_vulns", "critical"),
             ("high_vulns", "high"),
@@ -276,7 +277,7 @@ class WorkspaceCommands(cmd2.CommandSet):
                 activity_data["infoIssue"], fg=SEVERITY_COLORS["info"]
             )
             vulns_text = (
-                f"{activity_data['vulnerabilities_count']}("
+                f"and {activity_data['vulnerabilities_count']} vulns ("
                 f"{critical_text}/"
                 f"{high_text}/"
                 f"{med_text}/"
@@ -286,16 +287,16 @@ class WorkspaceCommands(cmd2.CommandSet):
             return vulns_text
 
         ACTIVITIES_KEYS = (
-            ("tool", "tool", None, False),
+            ("tool", lambda x: f"{x['tool']} ({x['import_source']})", True),
+            ("hosts_count", lambda x: f"found {x} hosts,", False),
+            ("services_count", lambda x: f"{x} services", False),
+            ("vulnerabilities_count", activities_vulns_parser, True),
             (
                 "date",
-                "date",
-                lambda x: datetime.fromtimestamp(x / 1000).strftime("%D %T"),
+                lambda x: arrow.get(x).humanize(),
                 False,
             ),
-            ("hosts_count", "hosts", None, False),
-            ("services_count", "services", None, False),
-            ("vulnerabilities_count", "vulns", activities_vulns_parser, True),
+            ("creator", lambda x: "" if not x else f"by {x}", False),
         )
         workspaces_info = self._cmd.api_client.filter_workspaces(
             query_filter=get_active_workspaces_filter()
@@ -308,8 +309,8 @@ class WorkspaceCommands(cmd2.CommandSet):
             data_headers = [
                 "WORKSPACE",
                 "INFO",
-                "SEVERITIES",
                 "SUMMARY",
+                "SEVERITIES",
                 "ACTIVITY",
             ]
             for workspace_info in workspaces_info:
@@ -318,18 +319,21 @@ class WorkspaceCommands(cmd2.CommandSet):
                         workspace_info["name"]
                     )
                 )
-                activities_info["activities"].sort(
-                    reverse=True, key=lambda x: x["date"]
+                filtered_activities = list(
+                    filter(
+                        lambda x: x["hosts_count"] > 0
+                        and x["tool"] not in EXCLUDE_TOOLS,
+                        activities_info["activities"],
+                    )
                 )
-                last_activities = activities_info["activities"][
-                    :MAX_ACTIVITIES
-                ]
+                filtered_activities.sort(reverse=True, key=lambda x: x["date"])
+                last_activities = filtered_activities[:MAX_ACTIVITIES]
                 workspace_data = OrderedDict(
                     {
                         "name": workspace_info["name"],
                         "info": [],
+                        "summary": [],
                         "severities": [],
-                        "assets": [],
                         "activities": [],
                     }
                 )
@@ -347,20 +351,20 @@ class WorkspaceCommands(cmd2.CommandSet):
                 for key, name, parser in SUMMARY_COUNTER_KEYS:
                     value = workspace_info["stats"][key]
                     value_text = value if not parser else parser(value)
-                    workspace_data["assets"].append(f"{name}: {value_text}")
+                    workspace_data["summary"].append(f"{name}: {value_text}")
                 for activity in last_activities:
                     activity_data = []
-                    for key, name, parser, send_full in ACTIVITIES_KEYS:
+                    for key, parser, send_full in ACTIVITIES_KEYS:
                         if send_full:
                             value = activity[key]
                             value_text = (
                                 value if not parser else parser(activity)
                             )
-                            activity_data.append(f"{name}={value_text}")
+                            activity_data.append(f"{value_text}")
                         else:
                             value = activity[key]
                             value_text = value if not parser else parser(value)
-                            activity_data.append(f"{name}={value_text}")
+                            activity_data.append(f"{value_text}")
                     workspace_data["activities"].append(
                         " ".join(activity_data)
                     )
