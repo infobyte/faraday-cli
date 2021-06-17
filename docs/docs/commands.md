@@ -155,25 +155,22 @@ $ faraday-cli workspace create test_workspace
 
 ### workspaces dashboard
 
-Show a dahboard with different information of the workspaces.
+Show a dashboard with different information about the workspaces.
 
 
 ```
 $ faraday-cli workspace dashboard
-✔ Created workspace: test_workspace
++--------------+----------------------------+---------------+--------------+------------------------------------------------------------------------------------------------+
+| WORKSPACE    | INFO                       | SUMMARY       | SEVERITIES   | ACTIVITY                                                                                       |
++==============+============================+===============+==============+================================================================================================+
+| faraday_test | users: -                   | hosts: 56     | critical: 0  | Nmap (shell) found 1 hosts, 7 services and 0 vulns (0/0/0/0/0) 2 hours ago by faraday          |
+|              | readonly: False            | services: 221 | high: 0      | Openvas (report) found 13 hosts, 13 services and 39 vulns (0/0/13/26/0) 2 hours ago by faraday |
+|              | public: False              | vulns: 52     | med: 13      | agent_firstcan (agent) found 42 hosts, 201 services and 13 vulns (0/0/0/2/11) 3 days ago       |
+|              | updated: 06/17/21 15:45:55 |               | low: 28      |                                                                                                |
+|              |                            |               | info: 11     |                                                                                                |
++--------------+----------------------------+---------------+--------------+------------------------------------------------------------------------------------------------+
 ```
 
-*Required Arguments:*
-
-| Syntax      | Description |
-|:-----	|------:	|
-| `WORKSPACE_NAME`      | Workspace name     |
-
-*Optional Arguments:*
-
-| Syntax      | Description |
-|:-----	|------:	|
-| `-d/--dont-select`      | Dont select after create     |
 
 ## Hosts
 
