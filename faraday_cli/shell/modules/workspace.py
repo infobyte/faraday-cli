@@ -6,7 +6,6 @@ import arrow
 import cmd2
 from simple_rest_client.exceptions import NotFoundError
 from tabulate import tabulate
-from dateutil.parser import parse as date_parser
 
 from faraday_cli.config import active_config
 from faraday_cli.shell.utils import (
@@ -249,16 +248,6 @@ class WorkspaceCommands(cmd2.CommandSet):
             ("services", "services", None),
             ("total_vulns", "vulns", None),
         )
-        INFO_KEYS = (
-            ("users", "users", lambda x: len(x) if x else "-"),
-            ("readonly", "readonly", None),
-            ("public", "public", None),
-            (
-                "update_date",
-                "updated",
-                lambda x: date_parser(x).strftime("%D %T"),
-            ),
-        )
 
         def activities_vulns_parser(activity_data):
             critical_text = cmd2.style(
@@ -308,7 +297,6 @@ class WorkspaceCommands(cmd2.CommandSet):
             data = []
             data_headers = [
                 "WORKSPACE",
-                "INFO",
                 "SUMMARY",
                 "SEVERITIES",
                 "ACTIVITY",
@@ -331,7 +319,6 @@ class WorkspaceCommands(cmd2.CommandSet):
                 workspace_data = OrderedDict(
                     {
                         "name": workspace_info["name"],
-                        "info": [],
                         "summary": [],
                         "severities": [],
                         "activities": [],
@@ -344,10 +331,6 @@ class WorkspaceCommands(cmd2.CommandSet):
                     )
                     text = f"{severity_text}:" f" {value}"
                     workspace_data["severities"].append(text)
-                for key, name, parser in INFO_KEYS:
-                    value = workspace_info.get(key)
-                    value_text = value if not parser else parser(value)
-                    workspace_data["info"].append(f"{name}: {value_text}")
                 for key, name, parser in SUMMARY_COUNTER_KEYS:
                     value = workspace_info["stats"].get(key)
                     value_text = value if not parser else parser(value)
