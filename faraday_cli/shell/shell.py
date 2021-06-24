@@ -521,12 +521,12 @@ class FaradayShell(Cmd):
             self.poutput(f"cd: no such file or directory: {path}")
 
     def default(self, statement: Statement):
-        if not active_config.workspace:
-            self.perror("No active Workspace")
-            os.system(statement.raw)
-        else:
-            plugin = self.command_analyzer.get_plugin(statement.raw)
-            if plugin:
+        plugin = self.command_analyzer.get_plugin(statement.raw)
+        if plugin:
+            if not active_config.workspace:
+                self.perror("No active Workspace")
+                os.system(statement.raw)
+            else:
                 click.secho(
                     f"{self.emojis['laptop']} Processing {plugin.id} command",
                     fg="green",
@@ -546,5 +546,5 @@ class FaradayShell(Cmd):
                             "json_data": command_json,
                         }
                     )
-            else:
-                os.system(statement.raw)
+        else:
+            os.system(statement.raw)

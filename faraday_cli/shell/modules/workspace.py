@@ -1,12 +1,17 @@
 import json
 import argparse
 from collections import OrderedDict
+import arrow
 
 import cmd2
 from simple_rest_client.exceptions import NotFoundError
 from tabulate import tabulate
 
 from faraday_cli.config import active_config
+from faraday_cli.shell.utils import (
+    get_active_workspaces_filter,
+    SEVERITY_COLORS,
+)
 
 
 class WorkspaceCommands(cmd2.CommandSet):
@@ -225,6 +230,137 @@ class WorkspaceCommands(cmd2.CommandSet):
                         else "simple",
                     )
                 )
+
+    # Workspace Dashboard
+    @cmd2.as_subcommand_to(
+        "workspace", "dashboard", list_ws_parser, help="workspaces dashboard"
+    )
+    def workspaces_dashboard(self, args: argparse.Namespace):
+        """Workspaces Dashboard"""
+        MAX_ACTIVITIES = 10
+        EXCLUDE_TOOLS = ("Searcher",)
+        SEVERITY_COUNTER_KEYS = (
+            ("critical_vulns", "critical"),
+            ("high_vulns", "high"),
+            ("medium_vulns", "med"),
+            ("low_vulns", "low"),
+            ("info_vulns", "info"),
+        )
+        SUMMARY_COUNTER_KEYS = (
+            ("hosts", "hosts", None),
+            ("services", "services", None),
+            ("total_vulns", "vulns", None),
+        )
+
+        def activities_vulns_parser(activity_data):
+            critical_text = cmd2.style(
+                activity_data["criticalIssue"], fg=SEVERITY_COLORS["critical"]
+            )
+            high_text = cmd2.style(
+                activity_data["highIssue"], fg=SEVERITY_COLORS["high"]
+            )
+            med_text = cmd2.style(
+                activity_data["mediumIssue"], fg=SEVERITY_COLORS["med"]
+            )
+            low_text = cmd2.style(
+                activity_data["lowIssue"], fg=SEVERITY_COLORS["low"]
+            )
+            info_text = cmd2.style(
+                activity_data["infoIssue"], fg=SEVERITY_COLORS["info"]
+            )
+            vulns_text = (
+                f"and {activity_data['vulnerabilities_count']} vulns ("
+                f"{critical_text}/"
+                f"{high_text}/"
+                f"{med_text}/"
+                f"{low_text}/"
+                f"{info_text})"
+            )
+            return vulns_text
+
+        ACTIVITIES_KEYS = (
+            ("tool", lambda x: f"{x['tool']} ({x['import_source']})", True),
+            ("hosts_count", lambda x: f"found {x} hosts,", False),
+            ("services_count", lambda x: f"{x} services", False),
+            ("vulnerabilities_count", activities_vulns_parser, True),
+            (
+                "date",
+                lambda x: arrow.get(x).humanize(),
+                False,
+            ),
+            ("creator", lambda x: "" if not x else f"by {x}", False),
+        )
+        workspaces_info = self._cmd.api_client.filter_workspaces(
+            query_filter=get_active_workspaces_filter()
+        )
+        if not workspaces_info:
+            self._cmd.poutput("No workspaces available")
+            return
+        else:
+            data = []
+            data_headers = [
+                "WORKSPACE",
+                "SUMMARY",
+                "SEVERITIES",
+                "ACTIVITY",
+            ]
+            for workspace_info in workspaces_info:
+                activities_info = (
+                    self._cmd.api_client.get_workspace_activities(
+                        workspace_info["name"]
+                    )
+                )
+                filtered_activities = list(
+                    filter(
+                        lambda x: x["hosts_count"] > 0
+                        and x["tool"] not in EXCLUDE_TOOLS,
+                        activities_info["activities"],
+                    )
+                )
+                filtered_activities.sort(reverse=True, key=lambda x: x["date"])
+                last_activities = filtered_activities[:MAX_ACTIVITIES]
+                workspace_data = OrderedDict(
+                    {
+                        "name": workspace_info["name"],
+                        "summary": [],
+                        "severities": [],
+                        "activities": [],
+                    }
+                )
+                for key, severity in SEVERITY_COUNTER_KEYS:
+                    value = workspace_info["stats"].get(key)
+                    severity_text = cmd2.style(
+                        severity, fg=SEVERITY_COLORS[severity]
+                    )
+                    text = f"{severity_text}:" f" {value}"
+                    workspace_data["severities"].append(text)
+                for key, name, parser in SUMMARY_COUNTER_KEYS:
+                    value = workspace_info["stats"].get(key)
+                    value_text = value if not parser else parser(value)
+                    workspace_data["summary"].append(f"{name}: {value_text}")
+                for activity in last_activities:
+                    activity_data = []
+                    for key, parser, send_full in ACTIVITIES_KEYS:
+                        if send_full:
+                            value = activity.get(key)
+                            value_text = (
+                                value if not parser else parser(activity)
+                            )
+                            activity_data.append(f"{value_text}")
+                        else:
+                            value = activity.get(key)
+                            value_text = value if not parser else parser(value)
+                            activity_data.append(f"{value_text}")
+                    workspace_data["activities"].append(
+                        " ".join(activity_data)
+                    )
+                data.append(
+                    [
+                        "\n".join(item) if type(item) == list else item
+                        for item in workspace_data.values()
+                    ]
+                )
+            self._cmd.poutput(tabulate(data, data_headers, "grid"))
 
     # Disable Workspace
     disable_ws_parser = argparse.ArgumentParser()
