@@ -25,6 +25,7 @@ class WorkspaceResource(Resource):
         "create": {"method": "POST", "url": "v3/ws"},
         "delete": {"method": "DELETE", "url": "v3/ws/{}"},
         "activities": {"method": "GET", "url": "v3/ws/{}/activities"},
+        "update": {"method": "PATCH", "url": "v3/ws/{}"},
     }
 
 
