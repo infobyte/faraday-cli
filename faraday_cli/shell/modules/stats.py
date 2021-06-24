@@ -3,7 +3,7 @@ from collections import defaultdict
 from datetime import datetime
 import dateutil.parser
 
-from cmd2 import with_argparser, with_default_category, CommandSet
+import cmd2
 from faraday_cli.extras.halo.halo import Halo
 from faraday_cli.extras.termgraph import termgraph
 from faraday_cli.shell.utils import (
@@ -15,8 +15,8 @@ from faraday_cli.config import active_config
 from faraday_cli.api_client.filter import FaradayFilter
 
 
-@with_default_category("Stats")
-class StatsCommands(CommandSet):
+@cmd2.with_default_category("Stats")
+class StatsCommands(cmd2.CommandSet):
     def __init__(self):
         super().__init__()
 
@@ -46,9 +46,9 @@ class StatsCommands(CommandSet):
         "--confirmed", action="store_true", help="Confirmed vulnerabilities"
     )
 
-    @with_argparser(stats_parser)
+    @cmd2.with_argparser(stats_parser)
     def do_stats(self, args):
-        """Vulns Stats"""
+        """Different statistics about the information on Faraday"""
         if not args.workspace_name:
             if active_config.workspace:
                 workspace_name = active_config.workspace

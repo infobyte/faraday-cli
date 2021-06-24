@@ -3,7 +3,7 @@ import sys
 import argparse
 from collections import OrderedDict
 
-from cmd2 import with_argparser, with_default_category, CommandSet
+import cmd2
 from tabulate import tabulate
 from simple_rest_client.exceptions import NotFoundError
 
@@ -25,12 +25,12 @@ HOST_CREATE_JSON_SCHEMA = {
 }
 
 
-@with_default_category("Services")
-class ServiceCommands(CommandSet):
+class ServiceCommands(cmd2.CommandSet):
     def __init__(self):
         super().__init__()
 
-    list_service_parser = argparse.ArgumentParser()
+    # List Service
+    list_service_parser = cmd2.Cmd2ArgumentParser()
     list_service_parser.add_argument(
         "-w", "--workspace-name", type=str, help="Workspace"
     )
@@ -41,8 +41,10 @@ class ServiceCommands(CommandSet):
         "-p", "--pretty", action="store_true", help="Pretty Tables"
     )
 
-    @with_argparser(list_service_parser)
-    def do_list_services(self, args):
+    @cmd2.as_subcommand_to(
+        "service", "list", list_service_parser, help="list services"
+    )
+    def list_services(self, args: argparse.Namespace):
         """List services"""
 
         @Halo(

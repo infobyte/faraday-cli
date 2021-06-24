@@ -35,13 +35,25 @@ Saving config
 ## Select an active Workspace
 
 ```
-$ faraday-cli select_ws test
+$ faraday-cli select workspace test
 ✔ Selected workspace: test
 ```
 
-## Now run commands to load information into faraday
+## Now load information into faraday
 
-Faraday Cli can be used in two ways
+### Process reports from any of the many tools we support
+
+```
+$ faraday-cli process report /path/to/openvas.xml
+📄 Processing Openvas report
+⬆ Sending data to workspace: test
+✔ Done
+```
+
+
+### Or run the tools with the cli
+
+Faraday Cli can be used in two ways to do that
 
 * As individual commands
 * As a shell
@@ -52,7 +64,7 @@ Every faraday cli command can be used as an individual command from the command 
 This is useful when integrating faraday cli to batch process, scripts or pipelines.
 
 ```
-$ faraday-cli nmap localhost
+$ faraday-cli process tool \"nmap localhost\"
 💻 Processing Nmap command
 Starting Nmap 7.80 ( https://nmap.org ) at 2021-01-14 13:34 -03
 Nmap scan report for localhost (127.0.0.1)

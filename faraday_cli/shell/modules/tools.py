@@ -1,18 +1,17 @@
-import argparse
 import getpass
 import json
 
-from cmd2 import with_argparser, with_default_category, CommandSet, style
+import cmd2
 from faraday_cli.config import active_config
 from faraday_cli.shell import utils
 
 
-@with_default_category("Tools execution")
-class ToolCommands(CommandSet):
+@cmd2.with_default_category("Tools execution")
+class ToolCommands(cmd2.CommandSet):
     def __init__(self):
         super().__init__()
 
-    tool_parser = argparse.ArgumentParser()
+    tool_parser = cmd2.Cmd2ArgumentParser()
     tool_parser.add_argument(
         "-w", "--workspace-name", type=str, help="Workspace"
     )
@@ -48,8 +47,10 @@ class ToolCommands(CommandSet):
     )
     tool_parser.add_argument("command", help="Command of the tool to process")
 
-    @with_argparser(tool_parser, preserve_quotes=False)
-    def do_process_tool(self, args):
+    @cmd2.as_subcommand_to(
+        "tool", "run", tool_parser, help="run a tool and process it"
+    )
+    def process_tool(self, args):
         """Process Tool execution in Faraday"""
         if not args.json_output:
             if not args.workspace_name:
@@ -77,7 +78,7 @@ class ToolCommands(CommandSet):
         if plugin:
             if not args.json_output:
                 self._cmd.poutput(
-                    style(
+                    cmd2.style(
                         f"{self._cmd.emojis['laptop']} "
                         f"Processing {plugin.id} command",
                         fg="green",

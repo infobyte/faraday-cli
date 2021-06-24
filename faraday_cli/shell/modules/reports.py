@@ -3,17 +3,17 @@ import argparse
 import getpass
 import json
 
-from faraday_cli.shell.utils import apply_tags
-from cmd2 import with_argparser, with_default_category, CommandSet, style
+import cmd2
 from faraday_cli.config import active_config
+from faraday_cli.shell.utils import apply_tags
 
 
-@with_default_category("Tools Reports")
-class ReportsCommands(CommandSet):
+@cmd2.with_default_category("Tools Reports")
+class ReportsCommands(cmd2.CommandSet):
     def __init__(self):
         super().__init__()
 
-    report_parser = argparse.ArgumentParser()
+    report_parser = cmd2.Cmd2ArgumentParser()
     report_parser.add_argument(
         "-w", "--workspace-name", type=str, help="Workspace"
     )
@@ -49,8 +49,10 @@ class ReportsCommands(CommandSet):
     )
     report_parser.add_argument("report_path", help="Path of the report file")
 
-    @with_argparser(report_parser, preserve_quotes=True)
-    def do_process_report(self, args):
+    @cmd2.as_subcommand_to(
+        "tool", "report", report_parser, help="process a report from a tool"
+    )
+    def process_report(self, args: argparse.Namespace):
         """Process Tool report in Faraday"""
         report_path = Path(args.report_path)
         if not report_path.is_file():
@@ -85,7 +87,7 @@ class ReportsCommands(CommandSet):
                 return
         if not args.json_output:
             self._cmd.poutput(
-                style(
+                cmd2.style(
                     f"{self._cmd.emojis['page']} "
                     f"Processing {plugin.id} report",
                     fg="green",

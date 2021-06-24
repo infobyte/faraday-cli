@@ -3,7 +3,7 @@ import argparse
 import sys
 from collections import OrderedDict
 
-from cmd2 import style, with_argparser, with_default_category, CommandSet
+import cmd2
 from tabulate import tabulate
 from simple_rest_client.exceptions import NotFoundError
 
@@ -12,11 +12,12 @@ from faraday_cli.shell import utils
 from faraday_cli.shell.exceptions import InvalidJson, InvalidJsonSchema
 
 
-@with_default_category("Agents")
-class AgentCommands(CommandSet):
+@cmd2.with_default_category("Agents")
+class AgentCommands(cmd2.CommandSet):
     def __init__(self):
         super().__init__()
 
+    # List Agents
     list_agent_parser = argparse.ArgumentParser()
     list_agent_parser.add_argument(
         "-w", "--workspace-name", type=str, help="Workspace name"
@@ -28,11 +29,13 @@ class AgentCommands(CommandSet):
         "-p",
         "--pretty",
         action="store_true",
-        help="Show table in a pretty format ",
+        help="Show table in a pretty format",
     )
 
-    @with_argparser(list_agent_parser)
-    def do_list_agents(self, args):
+    @cmd2.as_subcommand_to(
+        "agent", "list", list_agent_parser, help="list agents"
+    )
+    def list_agents(self, args: argparse.Namespace):
         """List agents"""
         if not args.workspace_name:
             if active_config.workspace:
@@ -91,8 +94,10 @@ class AgentCommands(CommandSet):
         help="Show table in a pretty format",
     )
 
-    @with_argparser(get_agent_parser)
-    def do_get_agent(self, args):
+    @cmd2.as_subcommand_to(
+        "agent", "get", get_agent_parser, help="get an agent"
+    )
+    def get_agent(self, args: argparse.Namespace):
         """Get agent"""
         if not args.workspace_name:
             if active_config.workspace:
@@ -177,8 +182,10 @@ class AgentCommands(CommandSet):
         "-w", "--workspace-name", type=str, help="Workspace name"
     )
 
-    @with_argparser(run_executor_parser)
-    def do_run_executor(self, args):
+    @cmd2.as_subcommand_to(
+        "agent", "run", run_executor_parser, help="run an executor"
+    )
+    def run_executor(self, args):
         """Run executor"""
         if args.stdin:
             executor_params = sys.stdin.read()
@@ -249,7 +256,7 @@ class AgentCommands(CommandSet):
                         print(e)
                     else:
                         self._cmd.poutput(
-                            style(
+                            cmd2.style(
                                 f"Run executor: {agent['name']}/{executor['name']} [{response}]",  # noqa: E501
                                 fg="green",
                             )

@@ -3,7 +3,7 @@ import argparse
 import sys
 from collections import OrderedDict
 
-from cmd2 import style, with_argparser, with_default_category, CommandSet
+import cmd2
 from tabulate import tabulate
 from simple_rest_client.exceptions import NotFoundError
 
@@ -25,12 +25,12 @@ HOST_CREATE_JSON_SCHEMA = {
 }
 
 
-@with_default_category("Hosts")
-class HostCommands(CommandSet):
+class HostCommands(cmd2.CommandSet):
     def __init__(self):
         super().__init__()
 
-    list_host_parser = argparse.ArgumentParser()
+    # List Host
+    list_host_parser = cmd2.Cmd2ArgumentParser()
     list_host_parser.add_argument(
         "-w", "--workspace-name", type=str, help="Workspace name"
     )
@@ -48,8 +48,8 @@ class HostCommands(CommandSet):
     )
     list_host_parser.add_argument("--port", type=int, help="Listen in port")
 
-    @with_argparser(list_host_parser)
-    def do_list_hosts(self, args):
+    @cmd2.as_subcommand_to("host", "list", list_host_parser, help="list hosts")
+    def list_hosts(self, args: argparse.Namespace):
         """List hosts"""
 
         @Halo(
@@ -95,9 +95,9 @@ class HostCommands(CommandSet):
                                 "HOSTNAMES": ", ".join(
                                     x["value"]["hostnames"]
                                 ),
-                                "SERVICES": len(
-                                    x["value"]["service_summaries"]
-                                ),
+                                "SERVICES": "-"
+                                if len(x["value"]["service_summaries"]) == 0
+                                else len(x["value"]["service_summaries"]),
                                 "VULNS": "-"
                                 if x["value"]["vulns"] == 0
                                 else x["value"]["vulns"],
@@ -132,8 +132,8 @@ class HostCommands(CommandSet):
         help="Show table in a pretty format",
     )
 
-    @with_argparser(get_host_parser)
-    def do_get_host(self, args):
+    @cmd2.as_subcommand_to("host", "get", get_host_parser, help="get a host")
+    def get_host(self, args: argparse.Namespace):
         """Get host information"""
         if not args.workspace_name:
             if active_config.workspace:
@@ -218,7 +218,7 @@ class HostCommands(CommandSet):
                             {
                                 "ID": x["id"],
                                 "NAME": x["value"]["name"],
-                                "SEVERITY": style(
+                                "SEVERITY": cmd2.style(
                                     x["value"]["severity"].upper(),
                                     fg=utils.get_severity_color(
                                         x["value"]["severity"]
@@ -242,6 +242,7 @@ class HostCommands(CommandSet):
                         )
                     )
 
+    # Delete Host
     delete_host_parser = argparse.ArgumentParser()
     delete_host_parser.add_argument("host_id", type=int, help="ID of the host")
     delete_host_parser.add_argument(
@@ -252,8 +253,10 @@ class HostCommands(CommandSet):
         required=False,
     )
 
-    @with_argparser(delete_host_parser)
-    def do_delete_host(self, args):
+    @cmd2.as_subcommand_to(
+        "host", "delete", delete_host_parser, help="delete a host"
+    )
+    def delete_host(self, args):
         """Delete Host"""
         if not args.workspace_name:
             if active_config.workspace:
@@ -270,8 +273,9 @@ class HostCommands(CommandSet):
         except Exception as e:
             self._cmd.perror(f"{e}")
         else:
-            self._cmd.poutput(style("Host deleted", fg="green"))
+            self._cmd.poutput(cmd2.style("Host deleted", fg="green"))
 
+    # Create hosts
     create_host_parser = argparse.ArgumentParser()
     create_host_parser.add_argument(
         "-d",
@@ -290,8 +294,10 @@ class HostCommands(CommandSet):
         required=False,
     )
 
-    @with_argparser(create_host_parser)
-    def do_create_hosts(self, args):
+    @cmd2.as_subcommand_to(
+        "host", "create", create_host_parser, help="create hosts"
+    )
+    def create_hosts(self, args: argparse.Namespace):
         """Create Hosts"""
         if not args.workspace_name:
             if active_config.workspace:

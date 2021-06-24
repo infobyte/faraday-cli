@@ -17,6 +17,7 @@ from cmd2 import (
     Statement,
     Settable,
     with_default_category,
+    with_category,
 )
 import click
 from faraday_plugins.plugins.manager import (
@@ -29,6 +30,7 @@ from tabulate import tabulate
 
 from simple_rest_client.exceptions import ClientError
 
+from faraday_cli import __version__
 from faraday_cli.extras.halo.halo import Halo
 from faraday_cli.config import active_config
 from faraday_cli.shell import utils
@@ -63,13 +65,16 @@ class FaradayShell(Cmd):
     }
     delattr(Cmd, "do_run_pyscript")
     delattr(Cmd, "do_run_script")
+    delattr(Cmd, "do_edit")
+    delattr(Cmd, "do_shell")
+    delattr(Cmd, "do_shortcuts")
+    delattr(Cmd, "do_py")
 
     def __init__(self, *args, **kwargs):
         super().__init__(
             persistent_history_file="~/.faraday-cli_history", *args, **kwargs
         )
-
-        self.hidden_commands += ["EOF", "cd", "alias"]
+        self.hidden_commands += ["EOF", "cd", "alias", "macro"]
         self.run_as_shell = False
         self.TABLE_PRETTY_FORMAT = "psql"
         # hide unwanted settings
@@ -116,6 +121,10 @@ class FaradayShell(Cmd):
             )
         )
         self._create_plugin_manager()
+
+    def do_version(self, _):
+        """Faraday cli version"""
+        self.poutput(f"faraday-cli: {__version__}")
 
     def _create_plugin_manager(self):
         self.plugins_manager = PluginsManager(
@@ -330,6 +339,143 @@ class FaradayShell(Cmd):
                 fg="green",
             )
         )
+
+    # Workspace
+    workspace_parser = argparse.ArgumentParser()
+    workspace_subparsers = workspace_parser.add_subparsers(title="action")
+
+    @with_argparser(workspace_parser)
+    @with_category("Objects")
+    def do_workspace(self, ns: argparse.Namespace):
+        """workspace actions"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            # Call whatever subcommand function was selected
+            handler(ns)
+        else:
+            # No subcommand was provided, so call help
+            self.poutput(
+                "This command does nothing without sub-parsers registered"
+            )
+            self.do_help(ns)
+
+    # Host
+    host_parser = argparse.ArgumentParser()
+    host_subparsers = host_parser.add_subparsers(title="action")
+
+    @with_argparser(host_parser)
+    @with_category("Objects")
+    def do_host(self, ns: argparse.Namespace):
+        """host actions"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            # Call whatever subcommand function was selected
+            handler(ns)
+        else:
+            # No subcommand was provided, so call help
+            self.poutput(
+                "This command does nothing without sub-parsers registered"
+            )
+            self.do_help(ns)
+
+    # Service
+    service_parser = argparse.ArgumentParser()
+    service_subparsers = service_parser.add_subparsers(title="action")
+
+    @with_argparser(service_parser)
+    @with_category("Objects")
+    def do_service(self, ns: argparse.Namespace):
+        """service actions"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            # Call whatever subcommand function was selected
+            handler(ns)
+        else:
+            # No subcommand was provided, so call help
+            self.poutput(
+                "This command does nothing without sub-parsers registered"
+            )
+            self.do_help(ns)
+
+    # Vulnerability
+    vulnerability_parser = argparse.ArgumentParser()
+    vulnerability_subparsers = vulnerability_parser.add_subparsers(
+        title="action"
+    )
+
+    @with_argparser(vulnerability_parser)
+    @with_category("Objects")
+    def do_vuln(self, ns: argparse.Namespace):
+        """vulnerabilities actions"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            # Call whatever subcommand function was selected
+            handler(ns)
+        else:
+            # No subcommand was provided, so call help
+            self.poutput(
+                "This command does nothing without sub-parsers registered"
+            )
+            self.do_help(ns)
+
+    # Agent
+    agent_parser = argparse.ArgumentParser()
+    agent_subparsers = agent_parser.add_subparsers(title="action")
+
+    @with_argparser(agent_parser)
+    @with_category("Objects")
+    def do_agent(self, ns: argparse.Namespace):
+        """agent actions"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            # Call whatever subcommand function was selected
+            handler(ns)
+        else:
+            # No subcommand was provided, so call help
+            self.poutput(
+                "This command does nothing without sub-parsers registered"
+            )
+            self.do_help(ns)
+
+    # Executive Report
+    executive_report_parser = argparse.ArgumentParser()
+    executive_report_subparsers = executive_report_parser.add_subparsers(
+        title="action"
+    )
+
+    @with_argparser(executive_report_parser)
+    @with_category("Objects")
+    def do_executive_report(self, ns: argparse.Namespace):
+        """executive_report actions"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            # Call whatever subcommand function was selected
+            handler(ns)
+        else:
+            # No subcommand was provided, so call help
+            self.poutput(
+                "This command does nothing without sub-parsers registered"
+            )
+            self.do_help(ns)
+
+    # Tool
+    tool_report_parser = argparse.ArgumentParser()
+    tool_report_subparsers = tool_report_parser.add_subparsers(title="action")
+
+    @with_argparser(tool_report_parser)
+    @with_category("Objects")
+    def do_tool(self, ns: argparse.Namespace):
+        """tool actions"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            # Call whatever subcommand function was selected
+            handler(ns)
+        else:
+            # No subcommand was provided, so call help
+            self.poutput(
+                "This command does nothing without sub-parsers registered"
+            )
+            self.do_help(ns)
 
     # Run Command
     def run_command(self, plugin, user, command):
