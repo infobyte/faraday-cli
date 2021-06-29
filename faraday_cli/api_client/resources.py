@@ -56,8 +56,15 @@ class ServiceResource(Resource):
 
 class VulnResource(Resource):
     actions = {
+        "get": {"method": "GET", "url": "v3/ws/{}/vulns/{}"},
         "list": {"method": "GET", "url": "v3/ws/{}/vulns"},
         "filter": {"method": "GET", "url": "v3/ws/{}/vulns/filter"},
+    }
+
+
+class VulnEvidenceResource(Resource):
+    actions = {
+        "create": {"method": "POST", "url": "v3/ws/{}/vulns/{}/attachment"},
     }
 
 
