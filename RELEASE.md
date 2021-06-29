@@ -1,3 +1,7 @@
+2.0.1 [Jun 29th, 2021]:
+---
+ * [FIX] Show help if no subcommand is provided
+
 2.0.0 [Jun 29th, 2021]:
 ---
  * [MOD] Change commands to verbs
