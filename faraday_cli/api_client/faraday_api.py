@@ -9,6 +9,8 @@ from faraday_cli.api_client.exceptions import (
     Invalid2FA,
     MissingConfig,
     ExpiredLicense,
+    NotFound,
+    RequestError,
 )
 from simple_rest_client.api import API
 
@@ -66,11 +68,18 @@ class FaradayApi:
             except DuplicatedError as e:
                 raise Exception(f"{e}")
             except NotFoundError:
-                raise
+                raise NotFound("Element not found")
             except ClientError as e:
                 if e.response.status_code == 402:
                     raise ExpiredLicense("Your Faraday license is expired")
-                raise
+                else:
+                    if (
+                        e.response.headers["content-type"]
+                        == "application/json"
+                    ):
+                        raise RequestError(e.response.body["message"])
+                    else:
+                        raise RequestError(e)
             except Exception as e:
                 raise Exception(f"Unknown error: {type(e)} - {e}")
             else:
@@ -108,6 +117,11 @@ class FaradayApi:
         )
         self.faraday_api.add_resource(
             resource_name="vuln", resource_class=resources.VulnResource
+        )
+        self.faraday_api.add_resource(
+            resource_name="vuln_evidence",
+            resource_class=resources.VulnEvidenceResource,
+            json_encode_body=False,
         )
         self.faraday_api.add_resource(
             resource_name="executive_report",
@@ -228,6 +242,27 @@ class FaradayApi:
     @handle_errors
     def get_services(self, workspace_name: str):
         response = self.faraday_api.service.list(workspace_name)
+        return response.body
+
+    @handle_errors
+    def get_vuln(self, workspace_name: str, vulnerability_id: int):
+        response = self.faraday_api.vuln.get(workspace_name, vulnerability_id)
+        return response.body
+
+    @handle_errors
+    def upload_evidence_to_vuln(
+        self, workspace_name: str, vulnerability_id: int, image_path: str
+    ):
+        files = {"file": open(image_path, "rb")}
+        original_headers = self.faraday_api.headers.copy()
+        self.faraday_api.headers.pop(
+            "Content-Type"
+        )  # This hack is for this issue
+        # https://github.com/allisson/python-simple-rest-client/issues/41
+        response = self.faraday_api.vuln_evidence.create(
+            workspace_name, vulnerability_id, files=files
+        )
+        self.faraday_api.headers = original_headers
         return response.body
 
     @handle_errors
