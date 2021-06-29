@@ -350,14 +350,9 @@ class FaradayShell(Cmd):
         """workspace actions"""
         handler = ns.cmd2_handler.get()
         if handler is not None:
-            # Call whatever subcommand function was selected
             handler(ns)
         else:
-            # No subcommand was provided, so call help
-            self.poutput(
-                "This command does nothing without sub-parsers registered"
-            )
-            self.do_help(ns)
+            self.do_help("workspace")
 
     # Host
     host_parser = argparse.ArgumentParser()
@@ -369,14 +364,9 @@ class FaradayShell(Cmd):
         """host actions"""
         handler = ns.cmd2_handler.get()
         if handler is not None:
-            # Call whatever subcommand function was selected
             handler(ns)
         else:
-            # No subcommand was provided, so call help
-            self.poutput(
-                "This command does nothing without sub-parsers registered"
-            )
-            self.do_help(ns)
+            self.do_help("host")
 
     # Service
     service_parser = argparse.ArgumentParser()
@@ -388,14 +378,9 @@ class FaradayShell(Cmd):
         """service actions"""
         handler = ns.cmd2_handler.get()
         if handler is not None:
-            # Call whatever subcommand function was selected
             handler(ns)
         else:
-            # No subcommand was provided, so call help
-            self.poutput(
-                "This command does nothing without sub-parsers registered"
-            )
-            self.do_help(ns)
+            self.do_help("service")
 
     # Vulnerability
     vulnerability_parser = argparse.ArgumentParser()
@@ -409,14 +394,9 @@ class FaradayShell(Cmd):
         """vulnerabilities actions"""
         handler = ns.cmd2_handler.get()
         if handler is not None:
-            # Call whatever subcommand function was selected
             handler(ns)
         else:
-            # No subcommand was provided, so call help
-            self.poutput(
-                "This command does nothing without sub-parsers registered"
-            )
-            self.do_help(ns)
+            self.do_help("vuln")
 
     # Agent
     agent_parser = argparse.ArgumentParser()
@@ -428,14 +408,9 @@ class FaradayShell(Cmd):
         """agent actions"""
         handler = ns.cmd2_handler.get()
         if handler is not None:
-            # Call whatever subcommand function was selected
             handler(ns)
         else:
-            # No subcommand was provided, so call help
-            self.poutput(
-                "This command does nothing without sub-parsers registered"
-            )
-            self.do_help(ns)
+            self.do_help("agent")
 
     # Executive Report
     executive_report_parser = argparse.ArgumentParser()
@@ -449,14 +424,9 @@ class FaradayShell(Cmd):
         """executive_report actions"""
         handler = ns.cmd2_handler.get()
         if handler is not None:
-            # Call whatever subcommand function was selected
             handler(ns)
         else:
-            # No subcommand was provided, so call help
-            self.poutput(
-                "This command does nothing without sub-parsers registered"
-            )
-            self.do_help(ns)
+            self.do_help("executive_report")
 
     # Tool
     tool_report_parser = argparse.ArgumentParser()
@@ -468,14 +438,9 @@ class FaradayShell(Cmd):
         """tool actions"""
         handler = ns.cmd2_handler.get()
         if handler is not None:
-            # Call whatever subcommand function was selected
             handler(ns)
         else:
-            # No subcommand was provided, so call help
-            self.poutput(
-                "This command does nothing without sub-parsers registered"
-            )
-            self.do_help(ns)
+            self.do_help("tool")
 
     # Run Command
     def run_command(self, plugin, user, command):
