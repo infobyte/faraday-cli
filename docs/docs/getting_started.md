@@ -64,7 +64,7 @@ Every faraday cli command can be used as an individual command from the command 
 This is useful when integrating faraday cli to batch process, scripts or pipelines.
 
 ```
-$ faraday-cli process tool \"nmap localhost\"
+$ faraday-cli tool run \"nmap localhost\"
 💻 Processing Nmap command
 Starting Nmap 7.80 ( https://nmap.org ) at 2021-01-14 13:34 -03
 Nmap scan report for localhost (127.0.0.1)

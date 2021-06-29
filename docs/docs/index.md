@@ -15,7 +15,7 @@ Here you have some snippets of different workflows you can generate using farada
 Scan assets from workspace.
 
 ```shell
-$ faraday-cli list_hosts -ip | nmap -iL - -oX /tmp/nmap.xml && faraday-cli process_report -w other_ws /tmp/nmap.xml
+$ faraday-cli host list -ip | nmap -iL - -oX /tmp/nmap.xml && faraday-cli tool report -w other_ws /tmp/nmap.xml
 ```
 
 #### Scan your subdomains
@@ -25,7 +25,7 @@ Use a tool like ```assetfinder``` to do a domains lookup, scan them with nmap an
 ```shell
 $ assetfinder -subs-only example.com| sort | uniq |awk 'BEGIN { ORS = ""; print " {\"target\":\""}
 { printf "%s%s", separator, $1, $2
-separator = ","}END { print "\"}" }' | faraday-cli  run_executor -a 1 -e nmap --stdin
+separator = ","}END { print "\"}" }' | faraday-cli agent run -a 1 -e nmap --stdin
 ```
 
 #### Send Faraday Executive Reports by mail
@@ -33,7 +33,7 @@ separator = ","}END { print "\"}" }' | faraday-cli  run_executor -a 1 -e nmap --
 Run a dalily scan and send your report
 
 ```shell
-$ faraday-cli generate_executive_report -t \'"generic_default.docx (generic)"\' --confirmed -o /tmp/report.docx && echo "Faraday Daily Report" | mail -s "Daily Report" user@example.com -A /tmp/report.docx
+$ faraday-cli executive_report create -t \'"generic_default.docx (generic) (Word)"\' --confirmed -o /tmp/report.docx && echo "Faraday Daily Report" | mail -s "Daily Report" user@example.com -A /tmp/report.docx
 ```
 
 #### Load your assets from your cloud provider
@@ -43,5 +43,5 @@ Here you can list your assets using a cli from your provider (in this example Di
 ```shell
 $ doctl compute droplet list --format PublicIPv4,Name --no-header | awk 'BEGIN { ORS = ""; print " ["}
 { printf "%s{\"ip\": \"%s\", \"description\": \"%s\"}", separator, $1, $2
-separator = ", "}END { print "] " }' | faraday-cli create_hosts --stdin
+separator = ", "}END { print "] " }' | faraday-cli host create --stdin
 ```
