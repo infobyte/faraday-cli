@@ -7,6 +7,12 @@
  * [MOD] Change to V3 api of faraday
  * Add command to upload evidence to vuln
 
+1.1.1 [Jun 9th, 2021]:
+---
+ * Fix to use cmd2 2.0 and update requirements
+ * Show message if license is expired
+ * [MOD] Change to V3 api of faraday
+
 1.1.0 [Apr 16th, 2021]:
 ---
  * Add new command to process a tool execution
