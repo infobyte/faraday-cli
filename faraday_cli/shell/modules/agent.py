@@ -133,10 +133,12 @@ class AgentCommands(cmd2.CommandSet):
                         {
                             "ID": x["id"],
                             "NAME": x["name"],
-                            "PARAMETERS [REQUIRED]": "".join(
+                            "PARAMETERS [TYPE - REQUIRED]": "".join(
                                 [
-                                    f"{parameter} [{required}]\n"
-                                    for parameter, required in x[
+                                    f"{parameter} [Type: "
+                                    f"{parameter_data['type']} - Required: "
+                                    f"{parameter_data['mandatory']}]\n"
+                                    for parameter, parameter_data in x[
                                         "parameters_metadata"
                                     ].items()
                                 ]
@@ -216,8 +218,9 @@ class AgentCommands(cmd2.CommandSet):
                 self._cmd.perror("Agent not found")
             else:
                 executor = None
-                for executor in agent["executors"]:
-                    if executor["name"] == args.executor_name:
+                for executor_data in agent["executors"]:
+                    if executor_data["name"] == args.executor_name:
+                        executor = executor_data
                         break
                 if not executor:
                     self._cmd.perror(
