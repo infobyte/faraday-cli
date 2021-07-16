@@ -679,7 +679,7 @@ $ faraday-cli executive_report list-templates -p
 Generate an executive report with a given template.
 
 ```
-$ faraday-cli executive_report create -t \'"generic_default.html (generic) (PDF)"\'  --title title --summary summary --enterprise company  -o /tmp/test.pdf  --ignore-info
+$ faraday-cli executive_report create -t \'"generic_default.html (generic) (PDF)"\'  --title title --summary summary --enterprise company  -d /tmp/test.pdf  --ignore-info
 Report created: /tmp/test.pdf
 ```
 
@@ -695,7 +695,7 @@ Report created: /tmp/test.pdf
 | `--confirmed`   | Confirmed vulnerabilities      |
 | `--severity [SEVERITY [SEVERITY ...]]`   | Filter by severity informational/critical/high/medium/low/unclassified      |
 | `--ignore-info`   | Ignore informational/unclassified vulnerabilities     |
-| `-o/--output OUTPUT`   | Report output      |
+| `-d/--destination DESTINATION`   | Report destination      |
 
 
 ## help
