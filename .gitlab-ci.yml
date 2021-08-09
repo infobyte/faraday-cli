@@ -40,7 +40,7 @@ flake8:
     stage: .pre
     script:
       - pip install .[dev]
-      - flake8 .
+      - flake8 --max-line-length=120 .
 
 
 black:

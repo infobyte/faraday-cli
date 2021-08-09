@@ -151,7 +151,7 @@ class StatsCommands(cmd2.CommandSet):
                 self._cmd.perror(f"No data in workspace {workspace_name}")
 
         if workspace_name:
-            if not self._cmd.api_client.is_workspace_valid(workspace_name):
+            if not self._cmd.api_client.is_workspace_available(workspace_name):
                 self._cmd.perror(f"Invalid workspace: {workspace_name}")
                 return
             else:

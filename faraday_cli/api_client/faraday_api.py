@@ -77,7 +77,9 @@ class FaradayApi:
                         e.response.headers["content-type"]
                         == "application/json"
                     ):
-                        raise RequestError(e.response.body["message"])
+                        raise RequestError(
+                            e.response.body.get("message", e.response.body)
+                        )
                     else:
                         raise RequestError(e)
             except Exception as e:
@@ -406,7 +408,7 @@ class FaradayApi:
         return response
 
     @handle_errors
-    def is_workspace_valid(self, workspace_name):
+    def is_workspace_available(self, workspace_name):
         workspaces = self.get_workspaces()
         available_workspaces = [
             ws for ws in map(lambda x: x["name"], workspaces)

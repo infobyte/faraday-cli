@@ -411,6 +411,7 @@ Different stats about the vulnerabilities in Faraday.
 | Syntax      | Description |
 |:-----	|------:	|
 | `-w WORKSPACE_NAME`     | Workspace name    |
+| `--create-workspace`     | if -w is used and the workspace dont exists, it will create it    |
 | `--ignore-info`   | Ignore informational/unclassified vulnerabilities       |
 | `--severity [SEVERITY [SEVERITY ...]]`      | Filter by severity informational/critical/high/medium/low/unclassified     |
 | `--confirmed`   | Confirmed vulnerabilities       |
@@ -443,13 +444,14 @@ $ faraday-cli tool report $HOME/Downloads/openvas-report.xml
 | Syntax      | Description |
 |:-----	|------:	|
 | `-w WORKSPACE_NAME`     | Workspace name    |
+| `--create-workspace`     | if -w is used and the workspace dont exists, it will create it    |
 | `--plugin-id PLUGIN_ID`   | Plugin ID (force detection)       |
 | `-j/--json-output`   | Show output in json (dont send it to faraday)       |
 | `--tag-vuln TAG_VULN`   | Tag to add to vulnerabilities       |
 | `--tag-host TAG_HOST`   | Tag to add to hosts       |
 | `--tag-service TAG_SERVICE`   | Tag to add to services      |
 
-### process_tool
+### run tool
 
 Execute a tool and upload the information into faraday.
 
@@ -619,12 +621,40 @@ Run an executor.
     ```
     $ echo '{"target": "www.google.com"}' | faraday-cli agent run -a 1 -e nmap --stdin
     ```
+    If no ```-p``` or ```--stdin``` argument is provided, then the executor parameters will be asked one by one.
+
+    You can store the parameters in env variables and will be auto loaded.
+
+    Example:
+    ```
+    For the TARGET parameter of the NMAP executor save the variable FARADAY_CLI_EXECUTOR_NMAP_TARGET
+    ```
+
+    You can store the parameters in a file and use it as a 'profile' to repeat scans
+    ```
+    $ cat scan_test.com_nmap.vars
+    FARADAY_CLI_EXECUTOR_NMAP_TARGET=test.com
+    FARADAY_CLI_EXECUTOR_NMAP_OPTION_PN=true
+    FARADAY_CLI_EXECUTOR_NMAP_OPTION_SC=false
+    FARADAY_CLI_EXECUTOR_NMAP_OPTION_SV=true
+    FARADAY_CLI_EXECUTOR_NMAP_PORT_LIST=
+    FARADAY_CLI_EXECUTOR_NMAP_TOP_PORTS=
+    FARADAY_CLI_EXECUTOR_NMAP_HOST_TIMEOUT=
+    FARADAY_CLI_EXECUTOR_NMAP_SCRIPT_TIMEOUT=
+
+    $ source scan_test.com_nmap.vars && faraday-cli agent run -a 2 -e nmap -w test
+    Running executor: unnamed_agent/nmap
+    Parameters: {"TARGET": "test.com", "OPTION_PN": "true", "OPTION_SC": "false", "OPTION_SV": "true"}
+    Generated Command: 14
+    ```
 
 !!! warning
     If you pass the executor parameters as an argument it needs to be escaped like this (only in command mode, not in shell mode).
     ```
     $ faraday-cli  agent run -a 1 -e nmap -p \''{"target": "www.google.com"}'\'
-    Run executor: agent/nmap [{'command_id': 5}]
+    Running executor: unnamed_agent/nmap
+    Parameters: {"TARGET": "www.google.com"}
+    Generated Command: 13
     ```
 
 *Required Arguments:*
@@ -679,7 +709,7 @@ $ faraday-cli executive_report list-templates -p
 Generate an executive report with a given template.
 
 ```
-$ faraday-cli executive_report create -t \'"generic_default.html (generic) (PDF)"\'  --title title --summary summary --enterprise company  -o /tmp/test.pdf  --ignore-info
+$ faraday-cli executive_report create -t \'"generic_default.html (generic) (PDF)"\'  --title title --summary summary --enterprise company  -d /tmp/test.pdf  --ignore-info
 Report created: /tmp/test.pdf
 ```
 
@@ -695,7 +725,7 @@ Report created: /tmp/test.pdf
 | `--confirmed`   | Confirmed vulnerabilities      |
 | `--severity [SEVERITY [SEVERITY ...]]`   | Filter by severity informational/critical/high/medium/low/unclassified      |
 | `--ignore-info`   | Ignore informational/unclassified vulnerabilities     |
-| `-o/--output OUTPUT`   | Report output      |
+| `-d/--destination DESTINATION`   | Report destination      |
 
 
 ## help

@@ -81,7 +81,7 @@ class FaradayShell(Cmd):
         settings_to_hide = ["debug"]
         for setting_name in settings_to_hide:
             self.remove_settable(setting_name)
-        intro = [style(logo, fg="red")]
+        intro = [style(f"{logo}\nv:{__version__}", fg="cyan")]
         if active_config.faraday_url and active_config.token:
             intro.append(
                 style(f"Server: {active_config.faraday_url}", fg="green")

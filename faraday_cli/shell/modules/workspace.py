@@ -28,7 +28,7 @@ class WorkspaceCommands(cmd2.CommandSet):
     )
     def select_ws(self, args: argparse.Namespace):
         """Select active Workspace"""
-        if self._cmd.api_client.is_workspace_valid(args.workspace_name):
+        if self._cmd.api_client.is_workspace_available(args.workspace_name):
             active_config.workspace = args.workspace_name
             active_config.save()
             self._cmd.poutput(
