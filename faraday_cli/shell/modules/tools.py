@@ -16,6 +16,11 @@ class ToolCommands(cmd2.CommandSet):
         "-w", "--workspace-name", type=str, help="Workspace"
     )
     tool_parser.add_argument(
+        "--create-workspace",
+        action="store_true",
+        help="Create the workspace it not exists",
+    )
+    tool_parser.add_argument(
         "--plugin-id",
         type=str,
         help="Plugin ID (force detection)",
@@ -61,9 +66,24 @@ class ToolCommands(cmd2.CommandSet):
                     return
             else:
                 workspace_name = args.workspace_name
-            if not self._cmd.api_client.is_workspace_valid(workspace_name):
-                self._cmd.perror(f"Invalid workspace: {workspace_name}")
-                return
+            if not self._cmd.api_client.is_workspace_available(workspace_name):
+                if not args.create_workspace:
+                    self._cmd.perror(f"Invalid workspace: {workspace_name}")
+                    return
+                else:
+                    try:
+                        self._cmd.api_client.create_workspace(workspace_name)
+                        self._cmd.poutput(
+                            cmd2.style(
+                                f"Workspace {workspace_name} created",
+                                fg="green",
+                            )
+                        )
+                    except Exception as e:
+                        self._cmd.perror(f"Error creating workspace: {e}")
+                        return
+                    else:
+                        destination_workspace = workspace_name
             else:
                 destination_workspace = workspace_name
 

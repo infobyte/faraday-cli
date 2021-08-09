@@ -411,6 +411,7 @@ Different stats about the vulnerabilities in Faraday.
 | Syntax      | Description |
 |:-----	|------:	|
 | `-w WORKSPACE_NAME`     | Workspace name    |
+| `--create-workspace`     | if -w is used and the workspace dont exists, it will create it    |
 | `--ignore-info`   | Ignore informational/unclassified vulnerabilities       |
 | `--severity [SEVERITY [SEVERITY ...]]`      | Filter by severity informational/critical/high/medium/low/unclassified     |
 | `--confirmed`   | Confirmed vulnerabilities       |
@@ -443,13 +444,14 @@ $ faraday-cli tool report $HOME/Downloads/openvas-report.xml
 | Syntax      | Description |
 |:-----	|------:	|
 | `-w WORKSPACE_NAME`     | Workspace name    |
+| `--create-workspace`     | if -w is used and the workspace dont exists, it will create it    |
 | `--plugin-id PLUGIN_ID`   | Plugin ID (force detection)       |
 | `-j/--json-output`   | Show output in json (dont send it to faraday)       |
 | `--tag-vuln TAG_VULN`   | Tag to add to vulnerabilities       |
 | `--tag-host TAG_HOST`   | Tag to add to hosts       |
 | `--tag-service TAG_SERVICE`   | Tag to add to services      |
 
-### process_tool
+### run tool
 
 Execute a tool and upload the information into faraday.
 
