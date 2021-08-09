@@ -1,3 +1,11 @@
+2.0.2 [Aug 9th, 2021]:
+---
+ * add --create-workspace parameter for tool command
+ * Ask for executive report template if not provided
+ * Add for executor parameters if not provided
+ * [FIX] Bug using an invalid executor name
+ * Update readme to fix some examples
+
 2.0.1 [Jun 29th, 2021]:
 ---
  * [FIX] Show help if no subcommand is provided
