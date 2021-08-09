@@ -1,9 +1,11 @@
 import json
 import argparse
 import sys
+import os
 from collections import OrderedDict
 
 import cmd2
+import click
 from tabulate import tabulate
 from simple_rest_client.exceptions import NotFoundError
 
@@ -189,12 +191,14 @@ class AgentCommands(cmd2.CommandSet):
     )
     def run_executor(self, args):
         """Run executor"""
+        ask_for_parameters = False
         if args.stdin:
             executor_params = sys.stdin.read()
         else:
             if not args.executor_params:
-                self._cmd.perror("Missing executor params")
-                return
+                ask_for_parameters = True
+                # self._cmd.perror("Missing executor params")
+                # return
             else:
                 executor_params = args.executor_params
         if not args.workspace_name:
@@ -227,6 +231,38 @@ class AgentCommands(cmd2.CommandSet):
                         f"Invalid executor name [{args.executor_name}]"
                     )
                     return
+                if ask_for_parameters:
+                    executor_params = {}
+                    types_mapping = {
+                        "boolean": click.BOOL,
+                        "integer": click.INT,
+                    }
+                    for parameter, parameter_data in executor[
+                        "parameters_metadata"
+                    ].items():
+                        value = os.getenv(
+                            f"FARADAY_CLI_EXECUTOR_{executor['name'].upper()}_{parameter}",
+                            None,
+                        )
+                        if value is None:
+                            if parameter_data["mandatory"]:
+                                value = click.prompt(
+                                    f"{parameter} ({parameter_data['type']})",
+                                    type=types_mapping.get(
+                                        parameter_data["type"], click.STRING
+                                    ),
+                                    show_default=False,
+                                )
+                            else:
+                                value = click.prompt(
+                                    f"{parameter} ({parameter_data['type']})",
+                                    default="",
+                                    show_default=False,
+                                )
+                        if type(value) == str and value == "":
+                            continue
+                        executor_params[parameter] = str(value)
+                    executor_params = json.dumps(executor_params)
                 executor_parameters_schema = {
                     "type": "object",
                     "properties": {
@@ -236,7 +272,7 @@ class AgentCommands(cmd2.CommandSet):
                     "required": [
                         i[0]
                         for i in filter(
-                            lambda x: x[1] is True,
+                            lambda x: x[1]["mandatory"] is True,
                             executor["parameters_metadata"].items(),
                         )
                     ],
@@ -248,6 +284,16 @@ class AgentCommands(cmd2.CommandSet):
                 except InvalidJsonSchema as e:
                     self._cmd.perror(e)
                 else:
+                    run_message = (
+                        f"Running executor: {agent['name']}/{executor['name']}"
+                        f"\nParameters: {executor_params}"
+                    )
+                    self._cmd.poutput(
+                        cmd2.style(
+                            run_message,
+                            fg="green",
+                        )
+                    )
                     try:
                         response = self._cmd.api_client.run_executor(
                             workspace_name,
@@ -256,11 +302,11 @@ class AgentCommands(cmd2.CommandSet):
                             json.loads(executor_params),
                         )
                     except Exception as e:
-                        print(e)
+                        self._cmd.perror(str(e))
                     else:
                         self._cmd.poutput(
                             cmd2.style(
-                                f"Run executor: {agent['name']}/{executor['name']} [{response}]",  # noqa: E501
+                                f"Generated Command: {response['command_id']}",  # noqa: E501
                                 fg="green",
                             )
                         )
