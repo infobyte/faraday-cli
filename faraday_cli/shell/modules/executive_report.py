@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 import urllib.parse
 
+import click
 import cmd2
 from tabulate import tabulate
 
@@ -68,7 +69,7 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
         "-w", "--workspace-name", type=str, help="Workspace name"
     )
     report_parser.add_argument(
-        "-t", "--template", type=str, help="Template", required=True
+        "-t", "--template", type=str, help="Template to use", required=False
     )
     report_parser.add_argument(
         "--title", type=str, help="Report title", default=""
@@ -95,7 +96,7 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
         help=f"Ignore {'/'.join(IGNORE_SEVERITIES)} vulnerabilities",
     )
     report_parser.add_argument(
-        "-o", "--output", type=str, help="Report output"
+        "-d", "--destination", type=str, help="Report destination"
     )
 
     @cmd2.as_subcommand_to(
@@ -161,49 +162,83 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
         templates_data = self._cmd.api_client.get_executive_report_templates(
             workspace_name
         )
-        templates = {
-            template[1]: template[0] for template in templates_data["items"]
-        }
         report_name = "_".join(
             filter(None, [workspace_name, args.title, args.enterprise])
         )
-        if args.template not in templates:
-            self._cmd.perror(f"Invalid template: {args.template}")
-        else:
-            report_data = {
-                "conclusions": "",
-                "confirmed": args.confirmed,
-                "enterprise": args.enterprise,
-                "grouped": templates[args.template],
-                "name": report_name,
-                "objectives": "",
-                "recommendations": "",
-                "scope": "",
-                "summary": args.summary,
-                "tags": [],
-                "template_name": args.template,
-                "title": args.title,
-                "vuln_count": 0,
-            }
-            if args.severity and args.ignore_info:
-                self._cmd.perror("Use either --ignore-info or --severity")
-                return
-            query_filter = FaradayFilter()
-            selected_severities = set(map(lambda x: x.lower(), args.severity))
-            if selected_severities:
-                for severity in selected_severities:
-                    if severity not in SEVERITIES:
-                        self._cmd.perror(f"Invalid severity: {severity}")
-                        return
-                    else:
-                        query_filter.require_severity(severity)
-            if args.ignore_info:
-                for severity in IGNORE_SEVERITIES:
-                    query_filter.ignore_severity(severity)
-            if args.confirmed:
-                query_filter.filter_confirmed()
-            report_data["filter"] = urllib.parse.quote(
-                json.dumps(query_filter.get_filter())
+        if not args.template:
+            data = []
+            template_index = 0
+            templates_choices = {}
+            for _template in sorted(
+                templates_data["items"], key=lambda x: x[1]
+            ):
+                template_index += 1
+                templates_choices[str(template_index)] = _template
+                data.append(
+                    {
+                        "TEMPLATE": template_index,
+                        "NAME": _template[1],
+                        "GROUPED": _template[0],
+                    }
+                )
+            self._cmd.poutput(
+                tabulate(
+                    data,
+                    headers="keys",
+                    tablefmt="simple",
+                )
             )
-            report_file = get_report(report_data, args.output)
-            self._cmd.poutput(f"Report generated: {report_file}")
+            selected_template = click.prompt(
+                "Select your template:",
+                type=click.Choice(templates_choices.keys()),
+            )
+            template = templates_choices[selected_template][1]
+            grouped = templates_choices[selected_template][0]
+        else:
+            templates = {
+                template[1]: template[0]
+                for template in templates_data["items"]
+            }
+            if args.template not in templates:
+                self._cmd.perror(f"Invalid template: {args.template}")
+                return
+            else:
+                grouped = templates[args.template]
+                template = args.template
+        report_data = {
+            "conclusions": "",
+            "confirmed": args.confirmed,
+            "enterprise": args.enterprise,
+            "grouped": grouped,
+            "name": report_name,
+            "objectives": "",
+            "recommendations": "",
+            "scope": "",
+            "summary": args.summary,
+            "tags": [],
+            "template_name": template,
+            "title": args.title,
+            "vuln_count": 0,
+        }
+        if args.severity and args.ignore_info:
+            self._cmd.perror("Use either --ignore-info or --severity")
+            return
+        query_filter = FaradayFilter()
+        selected_severities = set(map(lambda x: x.lower(), args.severity))
+        if selected_severities:
+            for severity in selected_severities:
+                if severity not in SEVERITIES:
+                    self._cmd.perror(f"Invalid severity: {severity}")
+                    return
+                else:
+                    query_filter.require_severity(severity)
+        if args.ignore_info:
+            for severity in IGNORE_SEVERITIES:
+                query_filter.ignore_severity(severity)
+        if args.confirmed:
+            query_filter.filter_confirmed()
+        report_data["filter"] = urllib.parse.quote(
+            json.dumps(query_filter.get_filter())
+        )
+        report_file = get_report(report_data, args.destination)
+        self._cmd.poutput(f"Report generated: {report_file}")
