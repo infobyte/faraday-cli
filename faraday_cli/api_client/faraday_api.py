@@ -77,7 +77,9 @@ class FaradayApi:
                         e.response.headers["content-type"]
                         == "application/json"
                     ):
-                        raise RequestError(e.response.body["message"])
+                        raise RequestError(
+                            e.response.body.get("message", e.response.body)
+                        )
                     else:
                         raise RequestError(e)
             except Exception as e:
