@@ -406,7 +406,7 @@ class FaradayApi:
         return response
 
     @handle_errors
-    def is_workspace_valid(self, workspace_name):
+    def is_workspace_available(self, workspace_name):
         workspaces = self.get_workspaces()
         available_workspaces = [
             ws for ws in map(lambda x: x["name"], workspaces)
