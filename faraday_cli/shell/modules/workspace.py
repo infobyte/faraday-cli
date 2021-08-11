@@ -99,7 +99,7 @@ class WorkspaceCommands(cmd2.CommandSet):
                         else workspace["stats"]["total_vulns"],
                     }
                 ]
-                self._cmd.poutput(
+                self._cmd.print_output(
                     tabulate(
                         data,
                         headers="keys",
@@ -221,7 +221,7 @@ class WorkspaceCommands(cmd2.CommandSet):
                     )
                     for x in workspaces
                 ]
-                self._cmd.poutput(
+                self._cmd.print_output(
                     tabulate(
                         data,
                         headers="keys",

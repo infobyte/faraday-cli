@@ -8,6 +8,7 @@ from pathlib import Path
 import shlex
 import getpass
 import subprocess
+from faraday_cli.extras.sneakers import Sneakers
 
 
 from cmd2 import (
@@ -306,6 +307,12 @@ class FaradayShell(Cmd):
     status_parser.add_argument(
         "-p", "--pretty", action="store_true", help="Pretty Tables"
     )
+
+    def print_output(self, message):
+        if os.getenv("KAKER_MODE", "0") == "1":
+            Sneakers(message).decrypt()
+        else:
+            self.poutput(message)
 
     @with_argparser(status_parser)
     def do_status(self, args):

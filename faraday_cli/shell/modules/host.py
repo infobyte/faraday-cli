@@ -105,7 +105,7 @@ class HostCommands(cmd2.CommandSet):
                         )
                         for x in hosts["rows"]
                     ]
-                    self._cmd.poutput(
+                    self._cmd.print_output(
                         tabulate(
                             data,
                             headers="keys",
@@ -168,8 +168,8 @@ class HostCommands(cmd2.CommandSet):
                     )
                     for x in [host]
                 ]
-                self._cmd.poutput("Host:")
-                self._cmd.poutput(
+                self._cmd.print_output("Host:")
+                self._cmd.print_output(
                     tabulate(
                         host_data,
                         headers="keys",
@@ -199,8 +199,8 @@ class HostCommands(cmd2.CommandSet):
                         )
                         for x in services
                     ]
-                    self._cmd.poutput("\nServices:")
-                    self._cmd.poutput(
+                    self._cmd.print_output("\nServices:")
+                    self._cmd.print_output(
                         tabulate(
                             services_data,
                             headers="keys",
@@ -231,8 +231,8 @@ class HostCommands(cmd2.CommandSet):
                         )
                         for x in vulns["vulnerabilities"]
                     ]
-                    self._cmd.poutput("\nVulnerabilities:")
-                    self._cmd.poutput(
+                    self._cmd.print_output("\nVulnerabilities:")
+                    self._cmd.print_output(
                         tabulate(
                             vulns_data,
                             headers="keys",

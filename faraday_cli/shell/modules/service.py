@@ -108,7 +108,7 @@ class ServiceCommands(cmd2.CommandSet):
                             key=lambda x: x["value"]["host_id"],
                         )
                     ]
-                    self._cmd.poutput(
+                    self._cmd.print_output(
                         tabulate(
                             data,
                             headers="keys",

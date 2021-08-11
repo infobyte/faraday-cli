@@ -5,7 +5,6 @@ Use [Faraday](https://faradaysec.com/) directly from your favorite terminal. far
 <script src="https://asciinema.org/a/384132.js" id="asciicast-384132" async data-autoplay="false" data-size="small"></script>
 
 
-
 # Examples
 
 Here you have some snippets of different workflows you can generate using faraday-cli
@@ -45,3 +44,9 @@ $ doctl compute droplet list --format PublicIPv4,Name --no-header | awk 'BEGIN {
 { printf "%s{\"ip\": \"%s\", \"description\": \"%s\"}", separator, $1, $2
 separator = ", "}END { print "] " }' | faraday-cli host create --stdin
 ```
+
+
+!!! question "Too many secrets..."
+    ```
+    QW55IGZhbnMgb2YgVGhlIFNuZWFrZXJzPz8gdHJ5IHRvIHJ1biBmYXJhZGF5LWNsaSBhZnRlciB0aGlzICJleHBvcnQgS0FLRVJfTU9ERT0xIg==
+    ```
