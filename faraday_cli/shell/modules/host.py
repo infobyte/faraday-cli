@@ -135,6 +135,36 @@ class HostCommands(cmd2.CommandSet):
     @cmd2.as_subcommand_to("host", "get", get_host_parser, help="get a host")
     def get_host(self, args: argparse.Namespace):
         """Get host information"""
+
+        @Halo(
+            text="Gathering data",
+            text_color="green",
+            spinner="dots",
+            stream=sys.stderr,
+        )
+        def get_host_data(workspace_name, host_id):
+            return self._cmd.api_client.get_host(workspace_name, host_id)
+
+        @Halo(
+            text="Gathering data",
+            text_color="green",
+            spinner="dots",
+            stream=sys.stderr,
+        )
+        def get_host_services(workspace_name, host_id):
+            return self._cmd.api_client.get_host_services(
+                workspace_name, host_id
+            )
+
+        @Halo(
+            text="Gathering data",
+            text_color="green",
+            spinner="dots",
+            stream=sys.stderr,
+        )
+        def get_host_vulns(workspace_name, ip):
+            return self._cmd.api_client.get_host_vulns(workspace_name, ip)
+
         if not args.workspace_name:
             if active_config.workspace:
                 workspace_name = active_config.workspace
@@ -144,7 +174,7 @@ class HostCommands(cmd2.CommandSet):
         else:
             workspace_name = args.workspace_name
         try:
-            host = self._cmd.api_client.get_host(workspace_name, args.host_id)
+            host = get_host_data(workspace_name, args.host_id)
         except NotFoundError:
             self._cmd.perror(
                 f"Host ID: {args.host_id} "
@@ -179,9 +209,7 @@ class HostCommands(cmd2.CommandSet):
                     )
                 )
                 if host["services"] > 0:
-                    services = self._cmd.api_client.get_host_services(
-                        workspace_name, args.host_id
-                    )
+                    services = get_host_services(workspace_name, args.host_id)
                     services_data = [
                         OrderedDict(
                             {
@@ -210,9 +238,7 @@ class HostCommands(cmd2.CommandSet):
                         )
                     )
                 if host["vulns"] > 0:
-                    vulns = self._cmd.api_client.get_host_vulns(
-                        workspace_name, host["ip"]
-                    )
+                    vulns = get_host_vulns(workspace_name, host["ip"])
                     vulns_data = [
                         OrderedDict(
                             {

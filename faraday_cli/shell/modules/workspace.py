@@ -2,11 +2,13 @@ import json
 import argparse
 from collections import OrderedDict
 import arrow
+import sys
 
 import cmd2
 from simple_rest_client.exceptions import NotFoundError
 from tabulate import tabulate
 
+from faraday_cli.extras.halo.halo import Halo
 from faraday_cli.config import active_config
 from faraday_cli.shell.utils import (
     get_active_workspaces_filter,
@@ -65,6 +67,16 @@ class WorkspaceCommands(cmd2.CommandSet):
     )
     def get_ws(self, args: argparse.Namespace):
         """Get Workspace"""
+
+        @Halo(
+            text="Gathering data",
+            text_color="green",
+            spinner="dots",
+            stream=sys.stderr,
+        )
+        def get_workspace(workspace_name):
+            return self._cmd.api_client.get_workspace(workspace_name)
+
         if not args.workspace_name:
             if active_config.workspace:
                 workspace_name = active_config.workspace
@@ -74,7 +86,7 @@ class WorkspaceCommands(cmd2.CommandSet):
         else:
             workspace_name = args.workspace_name
         try:
-            workspace = self._cmd.api_client.get_workspace(workspace_name)
+            workspace = get_workspace(workspace_name)
         except NotFoundError:
             self._cmd.perror(f"Workspace {workspace_name} not found")
         else:
@@ -194,9 +206,19 @@ class WorkspaceCommands(cmd2.CommandSet):
     )
     def list_workspace(self, args: argparse.Namespace):
         """List Workspaces"""
-        workspaces = self._cmd.api_client.get_workspaces(
-            get_inactives=args.show_inactive
+
+        @Halo(
+            text="Gathering data",
+            text_color="green",
+            spinner="dots",
+            stream=sys.stderr,
         )
+        def get_workspaces():
+            return self._cmd.api_client.get_workspaces(
+                get_inactives=args.show_inactive
+            )
+
+        workspaces = get_workspaces()
         if args.json_output:
             self._cmd.poutput(json.dumps(workspaces, indent=4))
             return
@@ -252,6 +274,29 @@ class WorkspaceCommands(cmd2.CommandSet):
             ("total_vulns", "vulns", None),
         )
 
+        @Halo(
+            text="Gathering data",
+            text_color="green",
+            spinner="dots",
+            stream=sys.stderr,
+        )
+        def get_workspaces_info():
+            workspaces_info = self._cmd.api_client.filter_workspaces(
+                query_filter=get_active_workspaces_filter()
+            )
+            return workspaces_info
+
+        @Halo(
+            text="Gathering data",
+            text_color="green",
+            spinner="dots",
+            stream=sys.stderr,
+        )
+        def get_workspace_activities(workspace_name):
+            return self._cmd.api_client.get_workspace_activities(
+                workspace_name
+            )
+
         def activities_vulns_parser(activity_data):
             critical_text = cmd2.style(
                 activity_data["criticalIssue"], fg=SEVERITY_COLORS["critical"]
@@ -290,9 +335,7 @@ class WorkspaceCommands(cmd2.CommandSet):
             ),
             ("creator", lambda x: "" if not x else f"by {x}", False),
         )
-        workspaces_info = self._cmd.api_client.filter_workspaces(
-            query_filter=get_active_workspaces_filter()
-        )
+        workspaces_info = get_workspaces_info()
         if not workspaces_info:
             self._cmd.poutput("No workspaces available")
             return
@@ -305,10 +348,8 @@ class WorkspaceCommands(cmd2.CommandSet):
                 "ACTIVITY",
             ]
             for workspace_info in workspaces_info:
-                activities_info = (
-                    self._cmd.api_client.get_workspace_activities(
-                        workspace_info["name"]
-                    )
+                activities_info = get_workspace_activities(
+                    workspace_info["name"]
                 )
                 filtered_activities = list(
                     filter(
