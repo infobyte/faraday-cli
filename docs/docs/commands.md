@@ -391,6 +391,29 @@ $ faraday-cli vuln list -p
 | `-p/--pretty`   | Show table in a pretty format       |
 | `-j/--json-output`      | Show output in json     |
 
+
+
+### add-evidence
+```
+$ faraday-cli vuln add-evidence -id 46 -w test ~/evidence.png
+Evidence upload was successful
+```
+
+*Required Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `-id/--vulnerability-id`   | Vulnerability ID       |
+| `image`      | Image path     |
+
+
+*Optional Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `-w WORKSPACE_NAME`     | Workspace name    |
+
+
 ## Vulnerabilities Stats
 
 ### stats
