@@ -84,7 +84,10 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
         "--conclusions", type=str, help="Report conclusions", default=""
     )
     report_parser.add_argument(
-        "--recommendations", type=str, help="Report recommendations", default=""
+        "--recommendations",
+        type=str,
+        help="Report recommendations",
+        default="",
     )
     report_parser.add_argument(
         "--scope", type=str, help="Report scope", default=""
