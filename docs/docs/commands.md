@@ -744,6 +744,10 @@ Report created: /tmp/test.pdf
 | `-t/--template TEMPLATE`   | Template       |
 | `--title TITLE`   | Report title       |
 | `--summary SUMMARY`   | Report summary      |
+| `--recommendations RECOMMENDATIONS`   | Report recommendations      |
+| `--conclusions CONCLUSIONS`   | Report conclusions      |
+| `--scope SCOPE`   | Report scope      |
+| `--objectives OBJECTIVES`   | Report objectives      |
 | `--enterprise ENTERPRISE`   | Enterprise name      |
 | `--confirmed`   | Confirmed vulnerabilities      |
 | `--severity [SEVERITY [SEVERITY ...]]`   | Filter by severity informational/critical/high/medium/low/unclassified      |
