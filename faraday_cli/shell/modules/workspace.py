@@ -71,7 +71,7 @@ class WorkspaceCommands(cmd2.CommandSet):
 
         @Halo(
             text="Gathering data",
-            text_color=COLORS.GREEN,
+            text_color="green",
             spinner="dots",
             stream=sys.stderr,
         )
@@ -212,7 +212,7 @@ class WorkspaceCommands(cmd2.CommandSet):
 
         @Halo(
             text="Gathering data",
-            text_color=COLORS.GREEN,
+            text_color="green",
             spinner="dots",
             stream=sys.stderr,
         )
@@ -279,7 +279,7 @@ class WorkspaceCommands(cmd2.CommandSet):
 
         @Halo(
             text="Gathering data",
-            text_color=COLORS.GREEN,
+            text_color="green",
             spinner="dots",
             stream=sys.stderr,
         )
@@ -291,7 +291,7 @@ class WorkspaceCommands(cmd2.CommandSet):
 
         @Halo(
             text="Gathering data",
-            text_color=COLORS.GREEN,
+            text_color="green",
             spinner="dots",
             stream=sys.stderr,
         )
