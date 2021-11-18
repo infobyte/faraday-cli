@@ -266,9 +266,7 @@ class FaradayShell(Cmd):
 
     def postcmd(self, stop, line):
         def send_to_faraday(ws, data):
-            spinner = Halo(
-                text="Sending", text_color="green", spinner="dots"
-            )
+            spinner = Halo(text="Sending", text_color="green", spinner="dots")
             spinner.start()
             try:
                 self.api_client.bulk_create(ws, data)
