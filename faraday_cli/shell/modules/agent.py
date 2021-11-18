@@ -5,6 +5,7 @@ import os
 from collections import OrderedDict
 
 import cmd2
+from cmd2 import Fg as COLORS
 import click
 from tabulate import tabulate
 from simple_rest_client.exceptions import NotFoundError
@@ -291,7 +292,7 @@ class AgentCommands(cmd2.CommandSet):
                     self._cmd.poutput(
                         cmd2.style(
                             run_message,
-                            fg="green",
+                            fg=COLORS.GREEN,
                         )
                     )
                     try:
@@ -307,6 +308,6 @@ class AgentCommands(cmd2.CommandSet):
                         self._cmd.poutput(
                             cmd2.style(
                                 f"Generated Command: {response['command_id']}",  # noqa: E501
-                                fg="green",
+                                fg=COLORS.GREEN,
                             )
                         )
