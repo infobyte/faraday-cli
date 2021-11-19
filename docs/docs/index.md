@@ -53,4 +53,3 @@ separator = ", "}END { print "] " }' | faraday-cli host create --stdin
     ```
    QW55IGZhbnMgb2YgVGhlIFNuZWFrZXJzPz8gVHJ5IHJ1bm5pbmcgZmFyYWRheS1jbGkgYWZ0ZXIgc2V0dGluZyB0aGlzICJleHBvcnQgS0FLRVJfTU9ERT0xIg
     ```
-    
