@@ -8,6 +8,8 @@ import io
 from socket import gethostbyname, inet_aton
 import jsonschema
 
+from cmd2 import Fg as COLORS
+
 from validators import url
 
 from .exceptions import InvalidJson, InvalidJsonSchema
@@ -22,12 +24,12 @@ SEVERITIES = (
     "unclassified",
 )
 SEVERITY_COLORS = {
-    "critical": "magenta",
-    "high": "red",
-    "med": "yellow",
-    "low": "green",
-    "info": "blue",
-    "unclassified": "cyan",
+    "critical": COLORS.MAGENTA,
+    "high": COLORS.RED,
+    "med": COLORS.YELLOW,
+    "low": COLORS.GREEN,
+    "info": COLORS.BLUE,
+    "unclassified": COLORS.CYAN,
 }
 
 
@@ -89,7 +91,7 @@ def trim_long_text(text, size=50):
 
 
 def get_severity_color(severity):
-    return SEVERITY_COLORS.get(severity, "white")
+    return SEVERITY_COLORS.get(severity, COLORS.WHITE)
 
 
 def get_ignore_info_severity_filter() -> dict:

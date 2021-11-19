@@ -5,6 +5,7 @@ import arrow
 import sys
 
 import cmd2
+from cmd2 import Fg as COLORS
 from simple_rest_client.exceptions import NotFoundError
 from tabulate import tabulate
 
@@ -37,7 +38,7 @@ class WorkspaceCommands(cmd2.CommandSet):
                 cmd2.style(
                     f"{self._cmd.emojis['check']} "
                     f"Selected workspace: {args.workspace_name}",
-                    fg="green",
+                    fg=COLORS.GREEN,
                 )
             )
             self._cmd.update_prompt()
@@ -140,7 +141,9 @@ class WorkspaceCommands(cmd2.CommandSet):
             return
         self._cmd.api_client.delete_workspace(workspace_name)
         self._cmd.poutput(
-            cmd2.style(f"Deleted workspace: {args.workspace_name}", fg="green")
+            cmd2.style(
+                f"Deleted workspace: {args.workspace_name}", fg=COLORS.GREEN
+            )
         )
         if active_config.workspace == workspace_name:
             active_config.workspace = None
@@ -175,7 +178,7 @@ class WorkspaceCommands(cmd2.CommandSet):
                 cmd2.style(
                     f"{self._cmd.emojis['check']} "
                     f"Created workspace: {args.workspace_name}",
-                    fg="green",
+                    fg=COLORS.GREEN,
                 )
             )
             if not args.dont_select:
@@ -426,7 +429,7 @@ class WorkspaceCommands(cmd2.CommandSet):
                 cmd2.style(
                     f"{self._cmd.emojis['check']} "
                     f"Disabled workspace: {workspace_name}",
-                    fg="green",
+                    fg=COLORS.GREEN,
                 )
             )
         if active_config.workspace == workspace_name:
@@ -455,6 +458,6 @@ class WorkspaceCommands(cmd2.CommandSet):
                 cmd2.style(
                     f"{self._cmd.emojis['check']} "
                     f"Enable workspace: {workspace_name}",
-                    fg="green",
+                    fg=COLORS.GREEN,
                 )
             )

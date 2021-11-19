@@ -20,6 +20,7 @@ from cmd2 import (
     with_default_category,
     with_category,
 )
+from cmd2 import Fg as COLORS
 import click
 from faraday_plugins.plugins.manager import (
     PluginsManager,
@@ -82,10 +83,10 @@ class FaradayShell(Cmd):
         settings_to_hide = ["debug"]
         for setting_name in settings_to_hide:
             self.remove_settable(setting_name)
-        intro = [style(f"{logo}\nv:{__version__}", fg="cyan")]
+        intro = [style(f"{logo}\nv:{__version__}", fg=COLORS.CYAN)]
         if active_config.faraday_url and active_config.token:
             intro.append(
-                style(f"Server: {active_config.faraday_url}", fg="green")
+                style(f"Server: {active_config.faraday_url}", fg=COLORS.GREEN)
             )
             self.api_client = FaradayApi(
                 active_config.faraday_url,
@@ -95,7 +96,7 @@ class FaradayShell(Cmd):
         else:
             self.api_client = FaradayApi()
             intro.append(
-                style("Missing faraday server, run 'auth'", fg="yellow")
+                style("Missing faraday server, run 'auth'", fg=COLORS.YELLOW)
             )
         self.custom_plugins_path = active_config.custom_plugins_path
         self.ignore_info_severity = active_config.ignore_info_severity
@@ -222,11 +223,11 @@ class FaradayShell(Cmd):
                 self.api_client = FaradayApi(
                     faraday_url, ignore_ssl=ignore_ssl, token=token
                 )
-                self.poutput(style("Saving config", fg="green"))
+                self.poutput(style("Saving config", fg=COLORS.GREEN))
                 self.poutput(
                     style(
                         f"{self.emojis['check']} Authenticated with faraday: {faraday_url}",  # noqa: E501
-                        fg="green",
+                        fg=COLORS.GREEN,
                     )
                 )
                 self.update_prompt()
@@ -257,7 +258,7 @@ class FaradayShell(Cmd):
 
     def do_exit(self, inp):
         """Exit shell"""
-        self.poutput(style("Bye", fg="green"))
+        self.poutput(style("Bye", fg=COLORS.GREEN))
         return True
 
     def help_exit(self):
@@ -279,17 +280,20 @@ class FaradayShell(Cmd):
         while not self.data_queue.empty():
             data = self.data_queue.get()
             message = f"{self.emojis['arrow_up']} Sending data to workspace: {data['workspace']}"  # noqa: E501
-            self.poutput(style(message, fg="green"))
+            self.poutput(style(message, fg=COLORS.GREEN))
             upload_error = send_to_faraday(
                 data["workspace"], data["json_data"]
             )
             if upload_error is not None:
                 self.poutput(
-                    style(f"\n{self.emojis['cross']} {upload_error}", fg="red")
+                    style(
+                        f"\n{self.emojis['cross']} {upload_error}",
+                        fg=COLORS.RED,
+                    )
                 )
             else:
                 self.poutput(
-                    style(f"\n{self.emojis['check']} Done", fg="green")
+                    style(f"\n{self.emojis['check']} Done", fg=COLORS.GREEN)
                 )
         return Cmd.postcmd(self, stop, line)
 
@@ -298,9 +302,9 @@ class FaradayShell(Cmd):
 
     def get_prompt(self) -> str:
         if active_config.workspace:
-            return style(f"[ws:{active_config.workspace}]> ", fg="blue")
+            return style(f"[ws:{active_config.workspace}]> ", fg=COLORS.BLUE)
         else:
-            return style("Faraday> ", fg="blue")
+            return style("Faraday> ", fg=COLORS.BLUE)
 
     # Status
     status_parser = argparse.ArgumentParser()
@@ -343,7 +347,7 @@ class FaradayShell(Cmd):
                     if args.pretty
                     else "simple",
                 ),
-                fg="green",
+                fg=COLORS.GREEN,
             )
         )
 
@@ -501,7 +505,7 @@ class FaradayShell(Cmd):
             else:
                 click.secho(
                     f"{self.emojis['laptop']} Processing {plugin.id} command",
-                    fg="green",
+                    fg=COLORS.GREEN,
                 )
                 command_json = utils.run_tool(
                     plugin, getpass.getuser(), statement.raw
@@ -509,7 +513,7 @@ class FaradayShell(Cmd):
                 if not command_json:
                     click.secho(
                         f"{self.emojis['cross']} Command execution error!!",
-                        fg="red",
+                        fg=COLORS.RED,
                     )
                 else:
                     self.data_queue.put(
