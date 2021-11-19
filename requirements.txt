@@ -1,6 +1,6 @@
 click>=8.0.1
 colorama>=0.4.4
-faraday-plugins>=1.5.6
+faraday-plugins>=1.5.7
 jsonschema>=3.2.0
 PyYAML>=5.4.1
 simple-rest-client>=1.0.8
