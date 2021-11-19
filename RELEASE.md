@@ -2,7 +2,7 @@
 ---
  * Add fields to executive reports generation command
  * Add KAKER_MODE easter egg
- * update plugins requirements to 1.5.7
+ * Update plugins requirements to 1.5.7
 
 2.0.2 [Aug 9th, 2021]:
 ---
