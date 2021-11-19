@@ -11,3 +11,4 @@ termcolor>=1.1.0
 cmd2>=2.3.0
 log-symbols>=0.0.14
 arrow>=1.1.0
+py-sneakers==1.0.1

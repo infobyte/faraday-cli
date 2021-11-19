@@ -8,7 +8,7 @@ from pathlib import Path
 import shlex
 import getpass
 import subprocess
-from faraday_cli.extras.sneakers import Sneakers
+from py_sneakers.py_sneakers import Sneakers
 
 
 from cmd2 import (
