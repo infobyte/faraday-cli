@@ -391,6 +391,29 @@ $ faraday-cli vuln list -p
 | `-p/--pretty`   | Show table in a pretty format       |
 | `-j/--json-output`      | Show output in json     |
 
+
+
+### add-evidence
+```
+$ faraday-cli vuln add-evidence -id 46 -w test ~/evidence.png
+Evidence upload was successful
+```
+
+*Required Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `-id/--vulnerability-id`   | Vulnerability ID       |
+| `image`      | Image path     |
+
+
+*Optional Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `-w WORKSPACE_NAME`     | Workspace name    |
+
+
 ## Vulnerabilities Stats
 
 ### stats
@@ -721,6 +744,10 @@ Report created: /tmp/test.pdf
 | `-t/--template TEMPLATE`   | Template       |
 | `--title TITLE`   | Report title       |
 | `--summary SUMMARY`   | Report summary      |
+| `--recommendations RECOMMENDATIONS`   | Report recommendations      |
+| `--conclusions CONCLUSIONS`   | Report conclusions      |
+| `--scope SCOPE`   | Report scope      |
+| `--objectives OBJECTIVES`   | Report objectives      |
 | `--enterprise ENTERPRISE`   | Enterprise name      |
 | `--confirmed`   | Confirmed vulnerabilities      |
 | `--severity [SEVERITY [SEVERITY ...]]`   | Filter by severity informational/critical/high/medium/low/unclassified      |

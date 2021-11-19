@@ -5,7 +5,6 @@ Use [Faraday](https://faradaysec.com/) directly from your favorite terminal. far
 <script src="https://asciinema.org/a/384132.js" id="asciicast-384132" async data-autoplay="false" data-size="small"></script>
 
 
-
 # Examples
 
 Here you have some snippets of different workflows you can generate using faraday-cli
@@ -15,22 +14,25 @@ Here you have some snippets of different workflows you can generate using farada
 Scan assets from workspace.
 
 ```shell
-$ faraday-cli host list -ip | nmap -iL - -oX /tmp/nmap.xml && faraday-cli tool report -w other_ws /tmp/nmap.xml
+$ faraday-cli host list -ip -w other_ws | nmap -iL - -oX /tmp/nmap.xml && faraday-cli tool report -w other_ws /tmp/nmap.xml
 ```
+
+!!! info In this case it should have a workspace named "other_ws" with  hostnames in it
 
 #### Scan your subdomains
 
-Use a tool like ```assetfinder``` to do a domains lookup, scan them with nmap and send de results to faraday
+Use a tool like ```assetfinder``` to do a domains lookup, scan them with nmap and send the results to faraday
 
 ```shell
 $ assetfinder -subs-only example.com| sort | uniq |awk 'BEGIN { ORS = ""; print " {\"target\":\""}
 { printf "%s%s", separator, $1, $2
 separator = ","}END { print "\"}" }' | faraday-cli agent run -a 1 -e nmap --stdin
 ```
+!!! info For this purpouse, an agent is created and already connected to run the nmap executor
 
 #### Send Faraday Executive Reports by mail
 
-Run a dalily scan and send your report
+Run a daily scan and send your report
 
 ```shell
 $ faraday-cli executive_report create -t \'"generic_default.docx (generic) (Word)"\' --confirmed -o /tmp/report.docx && echo "Faraday Daily Report" | mail -s "Daily Report" user@example.com -A /tmp/report.docx
@@ -45,3 +47,10 @@ $ doctl compute droplet list --format PublicIPv4,Name --no-header | awk 'BEGIN {
 { printf "%s{\"ip\": \"%s\", \"description\": \"%s\"}", separator, $1, $2
 separator = ", "}END { print "] " }' | faraday-cli host create --stdin
 ```
+
+
+!!! question "Too many secrets?"
+    ```
+   QW55IGZhbnMgb2YgVGhlIFNuZWFrZXJzPz8gVHJ5IHJ1bm5pbmcgZmFyYWRheS1jbGkgYWZ0ZXIgc2V0dGluZyB0aGlzICJleHBvcnQgS0FLRVJfTU9ERT0xIg
+    ```
+    

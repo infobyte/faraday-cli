@@ -2,6 +2,7 @@ import getpass
 import json
 
 import cmd2
+from cmd2 import Fg as COLORS
 from faraday_cli.config import active_config
 from faraday_cli.shell import utils
 
@@ -76,7 +77,7 @@ class ToolCommands(cmd2.CommandSet):
                         self._cmd.poutput(
                             cmd2.style(
                                 f"Workspace {workspace_name} created",
-                                fg="green",
+                                fg=COLORS.GREEN,
                             )
                         )
                     except Exception as e:
@@ -101,7 +102,7 @@ class ToolCommands(cmd2.CommandSet):
                     cmd2.style(
                         f"{self._cmd.emojis['laptop']} "
                         f"Processing {plugin.id} command",
-                        fg="green",
+                        fg=COLORS.GREEN,
                     )
                 )
             show_command_output = not args.json_output

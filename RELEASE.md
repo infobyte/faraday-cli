@@ -1,3 +1,9 @@
+2.1.0 [Nov 19th, 2021]:
+---
+ * Add fields to executive reports generation command
+ * Add KAKER_MODE easter egg
+ * Update plugins requirements to 1.5.7
+
 2.0.2 [Aug 9th, 2021]:
 ---
  * add --create-workspace parameter for tool command

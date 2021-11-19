@@ -81,6 +81,21 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
         "--enterprise", type=str, help="Enterprise name", default=""
     )
     report_parser.add_argument(
+        "--conclusions", type=str, help="Report conclusions", default=""
+    )
+    report_parser.add_argument(
+        "--recommendations",
+        type=str,
+        help="Report recommendations",
+        default="",
+    )
+    report_parser.add_argument(
+        "--scope", type=str, help="Report scope", default=""
+    )
+    report_parser.add_argument(
+        "--objectives", type=str, help="Report objectives", default=""
+    )
+    report_parser.add_argument(
         "--confirmed", action="store_true", help="Confirmed vulnerabilities"
     )
     report_parser.add_argument(
@@ -206,14 +221,14 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
                 grouped = templates[args.template]
                 template = args.template
         report_data = {
-            "conclusions": "",
+            "conclusions": args.conclusions,
             "confirmed": args.confirmed,
             "enterprise": args.enterprise,
             "grouped": grouped,
             "name": report_name,
-            "objectives": "",
-            "recommendations": "",
-            "scope": "",
+            "objectives": args.objectives,
+            "recommendations": args.recommendations,
+            "scope": args.scope,
             "summary": args.summary,
             "tags": [],
             "template_name": template,

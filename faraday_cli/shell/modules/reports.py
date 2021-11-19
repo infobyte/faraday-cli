@@ -4,6 +4,7 @@ import getpass
 import json
 
 import cmd2
+from cmd2 import Fg as COLORS
 from faraday_cli.config import active_config
 from faraday_cli.shell.utils import apply_tags
 
@@ -82,7 +83,7 @@ class ReportsCommands(cmd2.CommandSet):
                         self._cmd.poutput(
                             cmd2.style(
                                 f"Workspace {workspace_name} created",
-                                fg="green",
+                                fg=COLORS.GREEN,
                             )
                         )
                     except Exception as e:
@@ -110,7 +111,7 @@ class ReportsCommands(cmd2.CommandSet):
                 cmd2.style(
                     f"{self._cmd.emojis['page']} "
                     f"Processing {plugin.id} report",
-                    fg="green",
+                    fg=COLORS.GREEN,
                 )
             )
         plugin.processReport(
