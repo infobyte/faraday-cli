@@ -114,7 +114,7 @@ class ToolCommands(cmd2.CommandSet):
             )
             if not command_json:
                 self._cmd.perror(
-                    f"{self.emojis['cross']} Command execution error!!"
+                    f"{self._cmd.emojis['cross']} Command execution error!!"
                 )
             else:
                 command_json = utils.apply_tags(
