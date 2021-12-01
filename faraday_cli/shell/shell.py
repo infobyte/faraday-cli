@@ -505,7 +505,7 @@ class FaradayShell(Cmd):
             else:
                 click.secho(
                     f"{self.emojis['laptop']} Processing {plugin.id} command",
-                    fg=COLORS.GREEN,
+                    fg="green",
                 )
                 command_json = utils.run_tool(
                     plugin, getpass.getuser(), statement.raw
@@ -513,7 +513,7 @@ class FaradayShell(Cmd):
                 if not command_json:
                     click.secho(
                         f"{self.emojis['cross']} Command execution error!!",
-                        fg=COLORS.RED,
+                        fg="red",
                     )
                 else:
                     self.data_queue.put(
