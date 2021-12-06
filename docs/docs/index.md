@@ -17,9 +17,9 @@ Scan assets from workspace.
 $ faraday-cli host list -ip -w other_ws | nmap -iL - -oX /tmp/nmap.xml && faraday-cli tool report -w other_ws /tmp/nmap.xml
 ```
 
-### Run an nmap to all of the host in the workspace
+### One-Line to nmap to all the host in the workspace and import the results back to Faraday
 
-To run an nmap to all of the host in the workspace just run
+To scan all the host list inside a workspace with ```nmap``` and import the results back to faraday.
 
 ```shell
 for ip in $(faraday-cli host list -ip); faraday-cli tool run \"nmap -Pn -p443,80 -sV --script=+http-enum -vvv $ip\"
