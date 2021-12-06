@@ -17,6 +17,16 @@ Scan assets from workspace.
 $ faraday-cli host list -ip -w other_ws | nmap -iL - -oX /tmp/nmap.xml && faraday-cli tool report -w other_ws /tmp/nmap.xml
 ```
 
+### Run an nmap to all of the host in the workspace
+
+To run an nmap to all of the host in the workspace just run
+
+```shell
+for ip in $(faraday-cli host list -ip); faraday-cli tool run \"nmap -Pn -p443,80 -sV --script=+http-enum -vvv $ip\"
+```
+
+
+
 !!! info In this case it should have a workspace named "other_ws" with  hostnames in it
 
 #### Scan your subdomains
