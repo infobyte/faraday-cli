@@ -93,7 +93,7 @@ class HostCommands(cmd2.CommandSet):
                                 "ID": x["value"]["id"],
                                 "IP": x["value"]["ip"],
                                 "OS": x["value"]["os"],
-                                "HOSTNAMES": ", ".join(
+                                "HOSTNAMES": "\n".join(
                                     x["value"]["hostnames"]
                                 ),
                                 "SERVICES": "-"
@@ -191,7 +191,7 @@ class HostCommands(cmd2.CommandSet):
                             "ID": x["id"],
                             "IP": x["ip"],
                             "OS": x["os"],
-                            "HOSTNAMES": ", ".join(x["hostnames"]),
+                            "HOSTNAMES": "\n".join(x["hostnames"]),
                             "OWNER": x["owner"],
                             "OWNED": x["owned"],
                             "VULNS": "-" if x["vulns"] == 0 else x["vulns"],
