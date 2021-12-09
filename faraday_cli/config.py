@@ -16,6 +16,7 @@ class Config:
         self.workspace = None
         self.custom_plugins_path = None
         self.ignore_info_severity = False
+        self.auto_command_detection = True
         self.load()
 
     def config_exists(self) -> bool:
@@ -40,6 +41,9 @@ class Config:
                 self.ignore_info_severity = config_data.get(
                     "settings", {}
                 ).get("ignore_info_severity", False)
+                self.auto_command_detection = config_data.get(
+                    "settings", {}
+                ).get("auto_command_detection", True)
         except KeyError:
             pass
 
@@ -54,6 +58,7 @@ class Config:
             "settings": {
                 "custom_plugins_path": self.custom_plugins_path,
                 "ignore_info_severity": self.ignore_info_severity,
+                "auto_command_detection": self.auto_command_detection,
             },
         }
         with open(self.config_file, "w") as f:

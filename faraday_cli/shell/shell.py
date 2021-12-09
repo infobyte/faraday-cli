@@ -77,7 +77,7 @@ class FaradayShell(Cmd):
             persistent_history_file="~/.faraday-cli_history", *args, **kwargs
         )
         self.hidden_commands += ["EOF", "cd", "alias", "macro"]
-        self.run_as_shell = False
+        self.shell_mode = False
         self.TABLE_PRETTY_FORMAT = "psql"
         # hide unwanted settings
         settings_to_hide = ["debug"]
@@ -100,6 +100,7 @@ class FaradayShell(Cmd):
             )
         self.custom_plugins_path = active_config.custom_plugins_path
         self.ignore_info_severity = active_config.ignore_info_severity
+        self.auto_command_detection = active_config.auto_command_detection
         self.intro = "\n".join(intro)
         self.data_queue = queue.Queue()
         self.update_prompt()
@@ -107,7 +108,7 @@ class FaradayShell(Cmd):
             Settable(
                 "custom_plugins_path",
                 str,
-                "Path of custom plugins",
+                "Path of custom plugins folder",
                 onchange_cb=self._onchange_custom_plugins_path,
                 settable_object=self,
             )
@@ -119,6 +120,15 @@ class FaradayShell(Cmd):
                 "Ignore Informational vulnerabilities "
                 "from reports and commands",
                 onchange_cb=self._onchange_ignore_info_severity,
+                settable_object=self,
+            )
+        )
+        self.add_settable(
+            Settable(
+                "auto_command_detection",
+                bool,
+                "Enable/disable automatic command detection",
+                onchange_cb=self._onchange_auto_command_detection,
                 settable_object=self,
             )
         )
@@ -151,6 +161,11 @@ class FaradayShell(Cmd):
         active_config.save()
         self.ignore_info_severity = new
         self._create_plugin_manager()
+
+    def _onchange_auto_command_detection(self, param_name, old, new):
+        active_config.auto_command_detection = new
+        active_config.save()
+        self.auto_command_detection = new
 
     # Auth
     auth_parser = argparse.ArgumentParser()
@@ -233,27 +248,27 @@ class FaradayShell(Cmd):
                 self.update_prompt()
             else:
                 self.perror("Invalid credentials")
-                if self.run_as_shell:
+                if self.shell_mode:
                     sys.exit(1)
         except Invalid2FA:
             self.perror("Invalid 2FA")
-            if self.run_as_shell:
+            if self.shell_mode:
                 sys.exit(1)
         except InvalidCredentials:
             self.perror("Invalid credentials")
-            if self.run_as_shell:
+            if self.shell_mode:
                 sys.exit(1)
         except ClientError:
             self.perror("Invalid credentials")
-            if self.run_as_shell:
+            if self.shell_mode:
                 sys.exit(1)
         except ClientConnectionError as e:
             self.perror(f"Connection refused: {e} (check your Faraday server)")
-            if self.run_as_shell:
+            if self.shell_mode:
                 sys.exit(1)
         except Exception as e:
             self.perror(f"{e}")
-            if self.run_as_shell:
+            if self.shell_mode:
                 sys.exit(1)
 
     def do_exit(self, inp):
@@ -300,7 +315,8 @@ class FaradayShell(Cmd):
     def update_prompt(self) -> None:
         self.prompt = self.get_prompt()
 
-    def get_prompt(self) -> str:
+    @staticmethod
+    def get_prompt() -> str:
         if active_config.workspace:
             return style(f"[ws:{active_config.workspace}]> ", fg=COLORS.BLUE)
         else:
@@ -497,30 +513,33 @@ class FaradayShell(Cmd):
             self.poutput(f"cd: no such file or directory: {path}")
 
     def default(self, statement: Statement):
-        plugin = self.command_analyzer.get_plugin(statement.raw)
-        if plugin:
-            if not active_config.workspace:
-                self.perror("No active Workspace")
-                os.system(statement.raw)
-            else:
-                click.secho(
-                    f"{self.emojis['laptop']} Processing {plugin.id} command",
-                    fg="green",
-                )
-                command_json = utils.run_tool(
-                    plugin, getpass.getuser(), statement.raw
-                )
-                if not command_json:
-                    click.secho(
-                        f"{self.emojis['cross']} Command execution error!!",
-                        fg="red",
-                    )
-                else:
-                    self.data_queue.put(
-                        {
-                            "workspace": active_config.workspace,
-                            "json_data": command_json,
-                        }
-                    )
-        else:
+        if self.shell_mode and not self.auto_command_detection:
             os.system(statement.raw)
+        else:
+            plugin = self.command_analyzer.get_plugin(statement.raw)
+            if plugin:
+                if not active_config.workspace:
+                    self.perror("No active Workspace")
+                    os.system(statement.raw)
+                else:
+                    click.secho(
+                        f"{self.emojis['laptop']} Processing {plugin.id} command",
+                        fg="green",
+                    )
+                    command_json = utils.run_tool(
+                        plugin, getpass.getuser(), statement.raw
+                    )
+                    if not command_json:
+                        click.secho(
+                            f"{self.emojis['cross']} Command execution error!!",
+                            fg="red",
+                        )
+                    else:
+                        self.data_queue.put(
+                            {
+                                "workspace": active_config.workspace,
+                                "json_data": command_json,
+                            }
+                        )
+            else:
+                os.system(statement.raw)

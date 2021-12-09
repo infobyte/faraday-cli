@@ -22,21 +22,63 @@
 ## Authenticate with your Faraday server
 
 ```
-$ faraday-cli auth
+$ faraday-cli
+
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+
+v:2.1.0
+Server: http://localhost:5985
+Faraday> auth
 
 Faraday url [http://localhost:5985]:
+
 User: faraday
 
 Password:
 Saving config
 ✔ Authenticated with faraday: http://localhost:5985
+Faraday>
 ```
 
-## Select an active Workspace
+## Create a workspace or select active Workspace
 
 ```
-$ faraday-cli select workspace test
+$ faraday-cli
+
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+
+v:2.1.0
+Server: http://localhost:5985
+Faraday> workspace create test
+✔ Created workspace: test
+[ws:test]>
+```
+
+```
+$ faraday-cli
+
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+
+v:2.1.0
+Server: http://localhost:5985
+Faraday> workspace select test
 ✔ Selected workspace: test
+[ws:test]>
 ```
 
 ## Now load information into faraday
@@ -44,21 +86,93 @@ $ faraday-cli select workspace test
 ### Process reports from any of the many tools we support
 
 ```
-$ faraday-cli process report /path/to/openvas.xml
+$ faraday-cli
+
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+
+v:2.1.0
+Server: http://localhost:5985
+[ws:test]> tool report /path/to/openvas.xml
 📄 Processing Openvas report
 ⬆ Sending data to workspace: test
 ✔ Done
 ```
 
 
-### Or run the tools with the cli
+### Or run the tools with faraday-cli
 
-Faraday Cli can be used in two ways to do that
+Faraday Cli can be used in two modes:
 
-* As individual commands
-* As a shell
+* shell mode: faraday-cli reacts as a shell to your commands
+* command mode: faraday-cli reacts as a command with parameters
 
-#### As commands
+## Shell Mode
+
+In this mode Faraday-cli will react as a shell, so if you type an OS command it will process it as a shell.
+
+If _auto_command_detection_ is enabled it will try to process any tool we support to send the info to faraday.
+
+Or you can use the command ```tool run XXXX```
+
+```
+$ faraday-cli
+
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+
+v:2.1.0
+Server: http://localhost:5985
+[ws:test]> cd /tmp
+[ws:test]> ls -l
+total 24
+drwxr-xr-x@  4 user    wheel  128 Dec  9 09:38 com.google.Keystone
+-rw-------   1 root    wheel   36 Dec  9 08:31 fseventsd-uuid
+drwxr-xr-x  21 root    wheel  672 Dec  9 08:38 msu-target-6bZPmxQ0
+srwxrwxrwx   1 user    wheel    0 Dec  9 08:31 mysql.sock
+-rw-------   1 user    wheel    4 Dec  9 08:31 mysql.sock.lock
+srwxrwxrwx   1 user    wheel    0 Dec  9 08:31 mysqlx.sock
+-rw-------   1 user    wheel    5 Dec  9 08:31 mysqlx.sock.lock
+drwxr-xr-x   2 root    wheel   64 Dec  9 08:31 powerlog
+drwx------   2 root    wheel   64 Dec  9 08:31 pritunl
+[ws:test]> nmap localhost
+💻 Processing Nmap command
+Starting Nmap 7.80 ( https://nmap.org ) at 2021-01-14 13:34 -03
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.00026s latency).
+Other addresses for localhost (not scanned): ::1
+Not shown: 961 closed ports, 29 filtered ports
+PORT      STATE SERVICE
+22/tcp    open  ssh
+80/tcp    open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 5.45 seconds
+⬆ Sending data to workspace: test
+✔ Done
+[ws:test]> tool run "nmap localhost"
+💻 Processing Nmap command
+Starting Nmap 7.80 ( https://nmap.org ) at 2021-01-14 13:34 -03
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.00026s latency).
+Other addresses for localhost (not scanned): ::1
+Not shown: 961 closed ports, 29 filtered ports
+PORT      STATE SERVICE
+22/tcp    open  ssh
+80/tcp    open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 5.45 seconds
+⬆ Sending data to workspace: test
+✔ Done
+```
+## Command Mode
 Every faraday cli command can be used as an individual command from the command line.
 
 This is useful when integrating faraday cli to batch process, scripts or pipelines.
@@ -74,61 +188,10 @@ Not shown: 500 closed ports, 490 filtered ports
 PORT      STATE SERVICE
 22/tcp    open  ssh
 80/tcp    open  http
-88/tcp    open  kerberos-sec
-443/tcp   open  https
-445/tcp   open  microsoft-ds
-5432/tcp  open  postgresql
-5900/tcp  open  vnc
-8000/tcp  open  http-alt
-9000/tcp  open  cslistener
-49156/tcp open  unknown
 
 Nmap done: 1 IP address (1 host up) scanned in 2.55 seconds
 ⬆ Sending data to workspace: test
 ✔ Done
-```
-
-
-
-#### As a shell
-
-It also can be used as a shell and run any command in the same instance.
-
-
-```
-$ faraday-cli
-
-    ______                     __               _________
-   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
-  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
- / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
-/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
-                                   /____/
-
-Server: http://localhost:5985
-[ws:test]> nmap localhost
-💻 Processing Nmap command
-Starting Nmap 7.80 ( https://nmap.org ) at 2021-01-14 13:34 -03
-Nmap scan report for localhost (127.0.0.1)
-Host is up (0.00026s latency).
-Other addresses for localhost (not scanned): ::1
-Not shown: 961 closed ports, 29 filtered ports
-PORT      STATE SERVICE
-22/tcp    open  ssh
-80/tcp    open  http
-88/tcp    open  kerberos-sec
-443/tcp   open  https
-445/tcp   open  microsoft-ds
-5432/tcp  open  postgresql
-5900/tcp  open  vnc
-8000/tcp  open  http-alt
-9000/tcp  open  cslistener
-49156/tcp open  unknown
-
-Nmap done: 1 IP address (1 host up) scanned in 5.45 seconds
-⬆ Sending data to workspace: test
-✔ Done
-[ws:test]>
 ```
 
 !!! info
@@ -140,6 +203,7 @@ You can change some settings from the cli itself.
 
 * _custom_plugins_path_ **(Path where the cli will look for custom plugins)**
 * _ignore_info_severity_ **(If set to True the cli will ignore all INFORMATIONAL vulnerabilities)** [DEFAULT: False]
+* _auto_command_detection_ **(If set to True the cli will try process a tool when is run in shell mode)** [DEFAULT: True]
 
 ```
 $ faraday-cli

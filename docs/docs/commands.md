@@ -1,5 +1,7 @@
 # Commands
 
+All the commands can be run in ```Shell Mode``` or ```Command Mode```
+
 ## Authentication
 
 ### auth
@@ -50,7 +52,7 @@ http://localhost:5985  False         corp-3.14  faraday  ✔              test
 
 ## Workspaces
 
-### list workspaces
+### workspace list
 
 List workspaces created in faraday.
 
@@ -72,7 +74,7 @@ $ faraday-cli workspace list -p
 | `--show-inactive`   | Include inactive workspaces      |
 
 
-### delete workspace
+### workspace delete
 
 Delete workspace from faraday.
 
@@ -88,7 +90,7 @@ Deleted workspace: test
 |:-----	|------:	|
 | `WORKSPACE_NAME`     | Workspace name     |
 
-### get workspace
+### workspace get
 
 Get details of a workspace.
 
@@ -115,7 +117,7 @@ $ faraday-cli workspace get -p test
 | `-j/--json-output`      | Show output in json     |
 | `-p/--pretty`   | Show table in a pretty format       |
 
-### select workspace
+### workspace select
 
 Select your active workspace, unless you use the ```-w``` argument all the commands will use this workspace.
 
@@ -131,7 +133,7 @@ $ faraday-cli workspace select test
 |:-----	|------:	|
 | `WORKSPACE_NAME`      | Workspace name     |
 
-### create workspace
+### workspace create
 
 Create a new workspace in faraday.
 
@@ -153,7 +155,7 @@ $ faraday-cli workspace create test_workspace
 |:-----	|------:	|
 | `-d/--dont-select`      | Dont select after create     |
 
-### workspaces dashboard
+### workspace dashboard
 
 Show a dashboard with different information about the workspaces.
 
@@ -174,7 +176,7 @@ $ faraday-cli workspace dashboard
 
 ## Hosts
 
-### list hosts
+### host list
 
 List hosts in a workspace.
 
@@ -210,7 +212,7 @@ $ faraday-cli host list -p
 | `-ip/--list-ip`   | Show ip only      |
 | `--port PORT`   | Listen in port      |
 
-### get host
+### host get
 
 Get host information.
 
@@ -255,7 +257,7 @@ Vulnerabilities:
 | `-p/--pretty`   | Show table in a pretty format       |
 | `-j/--json-output`      | Show output in json     |
 
-### delete host
+### host delete
 
 Delete host.
 
@@ -277,7 +279,7 @@ Host deleted
 |:-----	|------:	|
 | `-w WORKSPACE_NAME`     | Workspace name    |
 
-### create hosts
+### host create
 
 Create hosts.
 
@@ -312,7 +314,7 @@ Create hosts.
 
 ## Services
 
-### list services
+### service list
 
 List services in a workspace.
 
@@ -348,7 +350,7 @@ $ faraday-cli service list -p
 
 ## Vulnerabilities
 
-### list vulns
+### vuln list
 
 List vulnerabilities in a workspace.
 
@@ -393,7 +395,10 @@ $ faraday-cli vuln list -p
 
 
 
-### add-evidence
+### vuln add-evidence
+
+Add an image evidence to a vulnerability
+
 ```
 $ faraday-cli vuln add-evidence -id 46 -w test ~/evidence.png
 Evidence upload was successful
@@ -413,35 +418,9 @@ Evidence upload was successful
 |:-----	|------:	|
 | `-w WORKSPACE_NAME`     | Workspace name    |
 
-
-## Vulnerabilities Stats
-
-### stats
-
-Different stats about the vulnerabilities in Faraday.
-
-
-![Example](./images/faraday_cli_stats.jpeg)
-
-*Required Arguments:*
-
-| Syntax      | Description |
-|:-----	|------:	|
-| `STAT_TYPE {severity,vulns,date}`     | Type of stat    |
-
-*Optional Arguments:*
-
-| Syntax      | Description |
-|:-----	|------:	|
-| `-w WORKSPACE_NAME`     | Workspace name    |
-| `--create-workspace`     | if -w is used and the workspace dont exists, it will create it    |
-| `--ignore-info`   | Ignore informational/unclassified vulnerabilities       |
-| `--severity [SEVERITY [SEVERITY ...]]`      | Filter by severity informational/critical/high/medium/low/unclassified     |
-| `--confirmed`   | Confirmed vulnerabilities       |
-
 ## Tools and Reports
 
-### process report
+### tool report
 
 Process different tools reports and upload the information into faraday.
 
@@ -474,7 +453,7 @@ $ faraday-cli tool report $HOME/Downloads/openvas-report.xml
 | `--tag-host TAG_HOST`   | Tag to add to hosts       |
 | `--tag-service TAG_SERVICE`   | Tag to add to services      |
 
-### run tool
+### tool run
 
 Execute a tool and upload the information into faraday.
 
@@ -518,56 +497,31 @@ Nmap done: 1 IP address (1 host up) scanned in 11.12 seconds
 | `--tag-host TAG_HOST`   | Tag to add to hosts       |
 | `--tag-service TAG_SERVICE`   | Tag to add to services      |
 
-## Run tools like a shell in faraday-cli
+## Vulnerabilities Stats
 
-You also can run commands like a shell without the ```process_tool```command.
+### stats
+
+Different stats about the vulnerabilities in Faraday.
 
 
-```
-$ faraday-cli
+![Example](./images/faraday_cli_stats.jpeg)
 
-    ______                     __               _________
-   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
-  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
- / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
-/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
-                                   /____/
+*Required Arguments:*
 
-Server: http://localhost:5985
-[ws:test]> nmap -sV stan.local
-💻 Processing Nmap command
-Starting Nmap 7.80 ( https://nmap.org ) at 2021-01-11 14:42 -03
-Nmap scan report for stan.local (192.168.1.100)
-Host is up (0.00083s latency).
-Other addresses for stan.local (not scanned): fe80::c0f:a595:453a:e406
-Not shown: 749 closed ports, 243 filtered ports
-PORT     STATE SERVICE       VERSION
-22/tcp   open  ssh           OpenSSH 7.8 (protocol 2.0)
-80/tcp   open  http          nginx 1.19.5
-88/tcp   open  kerberos-sec  Heimdal Kerberos (server time: 2021-01-11 17:42:14Z)
-443/tcp  open  ssl/http      nginx 1.19.5
-445/tcp  open  microsoft-ds?
-5432/tcp open  postgresql    PostgreSQL DB 9.6.0 or later
-5900/tcp open  vnc           Apple remote desktop vnc
-9000/tcp open  cslistener?
+| Syntax      | Description |
+|:-----	|------:	|
+| `STAT_TYPE {severity,vulns,date}`     | Type of stat    |
 
-Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
-Nmap done: 1 IP address (1 host up) scanned in 125.84 seconds
-⬆ Sending data to workspace: local
-✔ Done
+*Optional Arguments:*
 
-[ws:test]> service list
-  ID  NAME          SUMMARY                                               IP                PORT  PROTOCOL      HOST    VULNS
-----  ------------  ----------------------------------------------------  --------------  ------  ----------  ------  -------
-  27  ssh           (22/tcp) ssh (OpenSSH 7.8)                            192.168.1.100       22  tcp             28        0
-  28  http          (80/tcp) http (nginx 1.19.5)                          192.168.1.100       80  tcp             28        0
-  29  kerberos-sec  (88/tcp) kerberos-sec (Heimdal Kerberos)              192.168.1.100       88  tcp             28        0
-  30  https         (443/tcp) https (nginx 1.19.5)                        192.168.1.100      443  tcp             28        0
-  31  microsoft-ds  (445/tcp) microsoft-ds                                192.168.1.100      445  tcp             28        0
-  32  postgresql    (5432/tcp) postgresql (PostgreSQL DB 9.6.0 or later)  192.168.1.100     5432  tcp             28        0
-  33  vnc           (5900/tcp) vnc (Apple remote desktop vnc)             192.168.1.100     5900  tcp             28        0
-  34  cslistener    (9000/tcp) cslistener                                 192.168.1.100     9000  tcp             28        0
-```
+| Syntax      | Description |
+|:-----	|------:	|
+| `-w WORKSPACE_NAME`     | Workspace name    |
+| `--create-workspace`     | if -w is used and the workspace dont exists, it will create it    |
+| `--ignore-info`   | Ignore informational/unclassified vulnerabilities       |
+| `--severity [SEVERITY [SEVERITY ...]]`      | Filter by severity informational/critical/high/medium/low/unclassified     |
+| `--confirmed`   | Confirmed vulnerabilities       |
+
 
 ## Agents
 
@@ -575,7 +529,7 @@ Nmap done: 1 IP address (1 host up) scanned in 125.84 seconds
 !!! info
     For these commands you need to have our [Faraday Agents](https://github.com/infobyte/faraday_agent_dispatcher) configured.
 
-### list agents
+### agent list
 
 List all configured agents for a workspace.
 
@@ -596,7 +550,7 @@ $ faraday-cli agent list
 | `-p/--pretty`   | Show table in a pretty format       |
 | `-j/--json-output`      | Show output in json     |
 
-### get_agent
+### agent get
 
 Get information of and agent and its executors.
 
@@ -634,7 +588,7 @@ Executors:
 | `-p/--pretty`   | Show table in a pretty format       |
 | `-j/--json-output`      | Show output in json     |
 
-### run executor
+### agent run
 
 Run an executor.
 
@@ -698,11 +652,10 @@ Run an executor.
 
 ## Executive Reports
 
-
 !!! info
-    These commands only work with the commercial version of [Faraday](https://www.faradaysec.com).
+    These commands only work with a commercial version of [Faraday](https://www.faradaysec.com).
 
-### list executive-reports-templates
+### executive_report list-templates
 
 List the templates available to generate Executive Reports.
 
@@ -727,7 +680,7 @@ $ faraday-cli executive_report list-templates -p
 | `-w WORKSPACE_NAME`     | Workspace name    |
 | `-p/--pretty`   | Show table in a pretty format       |
 
-### create executive-report
+### executive_report create
 
 Generate an executive report with a given template.
 
