@@ -5,17 +5,17 @@ Use faraday directly from your favorite terminal
 
 faraday-cli is the official client that make automating your security workflows, easier.
 
+## Install from pip
+
+```
+pip install faraday-cli
+```
+
 ## Install from source
 ```shell script
 git clone https://github.com/infobyte/faraday-cli.git
 cd faraday-cli
 pip install .
-```
-
-## Install from pip
-
-```
-pip install faraday-cli
 ```
 
 ## Documentation

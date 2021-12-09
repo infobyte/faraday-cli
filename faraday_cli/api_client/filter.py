@@ -43,7 +43,7 @@ class FaradayFilter:
             if len(self.__severities_ignored) > 1:
                 filter_data.append(
                     {
-                        "or": [
+                        "and": [
                             {"name": "severity", "op": "neq", "val": value}
                             for value in self.__severities_ignored
                         ]
