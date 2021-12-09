@@ -9,7 +9,8 @@ import shlex
 import getpass
 import subprocess
 from py_sneakers.py_sneakers import Sneakers
-
+import luddite
+from packaging import version
 
 from cmd2 import (
     Cmd,
@@ -84,6 +85,17 @@ class FaradayShell(Cmd):
         for setting_name in settings_to_hide:
             self.remove_settable(setting_name)
         intro = [style(f"{logo}\nv:{__version__}", fg=COLORS.CYAN)]
+        (
+            self.update_available,
+            self.latest_version,
+        ) = self.check_update_available()
+        if self.update_available:
+            intro.append(
+                style(
+                    f"A new version of faraday-cli ({self.latest_version}) is available!!",
+                    fg=COLORS.RED,
+                )
+            )
         if active_config.faraday_url and active_config.token:
             intro.append(
                 style(f"Server: {active_config.faraday_url}", fg=COLORS.GREEN)
@@ -123,6 +135,17 @@ class FaradayShell(Cmd):
             )
         )
         self._create_plugin_manager()
+
+    @staticmethod
+    def check_update_available():
+        try:
+            latest_version = luddite.get_version_pypi("faraday-cli")
+            update_available = version.parse(latest_version) > version.parse(
+                __version__
+            )
+            return update_available, latest_version
+        except:  # noqa: E722
+            return False, __version__
 
     def do_version(self, _):
         """Faraday cli version"""
@@ -332,13 +355,19 @@ class FaradayShell(Cmd):
             {
                 "FARADAY SERVER": active_config.faraday_url,
                 "IGNORE SSL": active_config.ignore_ssl,
-                "VERSION": version,
+                "SERVER VERSION": version,
                 "USER": user if user else "-",
                 "VALID TOKEN": "\U00002714" if valid_token else "\U0000274c",
                 "WORKSPACE": active_config.workspace,
+                "CLI VERSION": __version__
+                if not self.update_available
+                else style(
+                    f"{__version__} (latest: {self.latest_version})",
+                    fg=COLORS.RED,
+                ),
             }
         ]
-        self.poutput(
+        self.print_output(
             style(
                 tabulate(
                     data,

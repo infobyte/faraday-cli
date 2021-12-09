@@ -1,6 +1,6 @@
+faraday-plugins>=1.5.7
 click>=8.0.1
 colorama>=0.4.4
-faraday-plugins>=1.5.7
 jsonschema>=3.2.0
 PyYAML>=5.4.1
 simple-rest-client>=1.0.8
@@ -11,4 +11,5 @@ termcolor>=1.1.0
 cmd2>=2.3.0
 log-symbols>=0.0.14
 arrow>=1.1.0
-py-sneakers==1.0.1
+py-sneakers>=1.0.1
+luddite>=1.0.2
