@@ -12,7 +12,6 @@ from faraday_cli.api_client.exceptions import (
     NotFound,
     RequestError,
 )
-from cmd2 import Fg as COLORS
 from simple_rest_client.api import API
 
 
@@ -178,7 +177,7 @@ class FaradayApi:
             self.faraday_api.login.validate()
         except ClientConnectionError as e:
             raise click.ClickException(
-                click.style(f"Connection to error: {e}", fg=COLORS.RED)
+                click.style(f"Connection to error: {e}", fg="red")
             )
         except AuthError:
             return False
