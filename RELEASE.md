@@ -1,8 +1,15 @@
+2.1.1 [Dec 13th, 2021]:
+---
+ * ADD setting to enable/disable auto command detection
+ * Fix error message when a command dont generate valid output
+ * FIX tables visualization when host has to many hostnames
+ * Show if update is available
+
 2.1.0 [Nov 19th, 2021]:
 ---
  * Add fields to executive reports generation command
  * Add KAKER_MODE easter egg
- * Update plugins requirements to 1.5.7
+ * update plugins requirements to 1.5.6
 
 2.0.2 [Aug 9th, 2021]:
 ---
