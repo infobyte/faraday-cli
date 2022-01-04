@@ -172,6 +172,24 @@ Nmap done: 1 IP address (1 host up) scanned in 5.45 seconds
 ⬆ Sending data to workspace: test
 ✔ Done
 ```
+
+You can mix faraday-cli commands with other commands
+
+```
+[ws:test]> vuln list | tail -3
+   3  Exposed metrics              LOW         opened    False        192.241.149.70 [Service - (443/tcp) https]   grafana.faradaysec.com
+   6  name                         CRITICAL    opened    True         123.230.222.247 [Host - ID:3]                sandbox.faradaysec.com
+   5  Python Django Admin Panel 2  CRITICAL    opened    False        133.230.222.247 [Service - (443/tcp) https]  sandbox.faradaysec.com
+```
+
+```
+[ws:test]> vuln list -j| jq '.[0]| {target: .value.target, cve: .value.cve[0], name: .value.name}'
+{
+  "target": "111.248.115.223",
+  "cve": "CVE-2007-0994",
+  "name": "Grafana panel detect"
+}
+```
 ## Command Mode
 Every faraday cli command can be used as an individual command from the command line.
 
