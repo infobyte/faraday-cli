@@ -1,3 +1,8 @@
+2.1.2 [Jan 11th, 2022]:
+---
+ * Update Documentation
+ * Workaround for api bug
+
 2.1.1 [Dec 13th, 2021]:
 ---
  * ADD setting to enable/disable auto command detection
