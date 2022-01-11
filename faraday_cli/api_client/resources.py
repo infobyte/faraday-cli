@@ -35,7 +35,10 @@ class BulkCreateResource(Resource):
 
 class HostResource(Resource):
     actions = {
-        "list": {"method": "GET", "url": "v3/ws/{}/hosts"},
+        "list": {
+            "method": "GET",
+            "url": "v3/ws/{}/hosts?page=1&page_size=100000",
+        },  # workaround for api bug
         "get": {"method": "GET", "url": "v3/ws/{}/hosts/{}"},
         "create": {"method": "POST", "url": "v3/ws/{}/hosts"},
         "delete": {"method": "DELETE", "url": "v3/ws/{}/hosts/{}"},
