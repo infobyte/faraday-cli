@@ -99,13 +99,14 @@ class StatsCommands(cmd2.CommandSet):
                         counters.values(),
                     )
                 )
-
                 termgraph_data = termgraph.TERMGRAPH_DATA_TEMPLATE.copy()
                 termgraph_data["title"] = f"Severity stats [{workspace_name}]"
                 termgraph_data["data"] = data
                 termgraph_data["labels"] = [x for x in counters.keys()]
                 termgraph_data["categories"] = list(SEVERITY_COLORS.keys())
-                termgraph_data["color"] = list(SEVERITY_COLORS.values())
+                termgraph_data["color"] = [
+                    color.name.lower() for color in SEVERITY_COLORS.values()
+                ]
                 termgraph_data["stacked"] = True
                 return termgraph_data
             else:
