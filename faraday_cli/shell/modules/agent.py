@@ -40,7 +40,7 @@ class AgentCommands(cmd2.CommandSet):
         agents = self._cmd.api_client.list_agents()
         print(agents)
         if not agents:
-            self._cmd.perror(f"No agents in server")
+            self._cmd.perror("No agents in server")
         else:
             if args.json_output:
                 self._cmd.poutput(json.dumps(agents, indent=4))
@@ -86,9 +86,7 @@ class AgentCommands(cmd2.CommandSet):
     def get_agent(self, args: argparse.Namespace):
         """Get agent"""
         try:
-            agent = self._cmd.api_client.get_agent(
-                args.agent_id
-            )
+            agent = self._cmd.api_client.get_agent(args.agent_id)
         except NotFoundError:
             self._cmd.perror("Agent not found")
         else:
@@ -191,9 +189,7 @@ class AgentCommands(cmd2.CommandSet):
             self._cmd.perror(e)
         else:
             try:
-                agent = self._cmd.api_client.get_agent(
-                    args.agent_id
-                )
+                agent = self._cmd.api_client.get_agent(args.agent_id)
             except NotFoundError:
                 self._cmd.perror("Agent not found")
             else:

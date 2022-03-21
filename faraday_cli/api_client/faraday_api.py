@@ -302,11 +302,9 @@ class FaradayApi:
                 "args": args,
                 "executor": executor_name,
             },
-            "workspace_name": workspace_name
+            "workspace_name": workspace_name,
         }
-        response = self.faraday_api.agent.run(
-            agent_id, body=body
-        )
+        response = self.faraday_api.agent.run(agent_id, body=body)
         return response.body
 
     @handle_errors
