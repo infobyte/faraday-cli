@@ -23,9 +23,6 @@ class AgentCommands(cmd2.CommandSet):
     # List Agents
     list_agent_parser = argparse.ArgumentParser()
     list_agent_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace name"
-    )
-    list_agent_parser.add_argument(
         "-j", "--json-output", action="store_true", help="Show output in json"
     )
     list_agent_parser.add_argument(
@@ -40,53 +37,39 @@ class AgentCommands(cmd2.CommandSet):
     )
     def list_agents(self, args: argparse.Namespace):
         """List agents"""
-        if not args.workspace_name:
-            if active_config.workspace:
-                workspace_name = active_config.workspace
-            else:
-                self._cmd.perror("No active Workspace")
-                return
+        agents = self._cmd.api_client.list_agents()
+        print(agents)
+        if not agents:
+            self._cmd.perror(f"No agents in server")
         else:
-            workspace_name = args.workspace_name
-        try:
-            agents = self._cmd.api_client.get_workspace_agents(workspace_name)
-        except NotFoundError:
-            self._cmd.perror("Workspace not found")
-        else:
-            if not agents:
-                self._cmd.perror(f"No agents in workspace: {workspace_name}")
+            if args.json_output:
+                self._cmd.poutput(json.dumps(agents, indent=4))
             else:
-                if args.json_output:
-                    self._cmd.poutput(json.dumps(agents, indent=4))
-                else:
-                    data = [
-                        OrderedDict(
-                            {
-                                "ID": x["id"],
-                                "NAME": x["name"],
-                                "ACTIVE": x["active"],
-                                "STATUS": x["status"],
-                                "EXECUTORS": ", ".join(
-                                    [i["name"] for i in x["executors"]]
-                                ),
-                            }
-                        )
-                        for x in agents
-                    ]
-
-                    self._cmd.poutput(
-                        tabulate(
-                            data,
-                            headers="keys",
-                            tablefmt="psql" if args.pretty else "simple",
-                        )
+                data = [
+                    OrderedDict(
+                        {
+                            "ID": x["id"],
+                            "NAME": x["name"],
+                            "ACTIVE": x["active"],
+                            "STATUS": x["status"],
+                            "EXECUTORS": ", ".join(
+                                [i["name"] for i in x["executors"]]
+                            ),
+                        }
                     )
+                    for x in agents
+                ]
+
+                self._cmd.poutput(
+                    tabulate(
+                        data,
+                        headers="keys",
+                        tablefmt="psql" if args.pretty else "simple",
+                    )
+                )
 
     get_agent_parser = argparse.ArgumentParser()
     get_agent_parser.add_argument("agent_id", type=int, help="ID of the Agent")
-    get_agent_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace name "
-    )
     get_agent_parser.add_argument(
         "-j", "--json-output", action="store_true", help="Show output in json"
     )
@@ -102,17 +85,9 @@ class AgentCommands(cmd2.CommandSet):
     )
     def get_agent(self, args: argparse.Namespace):
         """Get agent"""
-        if not args.workspace_name:
-            if active_config.workspace:
-                workspace_name = active_config.workspace
-            else:
-                self._cmd.perror("No active Workspace")
-                return
-        else:
-            workspace_name = args.workspace_name
         try:
             agent = self._cmd.api_client.get_agent(
-                workspace_name, args.agent_id
+                args.agent_id
             )
         except NotFoundError:
             self._cmd.perror("Agent not found")
@@ -217,7 +192,7 @@ class AgentCommands(cmd2.CommandSet):
         else:
             try:
                 agent = self._cmd.api_client.get_agent(
-                    workspace_name, args.agent_id
+                    args.agent_id
                 )
             except NotFoundError:
                 self._cmd.perror("Agent not found")

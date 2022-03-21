@@ -285,13 +285,13 @@ class FaradayApi:
         return response.body
 
     @handle_errors
-    def get_workspace_agents(self, workspace_name: str):
-        response = self.faraday_api.agent.list(workspace_name)
+    def list_agents(self):
+        response = self.faraday_api.agent.list()
         return response.body
 
     @handle_errors
-    def get_agent(self, workspace_name: str, agent_id: int):
-        response = self.faraday_api.agent.get(workspace_name, agent_id)
+    def get_agent(self, agent_id: int):
+        response = self.faraday_api.agent.get(agent_id)
         return response.body
 
     @handle_errors
@@ -301,10 +301,11 @@ class FaradayApi:
                 "agent_id": agent_id,
                 "args": args,
                 "executor": executor_name,
-            }
+            },
+            "workspace_name": workspace_name
         }
         response = self.faraday_api.agent.run(
-            workspace_name, agent_id, body=body
+            agent_id, body=body
         )
         return response.body
 
