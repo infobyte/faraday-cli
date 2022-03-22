@@ -38,7 +38,6 @@ class AgentCommands(cmd2.CommandSet):
     def list_agents(self, args: argparse.Namespace):
         """List agents"""
         agents = self._cmd.api_client.list_agents()
-        print(agents)
         if not agents:
             self._cmd.perror("No agents in server")
         else:
@@ -119,6 +118,7 @@ class AgentCommands(cmd2.CommandSet):
                                     ].items()
                                 ]
                             ),
+                            "LAST_RUN": x["last_run"]
                         }
                     )
                     for x in agent["executors"]
