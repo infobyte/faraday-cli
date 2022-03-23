@@ -118,7 +118,7 @@ class AgentCommands(cmd2.CommandSet):
                                     ].items()
                                 ]
                             ),
-                            "LAST_RUN": x["last_run"]
+                            "LAST_RUN": x["last_run"],
                         }
                     )
                     for x in agent["executors"]
