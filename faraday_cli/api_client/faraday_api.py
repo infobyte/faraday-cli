@@ -297,7 +297,7 @@ class FaradayApi:
     @handle_errors
     def run_executor(self, workspace_name: str, agent_id, executor_name, args):
         body = {
-            "executorData": {
+            "executor_data": {
                 "agent_id": agent_id,
                 "args": args,
                 "executor": executor_name,
