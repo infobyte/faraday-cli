@@ -173,8 +173,9 @@ class FaradayShell(Cmd):
 
     def _create_plugin_manager(self):
         self.plugins_manager = PluginsManager(
-            self.custom_plugins_path, ignore_info=self.ignore_info_severity,
-            hostname_resolution=self.hostname_resolution
+            self.custom_plugins_path,
+            ignore_info=self.ignore_info_severity,
+            hostname_resolution=self.hostname_resolution,
         )
         self.report_analyzer = ReportAnalyzer(self.plugins_manager)
         self.command_analyzer = CommandAnalyzer(self.plugins_manager)
