@@ -112,6 +112,7 @@ class FaradayShell(Cmd):
             )
         self.custom_plugins_path = active_config.custom_plugins_path
         self.ignore_info_severity = active_config.ignore_info_severity
+        self.hostname_resolution = active_config.hostname_resolution
         self.auto_command_detection = active_config.auto_command_detection
         self.intro = "\n".join(intro)
         self.data_queue = queue.Queue()
@@ -132,6 +133,15 @@ class FaradayShell(Cmd):
                 "Ignore Informational vulnerabilities "
                 "from reports and commands",
                 onchange_cb=self._onchange_ignore_info_severity,
+                settable_object=self,
+            )
+        )
+        self.add_settable(
+            Settable(
+                "hostname_resolution",
+                bool,
+                "Resolve hostname",
+                onchange_cb=self._onchange_hostname_resolution,
                 settable_object=self,
             )
         )
@@ -163,7 +173,8 @@ class FaradayShell(Cmd):
 
     def _create_plugin_manager(self):
         self.plugins_manager = PluginsManager(
-            self.custom_plugins_path, ignore_info=self.ignore_info_severity
+            self.custom_plugins_path, ignore_info=self.ignore_info_severity,
+            hostname_resolution=self.hostname_resolution
         )
         self.report_analyzer = ReportAnalyzer(self.plugins_manager)
         self.command_analyzer = CommandAnalyzer(self.plugins_manager)
@@ -183,6 +194,12 @@ class FaradayShell(Cmd):
         active_config.ignore_info_severity = new
         active_config.save()
         self.ignore_info_severity = new
+        self._create_plugin_manager()
+
+    def _onchange_hostname_resolution(self, param_name, old, new):
+        active_config.hostname_resolution = new
+        active_config.save()
+        self.hostname_resolution = new
         self._create_plugin_manager()
 
     def _onchange_auto_command_detection(self, param_name, old, new):
