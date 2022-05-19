@@ -1,2 +1,1 @@
-Add hostname_resolution config parameter
-
+Now is possible to doesn't resolve hostname by changing resolve_hostname parameter
