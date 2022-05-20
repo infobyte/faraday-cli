@@ -3,6 +3,8 @@ import os
 import queue
 import argparse
 import sys
+import time
+import base64
 from urllib.parse import urlparse
 from pathlib import Path
 import shlex
@@ -96,7 +98,15 @@ class FaradayShell(Cmd):
                     fg=COLORS.RED,
                 )
             )
-        if active_config.faraday_url and active_config.token:
+        token = str(active_config.token)
+        token_date = base64.b64decode(token+ '==')
+        token_date = str(token_date).split('"exp":')[1].split("}")[0]
+        current_date = int(time.time())
+        if int(token_date) < current_date:
+            valid_token = False
+        else:
+            valid_token = True
+        if active_config.faraday_url and valid_token:
             intro.append(
                 style(f"Server: {active_config.faraday_url}", fg=COLORS.GREEN)
             )
@@ -108,7 +118,7 @@ class FaradayShell(Cmd):
         else:
             self.api_client = FaradayApi()
             intro.append(
-                style("Missing faraday server, run 'auth'", fg=COLORS.YELLOW)
+                style(f"{self.emojis['cross']} Missing faraday server or expired token, run 'auth'", fg=COLORS.RED)
             )
         self.custom_plugins_path = active_config.custom_plugins_path
         self.ignore_info_severity = active_config.ignore_info_severity
