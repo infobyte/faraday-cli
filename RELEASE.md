@@ -1,3 +1,8 @@
+2.1.3 [May 20th, 2022]:
+---
+ * ADD possibility to avoid resolve hostname by changing resolve_hostname parameter
+ * Fix the colors in Severity Stats
+
 2.1.2 [Jan 11th, 2022]:
 ---
  * Update Documentation
