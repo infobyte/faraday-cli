@@ -1,12 +1,15 @@
+2.1.4 [May 23th, 2022]:
+---
+ * Check if token is valid on start in shell mode
+
 2.1.3 [May 20th, 2022]:
 ---
- * ADD possibility to avoid resolve hostname by changing resolve_hostname parameter
+ * Now is possible to doesn't resolve hostname by changing resolve_hostname parameter
  * Fix the colors in Severity Stats
 
 2.1.2 [Jan 11th, 2022]:
 ---
  * Update Documentation
- * Workaround for api bug
 
 2.1.1 [Dec 13th, 2021]:
 ---
