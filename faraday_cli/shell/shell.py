@@ -105,10 +105,20 @@ class FaradayShell(Cmd):
                 ignore_ssl=active_config.ignore_ssl,
                 token=active_config.token,
             )
+            if not self.api_client.is_token_valid():
+                intro.append(
+                    style(
+                        f"{self.emojis['cross']} Authentication invalid, run 'auth'",
+                        fg=COLORS.RED,
+                    )
+                )
         else:
             self.api_client = FaradayApi()
             intro.append(
-                style("Missing faraday server, run 'auth'", fg=COLORS.YELLOW)
+                style(
+                    "Missing faraday authentication, run 'auth'",
+                    fg=COLORS.YELLOW,
+                )
             )
         self.custom_plugins_path = active_config.custom_plugins_path
         self.ignore_info_severity = active_config.ignore_info_severity
