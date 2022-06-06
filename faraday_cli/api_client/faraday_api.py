@@ -2,7 +2,6 @@ import os
 import re
 from urllib.parse import urljoin
 import json
-import click
 from faraday_cli.api_client.exceptions import (
     DuplicatedError,
     InvalidCredentials,
