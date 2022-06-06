@@ -175,10 +175,8 @@ class FaradayApi:
     def is_token_valid(self):
         try:
             self.faraday_api.login.validate()
-        except ClientConnectionError as e:
-            raise click.ClickException(
-                click.style(f"Connection to error: {e}", fg="red")
-            )
+        except ClientConnectionError:
+            return False
         except AuthError:
             return False
         else:
