@@ -17,6 +17,7 @@ nav:
   - Home: index.md
   - Getting started: getting_started.md
   - Commands: commands.md
+  - Settings: settings.md
 
 markdown_extensions:
   - admonition
