@@ -1,3 +1,9 @@
+2.1.5 [Jun 10th, 2022]:
+---
+ * Now shell mode doesnt exit if it has faraday's url and token but the server is down
+ * Support multiple tags on import and run
+ * Update gifs of readme
+
 2.1.4 [May 23th, 2022]:
 ---
  * Check if token is valid on start in shell mode
