@@ -295,14 +295,14 @@ class FaradayApi:
         return response.body
 
     @handle_errors
-    def run_executor(self, workspace_name: str, agent_id, executor_name, args):
+    def run_executor(self, workspaces_names: list, agent_id, executor_name, args):
         body = {
             "executor_data": {
                 "agent_id": agent_id,
                 "args": args,
                 "executor": executor_name,
             },
-            "workspace_name": workspace_name,
+            "workspaces_names": workspaces_names,
         }
         response = self.faraday_api.agent.run(agent_id, body=body)
         return response.body

@@ -157,7 +157,7 @@ class AgentCommands(cmd2.CommandSet):
         "--stdin", action="store_true", help="Read executor-params from stdin"
     )
     run_executor_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace name"
+        "-w", "--workspaces-names", type=str, help="List of the workspaces names", nargs="+"
     )
 
     @cmd2.as_subcommand_to(
@@ -175,14 +175,14 @@ class AgentCommands(cmd2.CommandSet):
                 # return
             else:
                 executor_params = args.executor_params
-        if not args.workspace_name:
+        if not args.workspaces_names:
             if active_config.workspace:
-                workspace_name = active_config.workspace
+                workspace_name = [active_config.workspace]
             else:
                 self._cmd.perror("No active Workspace")
                 return
         else:
-            workspace_name = args.workspace_name
+            workspaces_names = args.workspaces_names
         try:
             utils.validate_json(args.executor_params)
         except InvalidJson as e:
@@ -268,7 +268,7 @@ class AgentCommands(cmd2.CommandSet):
                     )
                     try:
                         response = self._cmd.api_client.run_executor(
-                            workspace_name,
+                            workspaces_names,
                             args.agent_id,
                             executor["name"],
                             json.loads(executor_params),
@@ -278,7 +278,7 @@ class AgentCommands(cmd2.CommandSet):
                     else:
                         self._cmd.poutput(
                             cmd2.style(
-                                f"Generated Command: {response['command_id']}",  # noqa: E501
+                                f"Generated Command: {response['commands_id']}",  # noqa: E501
                                 fg=COLORS.GREEN,
                             )
                         )
