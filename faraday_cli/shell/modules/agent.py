@@ -157,7 +157,11 @@ class AgentCommands(cmd2.CommandSet):
         "--stdin", action="store_true", help="Read executor-params from stdin"
     )
     run_executor_parser.add_argument(
-        "-w", "--workspaces-names", type=str, help="List of the workspaces names", nargs="+"
+        "-w",
+        "--workspaces-names",
+        type=str,
+        help="List of the workspaces names",
+        nargs="+",
     )
 
     @cmd2.as_subcommand_to(
