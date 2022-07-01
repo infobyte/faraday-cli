@@ -181,7 +181,7 @@ class AgentCommands(cmd2.CommandSet):
                 executor_params = args.executor_params
         if not args.workspaces_names:
             if active_config.workspace:
-                workspace_name = [active_config.workspace]
+                workspaces_names = [active_config.workspace]
             else:
                 self._cmd.perror("No active Workspace")
                 return
