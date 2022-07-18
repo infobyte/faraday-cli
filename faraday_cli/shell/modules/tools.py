@@ -108,6 +108,9 @@ class ToolCommands(cmd2.CommandSet):
                         fg=COLORS.GREEN,
                     )
                 )
+            plugin.vuln_tag = args.tag_vuln
+            plugin.host_tag = args.tag_host
+            plugin.service_tag = args.tag_service
             show_command_output = not args.json_output
             command_json = utils.run_tool(
                 plugin,
@@ -120,12 +123,6 @@ class ToolCommands(cmd2.CommandSet):
                     f"{self._cmd.emojis['cross']} Command execution error!!"
                 )
             else:
-                command_json = utils.apply_tags(
-                    command_json,
-                    args.tag_host,
-                    args.tag_service,
-                    args.tag_vuln,
-                )
                 if args.json_output:
                     self._cmd.poutput(json.dumps(command_json, indent=4))
                 else:

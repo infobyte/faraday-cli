@@ -6,7 +6,6 @@ import json
 import cmd2
 from cmd2 import Fg as COLORS
 from faraday_cli.config import active_config
-from faraday_cli.shell.utils import apply_tags
 
 
 @cmd2.with_default_category("Tools Reports")
@@ -117,18 +116,18 @@ class ReportsCommands(cmd2.CommandSet):
                     fg=COLORS.GREEN,
                 )
             )
+        plugin.vuln_tag = args.tag_vuln
+        plugin.host_tag = args.tag_host
+        plugin.service_tag = args.tag_service
         plugin.processReport(
             report_path.absolute().as_posix(), getpass.getuser()
         )
-        report_json = apply_tags(
-            plugin.get_data(), args.tag_host, args.tag_service, args.tag_vuln
-        )
         if args.json_output:
-            self._cmd.poutput(json.dumps(report_json, indent=4))
+            self._cmd.poutput(json.dumps(plugin.get_data(), indent=4))
         else:
             self._cmd.data_queue.put(
                 {
                     "workspace": destination_workspace,
-                    "json_data": report_json,
+                    "json_data": plugin.get_data(),
                 }
             )
