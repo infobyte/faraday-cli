@@ -293,7 +293,13 @@ class FaradayApi:
 
     @handle_errors
     def run_executor(
-        self, workspaces_names: list, agent_id, executor_name, args, ignore_info, hostname_resolution
+        self,
+        workspaces_names: list,
+        agent_id,
+        executor_name,
+        args,
+        ignore_info,
+        hostname_resolution,
     ):
         body = {
             "executor_data": {
