@@ -79,9 +79,9 @@ class CredentialResource(Resource):
 
 class AgentResource(Resource):
     actions = {
-        "list": {"method": "GET", "url": "v3/ws/{}/agents"},
-        "get": {"method": "GET", "url": "v3/ws/{}/agents/{}"},
-        "run": {"method": "POST", "url": "v3/ws/{}/agents/{}/run"},
+        "list": {"method": "GET", "url": "v3/agents"},
+        "get": {"method": "GET", "url": "v3/agents/{}"},
+        "run": {"method": "POST", "url": "v3/agents/{}/run"},
     }
 
 
