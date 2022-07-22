@@ -169,19 +169,23 @@ def run_tool(plugin, user, command, show_output=True):
         return None
 
 
-def apply_tags(data, tag_host, tag_service, tag_vuln):
-    if tag_vuln or tag_host or tag_service:
+def apply_tags(data, host_tags, service_tags, vuln_tags):
+    if vuln_tags or host_tags or service_tags:
         for host in data["hosts"]:
-            if tag_host:
-                host["tags"].append(tag_host)
-            if tag_vuln:
+            if host_tags:
+                for tag in host_tags:
+                    host["tags"].append(tag)
+            if vuln_tags:
                 for vuln in host["vulnerabilities"]:
-                    vuln["tags"].append(tag_vuln)
-            if tag_vuln or tag_service:
+                    for tag in vuln_tags:
+                        vuln["tags"].append(tag)
+            if vuln_tags or service_tags:
                 for service in host["services"]:
-                    if tag_service:
-                        service["tags"].append(tag_service)
-                    if tag_vuln:
+                    if service_tags:
+                        for tag in service_tags:
+                            service["tags"].append(tag)
+                    if vuln_tags:
                         for vuln in service["vulnerabilities"]:
-                            vuln["tags"].append(tag_vuln)
+                            for tag in vuln_tags:
+                                vuln["tags"].append(tag)
     return data

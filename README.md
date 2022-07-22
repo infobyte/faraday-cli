@@ -1,7 +1,7 @@
 # Faraday on the terminal
 Use faraday directly from your favorite terminal
 
-![Example](./docs/docs/images/faraday-cli.svg)
+![Example](./docs/docs/images/general.gif)
 
 faraday-cli is the official client that make automating your security workflows, easier.
 
@@ -32,7 +32,7 @@ Configure auth for farday-cli
 ```shell script
 $ faraday-cli auth
 ```
-![Example](./docs/docs/images/auth.svg)
+![Example](./docs/docs/images/auth.gif)
 
 
 ### Create a workspace
@@ -124,14 +124,14 @@ In the shell or using pipes it not necessary**
 ```shell script
 $ faraday-cli tool report "/path/to/report.xml"
 ```
-![Example](./docs/docs/images/process_report.svg)
+![Example](./docs/docs/images/process_report.gif)
 
 ### Import vulnerabilities from command
 
 ```shell script
 $ faraday-cli ping -c 1 www.google.com
 ```
-![Example](./docs/docs/images/command.svg)
+![Example](./docs/docs/images/command.gif)
 
 ### List agents
 
@@ -155,7 +155,7 @@ Run executor: internal/nmap [{'successful': True}]
 
 Faraday-cli can be used as a shell and have all the same commands you have as a cli
 
-![Example](./docs/docs/images/shell.svg)
+![Example](./docs/docs/images/shell.gif)
 
 ## Use cases
 

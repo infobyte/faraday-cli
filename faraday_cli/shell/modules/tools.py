@@ -38,18 +38,21 @@ class ToolCommands(cmd2.CommandSet):
         type=str,
         help="Tag to add to vulnerabilities",
         required=False,
+        action="append",
     )
     tool_parser.add_argument(
         "--tag-host",
         type=str,
         help="Tag to add to hosts",
         required=False,
+        action="append",
     )
     tool_parser.add_argument(
         "--tag-service",
         type=str,
         help="Tag to add to services",
         required=False,
+        action="append",
     )
     tool_parser.add_argument("command", help="Command of the tool to process")
 
