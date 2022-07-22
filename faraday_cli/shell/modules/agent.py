@@ -277,6 +277,8 @@ class AgentCommands(cmd2.CommandSet):
                             args.agent_id,
                             executor["name"],
                             json.loads(executor_params),
+                            self._cmd.ignore_info_severity,
+                            self._cmd.hostname_resolution
                         )
                     except Exception as e:
                         self._cmd.perror(str(e))
