@@ -1,4 +1,4 @@
-faraday-plugins>=1.6.7
+faraday-plugins>=1.6.8
 click>=8.0.1
 colorama>=0.4.4
 jsonschema>=3.2.0
@@ -14,4 +14,3 @@ arrow>=1.1.0
 py-sneakers>=1.0.1
 luddite>=1.0.2
 packaging>=21.3
-
