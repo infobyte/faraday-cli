@@ -300,6 +300,9 @@ class FaradayApi:
         args,
         ignore_info,
         hostname_resolution,
+        vuln_tag,
+        host_tag,
+        service_tag
     ):
         body = {
             "executor_data": {
@@ -310,6 +313,9 @@ class FaradayApi:
             "workspaces_names": workspaces_names,
             "ignore_info": ignore_info,
             "hostname_resolution": hostname_resolution,
+            "vuln_tag": vuln_tag,
+            "host_tag": host_tag,
+            "service_tag": service_tag,
         }
         response = self.faraday_api.agent.run(agent_id, body=body)
         return response.body
