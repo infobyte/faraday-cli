@@ -282,27 +282,36 @@ class FaradayApi:
         return response.body
 
     @handle_errors
-    def get_workspace_agents(self, workspace_name: str):
-        response = self.faraday_api.agent.list(workspace_name)
+    def list_agents(self):
+        response = self.faraday_api.agent.list()
         return response.body
 
     @handle_errors
-    def get_agent(self, workspace_name: str, agent_id: int):
-        response = self.faraday_api.agent.get(workspace_name, agent_id)
+    def get_agent(self, agent_id: int):
+        response = self.faraday_api.agent.get(agent_id)
         return response.body
 
     @handle_errors
-    def run_executor(self, workspace_name: str, agent_id, executor_name, args):
+    def run_executor(
+        self,
+        workspaces_names: list,
+        agent_id,
+        executor_name,
+        args,
+        ignore_info,
+        hostname_resolution,
+    ):
         body = {
-            "executorData": {
+            "executor_data": {
                 "agent_id": agent_id,
                 "args": args,
                 "executor": executor_name,
-            }
+            },
+            "workspaces_names": workspaces_names,
+            "ignore_info": ignore_info,
+            "hostname_resolution": hostname_resolution,
         }
-        response = self.faraday_api.agent.run(
-            workspace_name, agent_id, body=body
-        )
+        response = self.faraday_api.agent.run(agent_id, body=body)
         return response.body
 
     @handle_errors

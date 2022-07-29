@@ -1,3 +1,7 @@
+2.1.6 [Jul 26th, 2022]:
+---
+ * Remove workspace from get/list agent and add it to run agent
+
 2.1.5 [Jun 10th, 2022]:
 ---
  * Now shell mode doesnt exit if it has faraday's url and token but the server is down
