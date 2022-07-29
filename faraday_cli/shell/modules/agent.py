@@ -169,7 +169,7 @@ class AgentCommands(cmd2.CommandSet):
         help="Tag to add to vulnerabilities",
         required=False,
         action="append",
-        default=[]
+        default=[],
     )
     run_executor_parser.add_argument(
         "--tag-host",
@@ -177,7 +177,7 @@ class AgentCommands(cmd2.CommandSet):
         help="Tag to add to hosts",
         required=False,
         action="append",
-        default=[]
+        default=[],
     )
     run_executor_parser.add_argument(
         "--tag-service",
@@ -185,8 +185,9 @@ class AgentCommands(cmd2.CommandSet):
         help="Tag to add to services",
         required=False,
         action="append",
-        default=[]
+        default=[],
     )
+
     @cmd2.as_subcommand_to(
         "agent", "run", run_executor_parser, help="run an executor"
     )
@@ -309,7 +310,7 @@ class AgentCommands(cmd2.CommandSet):
                             self._cmd.hostname_resolution,
                             args.tag_vuln,
                             args.tag_host,
-                            args.tag_service
+                            args.tag_service,
                         )
                     except Exception as e:
                         self._cmd.perror(str(e))

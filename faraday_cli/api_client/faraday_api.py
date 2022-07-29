@@ -302,7 +302,7 @@ class FaradayApi:
         hostname_resolution,
         vuln_tag,
         host_tag,
-        service_tag
+        service_tag,
     ):
         body = {
             "executor_data": {
