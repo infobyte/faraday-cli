@@ -531,7 +531,7 @@ Different stats about the vulnerabilities in Faraday.
 
 ### agent list
 
-List all configured agents for a workspace.
+List all configured agents.
 
 
 ```
@@ -546,7 +546,6 @@ $ faraday-cli agent list
 
 | Syntax      | Description |
 |:-----	|------:	|
-| `-w WORKSPACE_NAME`     | Workspace name    |
 | `-p/--pretty`   | Show table in a pretty format       |
 | `-j/--json-output`      | Show output in json     |
 
@@ -584,7 +583,6 @@ Executors:
 
 | Syntax      | Description |
 |:-----	|------:	|
-| `-w WORKSPACE_NAME`     | Workspace name    |
 | `-p/--pretty`   | Show table in a pretty format       |
 | `-j/--json-output`      | Show output in json     |
 
@@ -596,7 +594,7 @@ Run an executor.
 !!! info
     You can pass the executor parameters via stdin.
     ```
-    $ echo '{"target": "www.google.com"}' | faraday-cli agent run -a 1 -e nmap --stdin
+    $ echo '{"target": "www.google.com"}' | faraday-cli agent run -a 1 -e nmap --stdin --workspace-name my_workspace
     ```
     If no ```-p``` or ```--stdin``` argument is provided, then the executor parameters will be asked one by one.
 
@@ -628,7 +626,7 @@ Run an executor.
 !!! warning
     If you pass the executor parameters as an argument it needs to be escaped like this (only in command mode, not in shell mode).
     ```
-    $ faraday-cli  agent run -a 1 -e nmap -p \''{"target": "www.google.com"}'\'
+    $ faraday-cli  agent run -a 1 -e nmap -p \''{"target": "www.go ogle.com"}'\'
     Running executor: unnamed_agent/nmap
     Parameters: {"TARGET": "www.google.com"}
     Generated Command: 13
@@ -636,18 +634,19 @@ Run an executor.
 
 *Required Arguments:*
 
-| Syntax      | Description |
-|:-----	|------:	|
-| `-a/--agent-id AGENT_ID`     | ID of the agent    |
+| Syntax                                 | Description |
+|:---------------------------------------|------:	|
+| `-a/--agent-id AGENT_ID`               | ID of the agent    |
 | `-e/--executor-name EXECUTOR_NAME`     | Executor name   |
-| `-p/--executor-params EXECUTOR_PARAMS`     | Executor Params in json  |
+| `-p/--executor-params EXECUTOR_PARAMS` | Executor Params in json  |
+| `-w --workpsace-name`                  | Workspace name    |
 
 *Optional Arguments:*
 
 | Syntax      | Description |
 |:-----	|------:	|
 | `--stdin`   | Read executor-params from stdin       |
-| `-w WORKSPACE_NAME`     | Workspace name    |
+
 
 
 ## Executive Reports
