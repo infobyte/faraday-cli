@@ -164,7 +164,7 @@ class AgentCommands(cmd2.CommandSet):
         help="Workspace name",
     )
     run_executor_parser.add_argument(
-        "--tag-vuln",
+        "--vuln-tag",
         type=str,
         help="Tag to add to vulnerabilities",
         required=False,
@@ -172,7 +172,7 @@ class AgentCommands(cmd2.CommandSet):
         default=[],
     )
     run_executor_parser.add_argument(
-        "--tag-host",
+        "--host-tag",
         type=str,
         help="Tag to add to hosts",
         required=False,
@@ -180,7 +180,7 @@ class AgentCommands(cmd2.CommandSet):
         default=[],
     )
     run_executor_parser.add_argument(
-        "--tag-service",
+        "--service-tag",
         type=str,
         help="Tag to add to services",
         required=False,
@@ -194,12 +194,12 @@ class AgentCommands(cmd2.CommandSet):
     def run_executor(self, args):
         """Run executor"""
         ask_for_parameters = False
-        if isinstance(args.tag_vuln, str):
-            args.tag_vuln = [args.tag_vuln]
-        if isinstance(args.tag_host, str):
-            args.tag_host = [args.tag_host]
-        if isinstance(args.tag_service, str):
-            args.tag_service = [args.tag_service]
+        if isinstance(args.vuln_tag, str):
+            args.vuln_tag = [args.vuln_tag]
+        if isinstance(args.host_tag, str):
+            args.host_tag = [args.host_tag]
+        if isinstance(args.service_tag, str):
+            args.service_tag = [args.service_tag]
         if args.stdin:
             executor_params = sys.stdin.read()
         else:
@@ -308,9 +308,9 @@ class AgentCommands(cmd2.CommandSet):
                             json.loads(executor_params),
                             self._cmd.ignore_info_severity,
                             self._cmd.hostname_resolution,
-                            args.tag_vuln,
-                            args.tag_host,
-                            args.tag_service,
+                            args.vuln_tag,
+                            args.host_tag,
+                            args.service_tag,
                         )
                     except Exception as e:
                         self._cmd.perror(str(e))

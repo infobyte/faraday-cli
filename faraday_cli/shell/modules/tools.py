@@ -34,21 +34,21 @@ class ToolCommands(cmd2.CommandSet):
         help="Show output in json (dont send it to faraday)",
     )
     tool_parser.add_argument(
-        "--tag-vuln",
+        "--vuln-tag",
         type=str,
         help="Tag to add to vulnerabilities",
         required=False,
         action="append",
     )
     tool_parser.add_argument(
-        "--tag-host",
+        "--host-tag",
         type=str,
         help="Tag to add to hosts",
         required=False,
         action="append",
     )
     tool_parser.add_argument(
-        "--tag-service",
+        "--service-tag",
         type=str,
         help="Tag to add to services",
         required=False,
@@ -108,9 +108,9 @@ class ToolCommands(cmd2.CommandSet):
                         fg=COLORS.GREEN,
                     )
                 )
-            plugin.vuln_tag = args.tag_vuln
-            plugin.host_tag = args.tag_host
-            plugin.service_tag = args.tag_service
+            plugin.vuln_tag = args.vuln_tag
+            plugin.host_tag = args.host_tag
+            plugin.service_tag = args.service_tag
             show_command_output = not args.json_output
             command_json = utils.run_tool(
                 plugin,
