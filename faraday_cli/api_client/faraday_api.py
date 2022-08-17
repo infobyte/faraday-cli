@@ -192,11 +192,11 @@ class FaradayApi:
 
     @handle_errors
     def get_version(self):
-        version_regex = r"(?P<product>\w)?-?(?P<version>\d+\.\d+)"
+        version_regex = r"(?P<product>\w)?-?(?P<version>\d+\.\d+\.\d+)"
         response = self.faraday_api.config.config()
         raw_version = response.body["ver"]
         match = re.match(version_regex, raw_version)
-        products = {"p": "pro", "c": "corp"}
+        products = {"p": "pro", "c": "corp", "f": "personal"}
         product = products.get(match.group("product"), "community")
         version = match.group("version")
         return {"product": product, "version": version}
