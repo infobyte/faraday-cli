@@ -45,7 +45,7 @@ separator = ","}END { print "\"}" }' | faraday-cli agent run -a 1 -e nmap --stdi
 Run a daily scan and send your report
 
 ```shell
-$ faraday-cli executive_report create -t \'"generic_default.docx (generic) (Word)"\' --confirmed -o /tmp/report.docx && echo "Faraday Daily Report" | mail -s "Daily Report" user@example.com -A /tmp/report.docx
+$ faraday-cli executive_report create -t \'"generic_default.docx (generic) (Word)"\' --confirmed -d /tmp/report.docx && echo "Faraday Daily Report" | mail -s "Daily Report" user@example.com -A /tmp/report.docx
 ```
 
 #### Load your assets from your cloud provider
