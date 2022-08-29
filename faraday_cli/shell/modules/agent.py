@@ -163,6 +163,30 @@ class AgentCommands(cmd2.CommandSet):
         type=str,
         help="Workspace name",
     )
+    run_executor_parser.add_argument(
+        "--vuln-tag",
+        type=str,
+        help="Tag to add to vulnerabilities",
+        required=False,
+        action="append",
+        default=[],
+    )
+    run_executor_parser.add_argument(
+        "--host-tag",
+        type=str,
+        help="Tag to add to hosts",
+        required=False,
+        action="append",
+        default=[],
+    )
+    run_executor_parser.add_argument(
+        "--service-tag",
+        type=str,
+        help="Tag to add to services",
+        required=False,
+        action="append",
+        default=[],
+    )
 
     @cmd2.as_subcommand_to(
         "agent", "run", run_executor_parser, help="run an executor"
@@ -170,6 +194,12 @@ class AgentCommands(cmd2.CommandSet):
     def run_executor(self, args):
         """Run executor"""
         ask_for_parameters = False
+        if isinstance(args.vuln_tag, str):
+            args.vuln_tag = [args.vuln_tag]
+        if isinstance(args.host_tag, str):
+            args.host_tag = [args.host_tag]
+        if isinstance(args.service_tag, str):
+            args.service_tag = [args.service_tag]
         if args.stdin:
             executor_params = sys.stdin.read()
         else:
@@ -278,6 +308,9 @@ class AgentCommands(cmd2.CommandSet):
                             json.loads(executor_params),
                             self._cmd.ignore_info_severity,
                             self._cmd.hostname_resolution,
+                            args.vuln_tag,
+                            args.host_tag,
+                            args.service_tag,
                         )
                     except Exception as e:
                         self._cmd.perror(str(e))
