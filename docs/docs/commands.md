@@ -443,15 +443,15 @@ $ faraday-cli tool report $HOME/Downloads/openvas-report.xml
 
 *Optional Arguments:*
 
-| Syntax      | Description |
-|:-----	|------:	|
-| `-w WORKSPACE_NAME`     | Workspace name    |
+| Syntax                   | Description |
+|:-------------------------|------:	|
+| `-w WORKSPACE_NAME`      | Workspace name    |
 | `--create-workspace`     | if -w is used and the workspace dont exists, it will create it    |
-| `--plugin-id PLUGIN_ID`   | Plugin ID (force detection)       |
-| `-j/--json-output`   | Show output in json (dont send it to faraday)       |
-| `--tag-vuln TAG_VULN`   | Tag to add to vulnerabilities       |
-| `--tag-host TAG_HOST`   | Tag to add to hosts       |
-| `--tag-service TAG_SERVICE`   | Tag to add to services      |
+| `--plugin-id PLUGIN_ID`  | Plugin ID (force detection)       |
+| `-j/--json-output`       | Show output in json (dont send it to faraday)       |
+| `--vuln-tag VULN_TAG`    | Tag to add to vulnerabilities       |
+| `--host-tag HOST_TAG`    | Tag to add to hosts       |
+| `--service-tag SERVICE_TAG` | Tag to add to services      |
 
 ### tool run
 
@@ -493,9 +493,9 @@ Nmap done: 1 IP address (1 host up) scanned in 11.12 seconds
 | `-w WORKSPACE_NAME`     | Workspace name    |
 | `--plugin-id PLUGIN_ID`   | Plugin ID (force detection)       |
 | `-j/--json-output`   | Show output in json (dont send it to faraday)       |
-| `--tag-vuln TAG_VULN`   | Tag to add to vulnerabilities       |
-| `--tag-host TAG_HOST`   | Tag to add to hosts       |
-| `--tag-service TAG_SERVICE`   | Tag to add to services      |
+| `--vuln-tag VULN_TAG`    | Tag to add to vulnerabilities       |
+| `--host-tag HOST_TAG`    | Tag to add to hosts       |
+| `--service-tag SERVICE_TAG` | Tag to add to services      |
 
 ## Vulnerabilities Stats
 
