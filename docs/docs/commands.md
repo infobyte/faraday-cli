@@ -443,15 +443,15 @@ $ faraday-cli tool report $HOME/Downloads/openvas-report.xml
 
 *Optional Arguments:*
 
-| Syntax      | Description |
-|:-----	|------:	|
-| `-w WORKSPACE_NAME`     | Workspace name    |
+| Syntax                   | Description |
+|:-------------------------|------:	|
+| `-w WORKSPACE_NAME`      | Workspace name    |
 | `--create-workspace`     | if -w is used and the workspace dont exists, it will create it    |
-| `--plugin-id PLUGIN_ID`   | Plugin ID (force detection)       |
-| `-j/--json-output`   | Show output in json (dont send it to faraday)       |
-| `--tag-vuln TAG_VULN`   | Tag to add to vulnerabilities       |
-| `--tag-host TAG_HOST`   | Tag to add to hosts       |
-| `--tag-service TAG_SERVICE`   | Tag to add to services      |
+| `--plugin-id PLUGIN_ID`  | Plugin ID (force detection)       |
+| `-j/--json-output`       | Show output in json (dont send it to faraday)       |
+| `--vuln-tag VULN_TAG`    | Tag to add to vulnerabilities       |
+| `--host-tag HOST_TAG`    | Tag to add to hosts       |
+| `--service-tag SERVICE_TAG` | Tag to add to services      |
 
 ### tool run
 
@@ -493,9 +493,9 @@ Nmap done: 1 IP address (1 host up) scanned in 11.12 seconds
 | `-w WORKSPACE_NAME`     | Workspace name    |
 | `--plugin-id PLUGIN_ID`   | Plugin ID (force detection)       |
 | `-j/--json-output`   | Show output in json (dont send it to faraday)       |
-| `--tag-vuln TAG_VULN`   | Tag to add to vulnerabilities       |
-| `--tag-host TAG_HOST`   | Tag to add to hosts       |
-| `--tag-service TAG_SERVICE`   | Tag to add to services      |
+| `--vuln-tag VULN_TAG`    | Tag to add to vulnerabilities       |
+| `--host-tag HOST_TAG`    | Tag to add to hosts       |
+| `--service-tag SERVICE_TAG` | Tag to add to services      |
 
 ## Vulnerabilities Stats
 
@@ -531,7 +531,7 @@ Different stats about the vulnerabilities in Faraday.
 
 ### agent list
 
-List all configured agents for a workspace.
+List all configured agents.
 
 
 ```
@@ -546,7 +546,6 @@ $ faraday-cli agent list
 
 | Syntax      | Description |
 |:-----	|------:	|
-| `-w WORKSPACE_NAME`     | Workspace name    |
 | `-p/--pretty`   | Show table in a pretty format       |
 | `-j/--json-output`      | Show output in json     |
 
@@ -584,7 +583,6 @@ Executors:
 
 | Syntax      | Description |
 |:-----	|------:	|
-| `-w WORKSPACE_NAME`     | Workspace name    |
 | `-p/--pretty`   | Show table in a pretty format       |
 | `-j/--json-output`      | Show output in json     |
 
@@ -596,7 +594,7 @@ Run an executor.
 !!! info
     You can pass the executor parameters via stdin.
     ```
-    $ echo '{"target": "www.google.com"}' | faraday-cli agent run -a 1 -e nmap --stdin
+    $ echo '{"target": "www.google.com"}' | faraday-cli agent run -a 1 -e nmap --stdin --workspace-name my_workspace
     ```
     If no ```-p``` or ```--stdin``` argument is provided, then the executor parameters will be asked one by one.
 
@@ -628,7 +626,7 @@ Run an executor.
 !!! warning
     If you pass the executor parameters as an argument it needs to be escaped like this (only in command mode, not in shell mode).
     ```
-    $ faraday-cli  agent run -a 1 -e nmap -p \''{"target": "www.google.com"}'\'
+    $ faraday-cli  agent run -a 1 -e nmap -p \''{"target": "www.go ogle.com"}'\'
     Running executor: unnamed_agent/nmap
     Parameters: {"TARGET": "www.google.com"}
     Generated Command: 13
@@ -636,18 +634,19 @@ Run an executor.
 
 *Required Arguments:*
 
-| Syntax      | Description |
-|:-----	|------:	|
-| `-a/--agent-id AGENT_ID`     | ID of the agent    |
+| Syntax                                 | Description |
+|:---------------------------------------|------:	|
+| `-a/--agent-id AGENT_ID`               | ID of the agent    |
 | `-e/--executor-name EXECUTOR_NAME`     | Executor name   |
-| `-p/--executor-params EXECUTOR_PARAMS`     | Executor Params in json  |
+| `-p/--executor-params EXECUTOR_PARAMS` | Executor Params in json  |
+| `-w --workpsace-name`                  | Workspace name    |
 
 *Optional Arguments:*
 
 | Syntax      | Description |
 |:-----	|------:	|
 | `--stdin`   | Read executor-params from stdin       |
-| `-w WORKSPACE_NAME`     | Workspace name    |
+
 
 
 ## Executive Reports

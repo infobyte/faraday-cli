@@ -1,3 +1,9 @@
+2.1.7 [Sep 13th, 2022]:
+---
+ * Add personal status
+ * Replace the apply_tag function with plugins parameters
+ * Update agents docs
+
 2.1.6 [Jul 26th, 2022]:
 ---
  * Remove workspace from get/list agent and add it to run agent
