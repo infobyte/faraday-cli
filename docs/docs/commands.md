@@ -439,7 +439,7 @@ Vulnerability updated
 | Syntax                  |                                                                                       Description |
 |:------------------------|--------------------------------------------------------------------------------------------------:|
 | `-w WORKSPACE_NAME`     |                                                                                    Workspace name |
-| `--status STATUS`       |                       Status of the Vulnerability: open, closed, re-opened, risk-accepted, opened |
+| `--status STATUS`       |                               Status of the Vulnerability: open, closed, re-opened, risk-accepted |
 | `--severity SEVERITY`   |                       Severity of the Vulnerability: unclassified, info, low, med, high, critical |
 | `--desc DESCRIPTION`    |                                                                                       Description |
 | `--name NAME`           |                                                                                Vulnerability Name |
