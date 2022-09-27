@@ -387,12 +387,13 @@ $ faraday-cli vuln list -p
 
 *Optional Arguments:*
 
-| Syntax      | Description |
-|:-----	|------:	|
-| `-w WORKSPACE_NAME`     | Workspace name    |
-| `-p/--pretty`   | Show table in a pretty format       |
-| `-j/--json-output`      | Show output in json     |
-
+| Syntax              | Description |
+|:--------------------|------:	|
+| `-w WORKSPACE_NAME` | Workspace name    |
+| `-p/--pretty`       | Show table in a pretty format       |
+| `-j/--json-output`  | Show output in json     |
+| `--severity [SEVERITY [SEVERITY ...]]`      | Filter by severity informational/critical/high/medium/low/unclassified     |
+| `--confirmed`   | Confirmed vulnerabilities       |
 
 
 ### vuln add-evidence
@@ -423,7 +424,7 @@ Evidence upload was successful
 Update one or more fields of a vulnerability
 
 ```
-$ faraday-cli vuln update 46 -w test --status closed 
+$ faraday-cli vuln update 46 -w test --status closed
 Vulnerability updated
 ```
 
@@ -532,13 +533,13 @@ Nmap done: 1 IP address (1 host up) scanned in 11.12 seconds
 Different stats about the vulnerabilities in Faraday.
 
 
-![Example](./images/faraday_cli_stats.jpeg)
+![Example](./images/faraday_cli_stats.jpg)
 
 *Required Arguments:*
 
-| Syntax      | Description |
-|:-----	|------:	|
-| `STAT_TYPE {severity,vulns,date}`     | Type of stat    |
+| Syntax                         | Description |
+|:-------------------------------|------:	|
+| `--type {severity,vulns,date}` | Type of stat    |
 
 *Optional Arguments:*
 
