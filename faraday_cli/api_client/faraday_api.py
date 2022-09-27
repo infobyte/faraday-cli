@@ -265,6 +265,15 @@ class FaradayApi:
         return response.body
 
     @handle_errors
+    def update_vuln(
+        self, workspace_name: str, vulnerability_id: int, body: str
+    ):
+        response = self.faraday_api.vuln.patch(
+            workspace_name, str(vulnerability_id), body=body
+        )
+        return response
+
+    @handle_errors
     def get_vulns(self, workspace_name: str, query_filter: dict = None):
         if query_filter.get("filters"):
             response = self.faraday_api.vuln.filter(

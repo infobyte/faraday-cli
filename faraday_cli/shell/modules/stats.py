@@ -22,7 +22,7 @@ class StatsCommands(cmd2.CommandSet):
 
     stats_parser = argparse.ArgumentParser()
     stats_parser.add_argument(
-        "stat_type",
+        "--type",
         type=str,
         choices=["severity", "vulns", "date"],
         help="Type of stat",
@@ -38,7 +38,8 @@ class StatsCommands(cmd2.CommandSet):
     stats_parser.add_argument(
         "--severity",
         type=str,
-        help=f"Filter by severity {'/'.join(SEVERITIES)}",
+        help="Filter by severity",
+        choices=SEVERITIES,
         default=[],
         nargs="*",
     )
@@ -167,14 +168,8 @@ class StatsCommands(cmd2.CommandSet):
             self._cmd.perror("Use either --ignore-info or --severity")
             return
         query_filter = FaradayFilter()
-        selected_severities = set(map(lambda x: x.lower(), args.severity))
-        if selected_severities:
-            for severity in selected_severities:
-                if severity not in SEVERITIES:
-                    self._cmd.perror(f"Invalid severity: {severity}")
-                    return
-                else:
-                    query_filter.require_severity(severity)
+        for severity in args.severity:
+            query_filter.require_severity(severity)
         if args.ignore_info:
             for severity in IGNORE_SEVERITIES:
                 query_filter.ignore_severity(severity)
@@ -187,6 +182,6 @@ class StatsCommands(cmd2.CommandSet):
         }
 
         graph_stats(
-            gather_data_function_choices[args.stat_type],
+            gather_data_function_choices[args.type],
             query_filter.get_filter(),
         )
