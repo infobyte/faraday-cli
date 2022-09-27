@@ -418,6 +418,34 @@ Evidence upload was successful
 |:-----	|------:	|
 | `-w WORKSPACE_NAME`     | Workspace name    |
 
+### vuln update
+
+Update one or more fields of a vulnerability
+
+```
+$ faraday-cli vuln update 46 -w test --status closed 
+Vulnerability updated
+```
+
+*Required Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `-id/--vulnerability-id`   | Vulnerability ID       |
+
+*Optional Arguments:*
+
+| Syntax                  |                                                                                       Description |
+|:------------------------|--------------------------------------------------------------------------------------------------:|
+| `-w WORKSPACE_NAME`     |                                                                                    Workspace name |
+| `--status STATUS`       |                       Status of the Vulnerability: open, closed, re-opened, risk-accepted, opened |
+| `--severity SEVERITY`   |                       Severity of the Vulnerability: unclassified, info, low, med, high, critical |
+| `--desc DESCRIPTION`    |                                                                                       Description |
+| `--name NAME`           |                                                                                Vulnerability Name |
+| `--tag TAG`             | Tag to add to the vuln. In case that you want add more than one vuln you can repeat this argument |
+| `--confirmed CONFIRMED` |                                          Indicates if the Vulnerability is confirmed: True, False |
+
+
 ## Tools and Reports
 
 ### tool report
