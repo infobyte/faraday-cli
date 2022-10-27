@@ -1,4 +1,4 @@
-faraday-plugins>=1.7.0
+faraday-plugins>=1.8.0
 click>=8.0.1
 colorama>=0.4.4
 jsonschema>=3.2.0

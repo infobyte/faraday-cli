@@ -1,3 +1,7 @@
+2.1.8 [OCt 27th, 2022]:
+---
+ * [Add] New method to update existing vuln
+
 2.1.7 [Sep 13th, 2022]:
 ---
  * Add personal status
