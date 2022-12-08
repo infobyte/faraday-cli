@@ -63,6 +63,7 @@ class VulnResource(Resource):
         "patch": {"method": "PATCH", "url": "v3/ws/{}/vulns/{}"},
         "list": {"method": "GET", "url": "v3/ws/{}/vulns"},
         "filter": {"method": "GET", "url": "v3/ws/{}/vulns/filter"},
+        "delete": {"method": "DELETE", "url": "v3/ws/{}/vulns/{}"},
     }
 
 

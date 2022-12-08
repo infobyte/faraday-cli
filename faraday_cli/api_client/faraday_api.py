@@ -265,6 +265,11 @@ class FaradayApi:
         return response.body
 
     @handle_errors
+    def delete_vuln(self, workspace_name: str, vuln_id):
+        response = self.faraday_api.vuln.delete(workspace_name, vuln_id)
+        return response.body
+
+    @handle_errors
     def update_vuln(
         self, workspace_name: str, vulnerability_id: int, body: str
     ):
