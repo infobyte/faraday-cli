@@ -1,4 +1,6 @@
-git+https://github.com/cbovin/faraday_plugins#main
+install_requires=[
+    'pycocotools @ git+https://github.com/cbovin/faraday_plugins#main'
+]
 
 click>=8.0.1
 colorama>=0.4.4
