@@ -463,9 +463,9 @@ Vulnerability deleted
 
 *Optional Arguments:*
 
-| Syntax                  |                                                                                       Description |
-|:------------------------|--------------------------------------------------------------------------------------------------:|
-| `-w WORKSPACE_NAME`     |                                                                                    Workspace name |
+| Syntax                  | Description    |
+|:------------------------|----------------|
+| `-w WORKSPACE_NAME`     | Workspace name |
 
 ## Tools and Reports
 
