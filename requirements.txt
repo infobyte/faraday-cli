@@ -1,4 +1,4 @@
-pip @ git+https://github.com/cbovin/faraday_plugins#main
+pip @ git+https://github.com/cbovin/faraday_plugins@main
 click>=8.0.1
 colorama>=0.4.4
 jsonschema>=3.2.0
