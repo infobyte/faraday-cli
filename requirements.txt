@@ -1,4 +1,4 @@
-faraday-plugins>=1.8.0
+git+https://github.com/cbovin/faraday_plugins.git@main
 click>=8.0.1
 colorama>=0.4.4
 jsonschema>=3.2.0
