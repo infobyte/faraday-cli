@@ -446,6 +446,26 @@ Vulnerability updated
 | `--tag TAG`             | Tag to add to the vuln. In case that you want add more than one vuln you can repeat this argument |
 | `--confirmed CONFIRMED` |                                          Indicates if the Vulnerability is confirmed: True, False |
 
+### vuln delete
+
+Delete a vulnerability
+
+```
+$ faraday-cli vuln delete 46 -w test
+Vulnerability deleted
+```
+
+*Required Arguments:*
+
+| Syntax      | Description |
+|:-----	|------:	|
+| `-id/--vulnerability-id`   | Vulnerability ID       |
+
+*Optional Arguments:*
+
+| Syntax                  | Description    |
+|:------------------------|----------------|
+| `-w WORKSPACE_NAME`     | Workspace name |
 
 ## Tools and Reports
 
