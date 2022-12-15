@@ -1,3 +1,8 @@
+2.1.9 [Dec 15th, 2022]:
+---
+ * [ADD] Add vuln delete vuln-id
+
+
 2.1.8 [OCt 27th, 2022]:
 ---
  * [Add] New method to update existing vuln
@@ -106,3 +111,4 @@
 ---
  * First version released, use with caution as it is still beta phase.
  * Access a faraday server from your CLI, your CI o any other bash interpreter.
+
