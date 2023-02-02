@@ -320,6 +320,11 @@ class HostCommands(cmd2.CommandSet):
         help="Workspace name",
         required=False,
     )
+    create_host_parser.add_argument(
+        "--resolve-hostname",
+        action="store_true",
+        help="Doesnt resolve hostname",
+    )
 
     @cmd2.as_subcommand_to(
         "host", "create", create_host_parser, help="create hosts"
@@ -350,7 +355,10 @@ class HostCommands(cmd2.CommandSet):
             self._cmd.perror(f"{e}")
         else:
             for _host_data in json_data:
-                ip, hostname = utils.get_ip_and_hostname(_host_data["ip"])
+                if args.resolve:
+                    ip, hostname = utils.get_ip_and_hostname(_host_data["ip"])
+                else:
+                    ip, hostname = _host_data["ip"], _host_data["ip"]
                 _host_data["ip"] = ip
                 if hostname:
                     if "hostnames" in _host_data:
