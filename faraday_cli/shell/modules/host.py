@@ -355,7 +355,7 @@ class HostCommands(cmd2.CommandSet):
             self._cmd.perror(f"{e}")
         else:
             for _host_data in json_data:
-                if args.resolve:
+                if args.resolve_hostname:
                     ip, hostname = utils.get_ip_and_hostname(_host_data["ip"])
                 else:
                     ip, hostname = _host_data["ip"], _host_data["ip"]
