@@ -5,7 +5,6 @@ from faraday_cli.shell.shell import FaradayShell
 
 
 def main(argv=None):
-
     parser = argparse.ArgumentParser(description="Commands as arguments")
     command_help = (
         "optional command to run, "

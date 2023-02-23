@@ -89,7 +89,6 @@ class ServiceCommands(cmd2.CommandSet):
                         json.dumps(services["services"], indent=4)
                     )
                 else:
-
                     data = [
                         OrderedDict(
                             {

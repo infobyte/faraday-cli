@@ -134,7 +134,7 @@ def get_active_workspaces_filter() -> dict:
     return query_filter
 
 
-def run_tool(plugin, user, command, show_output=True):
+def run_tool(plugin, user, command, show_output=True, force=False):
     current_path = os.path.abspath(os.getcwd())
     modified_command = plugin.processCommandString(
         getpass.getuser(), current_path, command
@@ -162,7 +162,7 @@ def run_tool(plugin, user, command, show_output=True):
             output.writelines(extra_lines)
             break
     output_value = output.getvalue()
-    if retcode == 0:
+    if retcode == 0 or force:
         plugin.processOutput(output_value)
         return plugin.get_data()
     else:

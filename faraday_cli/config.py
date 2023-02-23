@@ -16,7 +16,7 @@ class Config:
         self.workspace = None
         self.custom_plugins_path = None
         self.ignore_info_severity = False
-        self.hostname_resolution = True
+        self.hostname_resolution = False
         self.auto_command_detection = True
         self.load()
 

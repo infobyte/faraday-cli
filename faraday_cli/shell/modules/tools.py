@@ -55,6 +55,11 @@ class ToolCommands(cmd2.CommandSet):
         action="append",
     )
     tool_parser.add_argument("command", help="Command of the tool to process")
+    tool_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Process the output of the command regardless of the results",
+    )
 
     @cmd2.as_subcommand_to(
         "tool", "run", tool_parser, help="run a tool and process it"
@@ -117,6 +122,7 @@ class ToolCommands(cmd2.CommandSet):
                 getpass.getuser(),
                 args.command,
                 show_output=show_command_output,
+                force=args.force,
             )
             if not command_json:
                 self._cmd.perror(
