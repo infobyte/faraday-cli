@@ -1,3 +1,7 @@
+2.1.10 [Apr 5th, 2023]:
+---
+ * [MOD] Change resolve_hostname to false for default, add the --resolve-hostname flag for host create and add --force flag to tool run to process the output of the command regardless of the return code. #79
+
 2.1.9 [Dec 15th, 2022]:
 ---
  * [ADD] Add vuln delete vuln-id
