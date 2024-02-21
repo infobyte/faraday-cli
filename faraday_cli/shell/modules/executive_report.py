@@ -58,9 +58,9 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
             tabulate(
                 data,
                 headers="keys",
-                tablefmt=self._cmd.TABLE_PRETTY_FORMAT
-                if args.pretty
-                else "simple",
+                tablefmt=(
+                    self._cmd.TABLE_PRETTY_FORMAT if args.pretty else "simple"
+                ),
             )
         )
 

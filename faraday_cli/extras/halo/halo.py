@@ -440,9 +440,11 @@ class Halo(object):
         text_frame = self.text_frame()
         return "{0} {1}".format(
             *[
-                (text_frame, frame)
-                if self._placement == "right"
-                else (frame, text_frame)
+                (
+                    (text_frame, frame)
+                    if self._placement == "right"
+                    else (frame, text_frame)
+                )
             ][0]
         )
 
@@ -602,9 +604,11 @@ class Halo(object):
 
         output = "{0} {1}\n".format(
             *[
-                (text, symbol)
-                if self._placement == "right"
-                else (symbol, text)
+                (
+                    (text, symbol)
+                    if self._placement == "right"
+                    else (symbol, text)
+                )
             ][0]
         )
 

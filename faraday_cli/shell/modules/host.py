@@ -96,12 +96,17 @@ class HostCommands(cmd2.CommandSet):
                                 "HOSTNAMES": "\n".join(
                                     x["value"]["hostnames"]
                                 ),
-                                "SERVICES": "-"
-                                if len(x["value"]["service_summaries"]) == 0
-                                else len(x["value"]["service_summaries"]),
-                                "VULNS": "-"
-                                if x["value"]["vulns"] == 0
-                                else x["value"]["vulns"],
+                                "SERVICES": (
+                                    "-"
+                                    if len(x["value"]["service_summaries"])
+                                    == 0
+                                    else len(x["value"]["service_summaries"])
+                                ),
+                                "VULNS": (
+                                    "-"
+                                    if x["value"]["vulns"] == 0
+                                    else x["value"]["vulns"]
+                                ),
                             }
                         )
                         for x in hosts["rows"]
@@ -204,9 +209,11 @@ class HostCommands(cmd2.CommandSet):
                     tabulate(
                         host_data,
                         headers="keys",
-                        tablefmt=self._cmd.TABLE_PRETTY_FORMAT
-                        if args.pretty
-                        else "simple",
+                        tablefmt=(
+                            self._cmd.TABLE_PRETTY_FORMAT
+                            if args.pretty
+                            else "simple"
+                        ),
                     )
                 )
                 if host["services"] > 0:
@@ -221,9 +228,9 @@ class HostCommands(cmd2.CommandSet):
                                 "PORT": x["port"],
                                 "VERSION": x["version"],
                                 "STATUS": x["status"],
-                                "VULNS": "-"
-                                if x["vulns"] == 0
-                                else x["vulns"],
+                                "VULNS": (
+                                    "-" if x["vulns"] == 0 else x["vulns"]
+                                ),
                             }
                         )
                         for x in services
@@ -233,9 +240,11 @@ class HostCommands(cmd2.CommandSet):
                         tabulate(
                             services_data,
                             headers="keys",
-                            tablefmt=self._cmd.TABLE_PRETTY_FORMAT
-                            if args.pretty
-                            else "simple",
+                            tablefmt=(
+                                self._cmd.TABLE_PRETTY_FORMAT
+                                if args.pretty
+                                else "simple"
+                            ),
                         )
                     )
                 if host["vulns"] > 0:
@@ -263,9 +272,11 @@ class HostCommands(cmd2.CommandSet):
                         tabulate(
                             vulns_data,
                             headers="keys",
-                            tablefmt=self._cmd.TABLE_PRETTY_FORMAT
-                            if args.pretty
-                            else "simple",
+                            tablefmt=(
+                                self._cmd.TABLE_PRETTY_FORMAT
+                                if args.pretty
+                                else "simple"
+                            ),
                         )
                     )
 

@@ -403,11 +403,13 @@ class FaradayShell(Cmd):
                 "USER": user if user else "-",
                 "VALID TOKEN": "\U00002714" if valid_token else "\U0000274c",
                 "WORKSPACE": active_config.workspace,
-                "CLI VERSION": __version__
-                if not self.update_available
-                else style(
-                    f"{__version__} (latest: {self.latest_version})",
-                    fg=COLORS.RED,
+                "CLI VERSION": (
+                    __version__
+                    if not self.update_available
+                    else style(
+                        f"{__version__} (latest: {self.latest_version})",
+                        fg=COLORS.RED,
+                    )
                 ),
             }
         ]
@@ -416,9 +418,9 @@ class FaradayShell(Cmd):
                 tabulate(
                     data,
                     headers="keys",
-                    tablefmt=self.TABLE_PRETTY_FORMAT
-                    if args.pretty
-                    else "simple",
+                    tablefmt=(
+                        self.TABLE_PRETTY_FORMAT if args.pretty else "simple"
+                    ),
                 ),
                 fg=COLORS.GREEN,
             )

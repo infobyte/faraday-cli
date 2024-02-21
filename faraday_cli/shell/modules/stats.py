@@ -70,9 +70,9 @@ class StatsCommands(cmd2.CommandSet):
                     counters[host_identifier] += 1
                 data = list(map(lambda x: [x], counters.values()))
                 termgraph_data = termgraph.TERMGRAPH_DATA_TEMPLATE.copy()
-                termgraph_data[
-                    "title"
-                ] = f"Vulnerability stats [{workspace_name}]"
+                termgraph_data["title"] = (
+                    f"Vulnerability stats [{workspace_name}]"
+                )
                 termgraph_data["data"] = data
                 termgraph_data["labels"] = [x for x in counters.keys()]
                 termgraph_data["categories"] = ["vulns"]

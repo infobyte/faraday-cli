@@ -101,24 +101,32 @@ class WorkspaceCommands(cmd2.CommandSet):
                         "ACTIVE": workspace["active"],
                         "PUBLIC": workspace["public"],
                         "READONLY": workspace["readonly"],
-                        "HOSTS": "-"
-                        if workspace["stats"]["hosts"] == 0
-                        else workspace["stats"]["hosts"],
-                        "SERVICES": "-"
-                        if workspace["stats"]["services"] == 0
-                        else workspace["stats"]["services"],
-                        "VULNS": "-"
-                        if workspace["stats"]["total_vulns"] == 0
-                        else workspace["stats"]["total_vulns"],
+                        "HOSTS": (
+                            "-"
+                            if workspace["stats"]["hosts"] == 0
+                            else workspace["stats"]["hosts"]
+                        ),
+                        "SERVICES": (
+                            "-"
+                            if workspace["stats"]["services"] == 0
+                            else workspace["stats"]["services"]
+                        ),
+                        "VULNS": (
+                            "-"
+                            if workspace["stats"]["total_vulns"] == 0
+                            else workspace["stats"]["total_vulns"]
+                        ),
                     }
                 ]
                 self._cmd.print_output(
                     tabulate(
                         data,
                         headers="keys",
-                        tablefmt=self._cmd.TABLE_PRETTY_FORMAT
-                        if args.pretty
-                        else "simple",
+                        tablefmt=(
+                            self._cmd.TABLE_PRETTY_FORMAT
+                            if args.pretty
+                            else "simple"
+                        ),
                     )
                 )
 
@@ -236,9 +244,11 @@ class WorkspaceCommands(cmd2.CommandSet):
                             "NAME": x["name"],
                             "HOSTS": x["stats"]["hosts"],
                             "SERVICES": x["stats"]["services"],
-                            "VULNS": "-"
-                            if x["stats"]["total_vulns"] == 0
-                            else x["stats"]["total_vulns"],
+                            "VULNS": (
+                                "-"
+                                if x["stats"]["total_vulns"] == 0
+                                else x["stats"]["total_vulns"]
+                            ),
                             "ACTIVE": x["active"],
                             "PUBLIC": x["public"],
                             "READONLY": x["readonly"],
@@ -250,9 +260,11 @@ class WorkspaceCommands(cmd2.CommandSet):
                     tabulate(
                         data,
                         headers="keys",
-                        tablefmt=self._cmd.TABLE_PRETTY_FORMAT
-                        if args.pretty
-                        else "simple",
+                        tablefmt=(
+                            self._cmd.TABLE_PRETTY_FORMAT
+                            if args.pretty
+                            else "simple"
+                        ),
                     )
                 )
 
