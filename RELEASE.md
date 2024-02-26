@@ -1,57 +1,61 @@
+2.1.11 [Feb 26th, 2024]:
+---
+ * [FIX] Fix workspace activation. #87
+
 2.1.10 [Apr 5th, 2023]:
 ---
  * [MOD] Change resolve_hostname to false for default, add the --resolve-hostname flag for host create and add --force flag to tool run to process the output of the command regardless of the return code. #79
 
 2.1.9 [Dec 15th, 2022]:
 ---
- * [ADD] Add vuln delete vuln-id
+ * [ADD] Add vuln delete vuln-id.
 
 
 2.1.8 [OCt 27th, 2022]:
 ---
- * [Add] New method to update existing vuln
+ * [ADD] New method to update existing vuln.
 
 2.1.7 [Sep 13th, 2022]:
 ---
- * Add personal status
- * Replace the apply_tag function with plugins parameters
- * Update agents docs
+ * Add personal status.
+ * Replace the apply_tag function with plugins parameters.
+ * Update agents docs.
 
 2.1.6 [Jul 26th, 2022]:
 ---
- * Remove workspace from get/list agent and add it to run agent
+ * Remove workspace from get/list agent and add it to run agent.
 
 2.1.5 [Jun 10th, 2022]:
 ---
- * Now shell mode doesnt exit if it has faraday's url and token but the server is down
- * Support multiple tags on import and run
- * Update gifs of readme
+ * Now shell mode doesn't exit if it has faraday's url and token but the server is down.
+ * Support multiple tags on import and run.
+ * Update gifs of readme.
 
 2.1.4 [May 23th, 2022]:
 ---
- * Check if token is valid on start in shell mode
+ * Check if token is valid on start in shell mode.
 
 2.1.3 [May 20th, 2022]:
 ---
- * Now is possible to doesn't resolve hostname by changing resolve_hostname parameter
- * Fix the colors in Severity Stats
+ * Now is possible to doesn't resolve hostname by changing resolve_hostname parameter.
+ * Fix the colors in Severity Stats.
 
 2.1.2 [Jan 11th, 2022]:
 ---
- * Update Documentation
+ * Update Documentation.
 
 2.1.1 [Dec 13th, 2021]:
 ---
- * ADD setting to enable/disable auto command detection
- * Fix error message when a command dont generate valid output
- * FIX tables visualization when host has to many hostnames
- * Show if update is available
+ * ADD setting to enable/disable auto command detection.
+ * Fix error message when a command dont generate valid output.
+ * FIX tables visualization when host has to many hostnames.
+ * Show if update is available.
 
 2.1.0 [Nov 19th, 2021]:
 ---
- * Add fields to executive reports generation command
- * Add KAKER_MODE easter egg
- * update plugins requirements to 1.5.6
+ * Add fields to executive reports generation command.
+ * Add KAKER_MODE easter egg.
+ * Update plugins requirements to 1.5.6
 
 2.0.2 [Aug 9th, 2021]:
 ---
