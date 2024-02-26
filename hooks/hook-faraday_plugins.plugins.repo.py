@@ -1,4 +1,4 @@
-from PyInstaller.utils.hooks import collect_all, collect_submodules
+from PyInstaller.utils.hooks import collect_all
 
 datas, binaries, hiddenimports = collect_all(
     "faraday_plugins", include_py_files=True

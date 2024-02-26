@@ -208,7 +208,9 @@ class FaradayApi:
             return response.body
         else:
             return [
-                workspace for workspace in response.body if workspace["active"]
+                workspace
+                for workspace in response.body["rows"]
+                if workspace["active"]
             ]
 
     @handle_errors

@@ -34,7 +34,10 @@ SEVERITY_COLORS = {
 
 
 def validate_url(value):
-    valid_url = url(value)
+    if sys.version_info < (3, 8):
+        valid_url = url(value)
+    else:
+        valid_url = url(value, simple_host=True)
     if valid_url:
         return value
     else:

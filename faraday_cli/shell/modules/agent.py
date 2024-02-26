@@ -265,7 +265,7 @@ class AgentCommands(cmd2.CommandSet):
                                     default="",
                                     show_default=False,
                                 )
-                        if type(value) == str and value == "":
+                        if isinstance(value, str) and value == "":
                             continue
                         executor_params[parameter] = str(value)
                     executor_params = json.dumps(executor_params)
