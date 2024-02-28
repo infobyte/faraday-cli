@@ -27,7 +27,7 @@ For more info you can check our [documentation][doc]
 
 ### Login
 
-Configure auth for farday-cli
+Configure auth for faraday-cli
 
 ```shell script
 $ faraday-cli auth
