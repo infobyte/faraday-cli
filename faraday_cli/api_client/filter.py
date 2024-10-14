@@ -17,7 +17,7 @@ class FaradayFilter:
     def filter_confirmed(self) -> None:
         self.__confirmed = True
 
-    def get_filter(self) -> dict:
+    def get_filter(self, limit=5, offset=0) -> dict:
         filter_data = []
 
         if self.__severities_required:
@@ -66,4 +66,4 @@ class FaradayFilter:
                 filter_data.append(
                     {"name": "confirmed", "op": "eq", "val": "true"}
                 )
-        return {"filters": filter_data}
+        return {"filters": filter_data, "limit": limit, "offset": offset}

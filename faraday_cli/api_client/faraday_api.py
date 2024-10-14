@@ -282,14 +282,14 @@ class FaradayApi:
 
     @handle_errors
     def get_vulns(self, workspace_name: str, query_filter: dict = None):
-        if query_filter.get("filters"):
-            response = self.faraday_api.vuln.filter(
-                workspace_name, params={"q": json.dumps(query_filter)}
-            )
-        else:
-            response = self.faraday_api.vuln.list(
-                workspace_name, params={"sort": "severity", "sort_dir": "asc"}
-            )
+        # if query_filter.get("filters"):
+        response = self.faraday_api.vuln.filter(
+            workspace_name, params={"q": json.dumps(query_filter)}
+        )
+        # else:
+        #     response = self.faraday_api.vuln.list(
+        #         workspace_name, params={"sort": "severity", "sort_dir": "asc"}
+        #     )
         return response.body
 
     @handle_errors
