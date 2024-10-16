@@ -3,7 +3,6 @@ import json
 import os
 import time
 from pathlib import Path
-import urllib.parse
 
 import click
 import cmd2
@@ -66,7 +65,7 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
 
     report_parser = argparse.ArgumentParser()
     report_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace name"
+        "-w", "--workspaces-names", type=str, help="Workspace name"
     )
     report_parser.add_argument(
         "-t", "--template", type=str, help="Template to use", required=False
@@ -131,22 +130,20 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
         )
         def get_report(report_data, _output):
             report_id = self._cmd.api_client.generate_executive_report(
-                workspace_name, report_data
+                workspaces_names, report_data
             )
             report_status = "processing"
             while report_status == "processing":
                 time.sleep(2)
                 report_status = (
-                    self._cmd.api_client.get_executive_report_status(
-                        workspace_name, report_id
-                    )
+                    self._cmd.api_client.get_executive_report_status(report_id)
                 )
 
             else:
                 if report_status == "created":
                     download_response = (
                         self._cmd.api_client.download_executive_report(
-                            workspace_name, report_id
+                            report_id
                         )
                     )
                     report_file = download_response.headers["x-filename"]
@@ -167,19 +164,22 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
                 else:
                     self._cmd.perror("Error generating executive report")
 
-        if not args.workspace_name:
+        if not args.workspaces_names:
             if active_config.workspace:
-                workspace_name = active_config.workspace
+                workspaces_names = [active_config.workspace]
             else:
                 self._cmd.perror("No active Workspace")
                 return
         else:
-            workspace_name = args.workspace_name
+            workspaces_names = [
+                name.strip() for name in args.workspaces_names.split(",")
+            ]
+
         templates_data = self._cmd.api_client.get_executive_report_templates(
-            workspace_name
+            workspaces_names
         )
         report_name = "_".join(
-            filter(None, [workspace_name, args.title, args.enterprise])
+            filter(None, [*workspaces_names, args.title, args.enterprise])
         )
         if not args.template:
             data = []
@@ -235,6 +235,7 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
             "template_name": template,
             "title": args.title,
             "vuln_count": 0,
+            "workspaces_names": workspaces_names,
         }
         if args.severity and args.ignore_info:
             self._cmd.perror("Use either --ignore-info or --severity")
@@ -247,8 +248,7 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
                 query_filter.ignore_severity(severity)
         if args.confirmed:
             query_filter.filter_confirmed()
-        report_data["filter"] = urllib.parse.quote(
-            json.dumps(query_filter.get_filter())
-        )
+
+        report_data["filter"] = json.dumps(query_filter.get_filter())
         report_file = get_report(report_data, args.destination)
         self._cmd.poutput(f"Report generated: {report_file}")
