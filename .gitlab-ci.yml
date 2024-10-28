@@ -130,10 +130,6 @@ black:
     - if: '$TEST_ALPHA'
       when: on_success
 
-unit_test 3.7:
-    extends: .latest_unit_test_base
-    image: python:3.7
-
 unit_test 3.8:
     extends: .latest_unit_test_base
     image: python:3.8
@@ -142,10 +138,6 @@ unit_test 3.9:
     extends: .latest_unit_test_base
     image: python:3.9-rc
     allow_failure: true
-
-alpha_unit_test 3.7:
-    extends: .alpha_unit_test_base
-    image: python:3.7
 
 alpha_unit_test 3.8:
     extends: .alpha_unit_test_base
