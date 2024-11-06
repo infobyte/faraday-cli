@@ -91,9 +91,9 @@ class ExecutiveReportResource(Resource):
     actions = {
         "list_templates": {
             "method": "GET",
-            "url": "v3/ws/{}/reports/listTemplates",
+            "url": "v3/reports/listTemplates",
         },
-        "generate": {"method": "POST", "url": "v3/ws/{}/reports"},
-        "status": {"method": "GET", "url": "v3/ws/{}/reports/{}"},
-        "download": {"method": "GET", "url": "v3/ws/{}/reports/{}/download"},
+        "generate": {"method": "POST", "url": "v3/reports"},
+        "status": {"method": "GET", "url": "v3/reports/{}"},
+        "download": {"method": "GET", "url": "v3/reports/{}/download"},
     }

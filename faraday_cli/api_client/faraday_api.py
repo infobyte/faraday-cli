@@ -455,15 +455,11 @@ class FaradayApi:
         return response.body["id"]
 
     @handle_errors
-    def get_executive_report_status(self, workspace_name: str, report_id: int):
-        response = self.faraday_api.executive_report.status(
-            workspace_name, report_id
-        )
+    def get_executive_report_status(self, report_id: int):
+        response = self.faraday_api.executive_report.status(report_id)
         return response.body["status"]
 
     @handle_errors
-    def download_executive_report(self, workspace_name: str, report_id: int):
-        response = self.faraday_api.executive_report.download(
-            workspace_name, report_id
-        )
+    def download_executive_report(self, report_id: int):
+        response = self.faraday_api.executive_report.download(report_id)
         return response
