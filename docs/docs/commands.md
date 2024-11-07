@@ -352,7 +352,7 @@ $ faraday-cli service list -p
 
 ### vuln list
 
-List vulnerabilities in a workspace.
+List 50 vulnerabilities by default from a workspace. Use + for next page, - for previous.
 
 
 ```
@@ -387,13 +387,17 @@ $ faraday-cli vuln list -p
 
 *Optional Arguments:*
 
-| Syntax              | Description |
-|:--------------------|------:	|
-| `-w WORKSPACE_NAME` | Workspace name    |
-| `-p/--pretty`       | Show table in a pretty format       |
-| `-j/--json-output`  | Show output in json     |
-| `--severity [SEVERITY [SEVERITY ...]]`      | Filter by severity informational/critical/high/medium/low/unclassified     |
-| `--confirmed`   | Confirmed vulnerabilities       |
+| Syntax              |                                                                                                                                                Description |
+|:--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| `-w WORKSPACE_NAME` |                                                                                                                                             Workspace name |
+| `-p/--pretty`       |                                                                                                                              Show table in a pretty format |
+| `-j/--json-output`  |                                                                                                                                        Show output in json |
+| `--severity [SEVERITY [SEVERITY ...]]`      |                                                                                     Filter by severity informational/critical/high/medium/low/unclassified |
+| `--confirmed`   |                                                                                                                                  Confirmed vulnerabilities |
+| `--page`            |                                                                                                        Specify the page number to display, starting from 0 |
+| `--limit`           |                                                                                    Set the number of vulnerabilities per page (max 4000). |
+| `--no-interaction`  |                                                                                                               Disable interactive mode for page navigation |
+| `--advanced-filters`| Apply complex filters using a JSON structure. For example: `--advanced-filters '{"filters":[{"name":"description","op":"like","val":"%sql injection%"}]}'` |
 
 
 ### vuln add-evidence
