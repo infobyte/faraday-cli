@@ -1,6 +1,10 @@
+2.1.12 [Jan 6th, 2025]:
+---
+ * [MOD] Updated report generation to support multiple workspaces. #89
+
 2.1.11 [Feb 26th, 2024]:
 ---
- * [FIX] Fix workspace activation. #87
+ * [FIX] Fixed workspace activation. #87
 
 2.1.10 [Apr 5th, 2023]:
 ---
