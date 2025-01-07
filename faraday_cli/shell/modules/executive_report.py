@@ -248,6 +248,13 @@ class ExecutiveReportsCommands(cmd2.CommandSet):
                 query_filter.ignore_severity(severity)
         if args.confirmed:
             query_filter.filter_confirmed()
-        report_data["filter"] = json.dumps(query_filter.get_filter())
+
+        query_filter_dict = query_filter.get_filter()
+
+        # Delete the keys 'limit' and 'offset' if they exist
+        query_filter_dict.pop("limit", None)
+        query_filter_dict.pop("offset", None)
+
+        report_data["filter"] = json.dumps(query_filter_dict)
         report_file = get_report(report_data, args.destination)
         self._cmd.poutput(f"Report generated: {report_file}")
