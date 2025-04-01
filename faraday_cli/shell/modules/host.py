@@ -25,6 +25,24 @@ HOST_CREATE_JSON_SCHEMA = {
     },
 }
 
+HOST_UPDATE_JSON_SCHEMA = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "ip": {"type": "string"},
+            "description": {"type": "string"},
+            "hostnames": {
+                "type": "array",
+                "items": {"type": "string"}
+            },
+        },
+        "required": [],
+        "additionalProperties": False 
+    },
+}
+
+
 
 class HostCommands(cmd2.CommandSet):
     def __init__(self):
@@ -386,3 +404,79 @@ class HostCommands(cmd2.CommandSet):
                     self._cmd.poutput(
                         f"Created host\n{json.dumps(host, indent=4)}"
                     )
+    # Update hosts
+    update_host_parser = argparse.ArgumentParser()
+    update_host_parser.add_argument(
+        "-d",
+        "--host-data",
+        type=str,
+        help=f"Host data in json format: {HOST_UPDATE_JSON_SCHEMA}",
+    )
+    update_host_parser.add_argument(
+        "--stdin", action="store_true", help="Read host-data from stdin"
+    )
+    update_host_parser.add_argument("host_id", type=int, help="ID of the host")
+    update_host_parser.add_argument(
+        "-w",
+        "--workspace-name",
+        type=str,
+        help="Workspace name",
+        required=False,
+    )
+    update_host_parser.add_argument(
+        "--resolve-hostname",
+        action="store_true",
+        help="Doesn't resolve hostname",
+    )
+    
+    @cmd2.as_subcommand_to(
+        "host", "update", update_host_parser, help="update hosts"
+    )
+    def update_hosts(self, args: argparse.Namespace):
+        """Update Hosts"""
+        if not args.workspace_name:
+            if active_config.workspace:
+                workspace_name = active_config.workspace
+            else:
+                self._cmd.perror("No active Workspace")
+                return
+        else:
+            workspace_name = args.workspace_name
+        if args.stdin:
+            host_data = sys.stdin.read()
+        else:
+            if not args.host_data:
+                self._cmd.perror("Missing host data")
+                return
+            else:
+                host_data = args.host_data
+    
+        try:
+            json_data = utils.json_schema_validator(HOST_UPDATE_JSON_SCHEMA)(host_data)
+        except Exception as e:
+            self._cmd.perror(f"JSON validation error: {e}")
+            return
+        for _host_data in json_data:
+            if args.resolve_hostname:
+                ip, hostname = utils.get_ip_and_hostname(_host_data.get("ip", ""))
+            else:
+                ip = _host_data.get("ip", "")
+                hostname = ip  
+            _host_data["ip"] = ip
+            if hostname:
+                if "hostnames" in _host_data:
+                    _host_data["hostnames"].append(hostname)
+                else:
+                    _host_data["hostnames"] = [hostname]
+            try:
+                host = self._cmd.api_client.get_host(workspace_name, args.host_id)
+                if not host:
+                    self._cmd.perror(f"Host with ID {args.host_id} not found")
+                    return
+                updated_host = self._cmd.api_client.update_host(workspace_name, args.host_id, _host_data)
+                
+            except Exception as e:
+                self._cmd.perror(f"Error updating host: {e}")
+            else:
+                self._cmd.poutput(f"Updated host:\n{json.dumps(updated_host, indent=4)}")
+    

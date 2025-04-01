@@ -29,3 +29,8 @@ class RequestError(ErrorWithResponse):
 
 class ExpiredLicense(Exception):
     pass
+
+class HostNotFoundError(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)

@@ -41,6 +41,7 @@ class HostResource(Resource):
         },  # workaround for api bug
         "get": {"method": "GET", "url": "v3/ws/{}/hosts/{}"},
         "create": {"method": "POST", "url": "v3/ws/{}/hosts"},
+        "update": {"method": "PATCH", "url": "v3/ws/{}/hosts/{}"},
         "delete": {"method": "DELETE", "url": "v3/ws/{}/hosts/{}"},
         "get_services": {
             "method": "GET",
