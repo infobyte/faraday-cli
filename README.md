@@ -146,7 +146,7 @@ Updated host:
 ### Create Vuln
 
 ```shell script
-$ faraday-cli vuln create -d '{"name": "process injection", "description": "inyeccion de procesos", "exploitation": "medium", "type": ["vulnerability"]}'
+$ faraday-cli vuln create -d '{"name": "process injection", "description": "inyeccion de procesos", "exploitation": "medium", "type": ["vulnerability_template"]}'
 Vulnerability created with ID: 89
 ```
 
