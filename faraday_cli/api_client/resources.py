@@ -48,6 +48,7 @@ class HostResource(Resource):
             "url": "v3/ws/{}/hosts/{}/services",
         },
         "get_vulns": {"method": "GET", "url": "v3/ws/{}/vulns"},
+        
     }
 
 
@@ -61,6 +62,7 @@ class ServiceResource(Resource):
 class VulnResource(Resource):
     actions = {
         "get": {"method": "GET", "url": "v3/ws/{}/vulns/{}"},
+        "create": {"method": "POST", "url": "v3/vulnerability_template"},
         "patch": {"method": "PATCH", "url": "v3/ws/{}/vulns/{}"},
         "list": {"method": "GET", "url": "v3/ws/{}/vulns"},
         "filter": {"method": "GET", "url": "v3/ws/{}/vulns/filter"},

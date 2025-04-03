@@ -289,6 +289,17 @@ class FaradayApi:
             workspace_name, params={"q": json.dumps(query_filter)}
         )
         return response.body
+    @handle_errors
+    def create_vuln(self, workspace_name: str, vuln_params):
+        try:
+            response = self.faraday_api.vuln.create(workspace_name, body=vuln_params)
+        except ClientError as e:
+            if e.response.status_code == 409:
+                raise exceptions.DuplicatedError("Vulnerability already exists")
+            else:
+                raise
+        else:
+            return response.body
 
     @handle_errors
     def get_workspace_credentials(self, workspace_name: str):
