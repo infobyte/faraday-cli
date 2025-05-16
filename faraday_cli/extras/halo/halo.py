@@ -1,7 +1,6 @@
 # flake8: noqa
 # pylint: disable=unsubscriptable-object
-"""Beautiful terminal spinners in Python.
-"""
+"""Beautiful terminal spinners in Python."""
 from __future__ import absolute_import, unicode_literals
 
 import atexit
