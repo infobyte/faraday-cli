@@ -314,6 +314,8 @@ class FaradayApi:
         vuln_tag,
         host_tag,
         service_tag,
+        min_severity=None,
+        max_severity=None,
     ):
         body = {
             "executor_data": {
@@ -327,6 +329,8 @@ class FaradayApi:
             "vuln_tag": vuln_tag,
             "host_tag": host_tag,
             "service_tag": service_tag,
+            "min_severity": min_severity,
+            "max_severity": max_severity,
         }
         response = self.faraday_api.agent.run(agent_id, body=body)
         return response.body
