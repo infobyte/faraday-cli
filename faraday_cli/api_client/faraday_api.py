@@ -7,6 +7,7 @@ from faraday_cli.api_client.exceptions import (
     InvalidCredentials,
     Invalid2FA,
     MissingConfig,
+    HostNotFoundError,
     ExpiredLicense,
     NotFound,
     RequestError,
@@ -68,6 +69,8 @@ class FaradayApi:
                 raise Exception(f"{e}")
             except NotFoundError:
                 raise NotFound("Element not found")
+            except HostNotFoundError as e:
+                raise Exception(f"Host not found: {e}")
             except ClientError as e:
                 if e.response.status_code == 402:
                     raise ExpiredLicense("Your Faraday license is expired")
@@ -286,6 +289,17 @@ class FaradayApi:
             workspace_name, params={"q": json.dumps(query_filter)}
         )
         return response.body
+    @handle_errors
+    def create_vuln(self, workspace_name: str, vuln_params):
+        try:
+            response = self.faraday_api.vuln.create(workspace_name, body=vuln_params)
+        except ClientError as e:
+            if e.response.status_code == 409:
+                raise exceptions.DuplicatedError("Vulnerability already exists")
+            else:
+                raise
+        else:
+            return response.body
 
     @handle_errors
     def get_workspace_credentials(self, workspace_name: str):
@@ -354,6 +368,28 @@ class FaradayApi:
                 raise
         else:
             return response.body
+        
+    @handle_errors   
+    def update_host(self, workspace_name: str, host_id, host_params):
+        try:
+            response = self.faraday_api.host.update(workspace_name, host_id, body=host_params)
+            current_host = response.body
+            if "hostnames" in host_params:
+                current_host["hostnames"] = host_params["hostnames"]
+            if "description" in host_params:
+                current_host["description"] = host_params["description"]
+            
+            try:
+                update_response = self.faraday_api.host.update(workspace_name, host_id, body=current_host)
+            except ClientError as e:
+                raise Exception(f"Error while updating host: {e}")
+            else:
+                return update_response.body
+        except ClientError as e:
+            if e.response.status_code == 404:
+                raise exceptions.HostNotFoundError("Host not found")
+            else:
+                raise Exception(f"Error while checking host existence: {e}")
 
     @handle_errors
     def get_host_services(self, workspace_name: str, host_id):

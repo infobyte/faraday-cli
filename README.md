@@ -79,6 +79,76 @@ $ faraday-cli host list
  575  127.0.0.9    unknown                            1  3
  590  58.76.184.4  unknown  www.googlec.com           0  -
 ```
+### Update Hosts
+
+```shell script
+$ faraday-cli host update 12 -d '[{"ip":"127.0.0.1", "hostnames":["test.test.es"]}]'
+Updated host:
+{
+    "services": 11,
+    "owner": "faraday",
+    "description": "",
+    "ip": "127.0.0.1",
+    "_rev": "",
+    "workspace_name": "TEST",
+    "hostnames": [
+        "127.0.0.1",
+        "feeds.cti.pers.eus"
+    ],
+    "name": "127.0.0.1",
+    "vulns": 14,
+    "metadata": {
+        "update_user": null,
+        "owner": "faraday",
+        "update_controller_action": "",
+        "update_action": 0,
+        "command_id": null,
+        "creator": "",
+        "update_time": "2025-04-03T11:42:02.417316+00:00",
+        "create_time": "2025-03-31T14:13:22.684505+00:00"
+    },
+    "_id": 12,
+    "mac": "00:00:00:00:00:00",
+    "type": "Host",
+    "versions": [
+        "OpenSSH 8.9p1 Ubuntu 3ubuntu0.11",
+        "nginx 1.18.0",
+        "",
+        "Nagios NSCA",
+        "",
+        "Golang net/http server",
+        "MinIO S3-compatible object store",
+        "Elasticsearch REST API 8.17.3",
+        "Elasticsearch binary API",
+        "Golang net/http server"
+    ],
+    "id": 12,
+    "service_summaries": [
+        "(22/tcp) ssh (OpenSSH 8.9p1 Ubuntu 3ubuntu0.11)",
+        "(80/tcp) http (nginx 1.18.0)",
+        "(2377/tcp) grpc",
+        "(7946/tcp) unknown",
+        "(8000/tcp) nagios-nsca (Nagios NSCA)",
+        "(8080/tcp) http-proxy",
+        "(9000/tcp) http (Golang net/http server)",
+        "(9001/tcp) http (MinIO S3-compatible object store)",
+        "(9200/tcp) http (Elasticsearch REST API 8.17.3)",
+        "(9300/tcp) elasticsearch (Elasticsearch binary API)",
+        "(9443/tcp) https (Golang net/http server)"
+    ],
+    "owned": false,
+    "default_gateway": "",
+    "os": "Linux",
+    "credentials": 0,
+    "importance": 0
+}
+```
+### Create Vuln
+
+```shell script
+$ faraday-cli vuln create -d '{"name": "process injection", "description": "inyeccion de procesos", "exploitation": "medium", "type": ["vulnerability_template"]}'
+Vulnerability created with ID: 89
+```
 
 ### Get host
 
