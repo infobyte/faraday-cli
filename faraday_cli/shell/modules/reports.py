@@ -14,9 +14,7 @@ class ReportsCommands(cmd2.CommandSet):
         super().__init__()
 
     report_parser = cmd2.Cmd2ArgumentParser()
-    report_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace"
-    )
+    report_parser.add_argument("-w", "--workspace-name", type=str, help="Workspace")
     report_parser.add_argument(
         "--create-workspace",
         action="store_true",
@@ -57,9 +55,7 @@ class ReportsCommands(cmd2.CommandSet):
     )
     report_parser.add_argument("report_path", help="Path of the report file")
 
-    @cmd2.as_subcommand_to(
-        "tool", "report", report_parser, help="process a report from a tool"
-    )
+    @cmd2.as_subcommand_to("tool", "report", report_parser, help="process a report from a tool")
     def process_report(self, args: argparse.Namespace):
         """Process Tool report in Faraday"""
         report_path = Path(args.report_path)
@@ -103,25 +99,19 @@ class ReportsCommands(cmd2.CommandSet):
         else:
             plugin = self._cmd.report_analyzer.get_plugin(report_path)
             if not plugin:
-                self._cmd.perror(
-                    f"{self._cmd.emojis['cross']} "
-                    f"Failed to detect report: {report_path}"
-                )
+                self._cmd.perror(f"{self._cmd.emojis['cross']} " f"Failed to detect report: {report_path}")
                 return
         if not args.json_output:
             self._cmd.poutput(
                 cmd2.style(
-                    f"{self._cmd.emojis['page']} "
-                    f"Processing {plugin.id} report",
+                    f"{self._cmd.emojis['page']} " f"Processing {plugin.id} report",
                     fg=COLORS.GREEN,
                 )
             )
         plugin.vuln_tag = args.vuln_tag
         plugin.host_tag = args.host_tag
         plugin.service_tag = args.service_tag
-        plugin.processReport(
-            report_path.absolute().as_posix(), getpass.getuser()
-        )
+        plugin.processReport(report_path.absolute().as_posix(), getpass.getuser())
         if args.json_output:
             self._cmd.poutput(json.dumps(plugin.get_data(), indent=4))
         else:

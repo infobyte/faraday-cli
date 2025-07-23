@@ -23,12 +23,7 @@ class FaradayFilter:
         if self.__severities_required:
             if len(self.__severities_required) > 1:
                 filter_data.append(
-                    {
-                        "or": [
-                            {"name": "severity", "op": "eq", "val": value}
-                            for value in self.__severities_required
-                        ]
-                    }
+                    {"or": [{"name": "severity", "op": "eq", "val": value} for value in self.__severities_required]}
                 )
             else:
                 filter_data.append(
@@ -42,12 +37,7 @@ class FaradayFilter:
         if self.__severities_ignored:
             if len(self.__severities_ignored) > 1:
                 filter_data.append(
-                    {
-                        "and": [
-                            {"name": "severity", "op": "neq", "val": value}
-                            for value in self.__severities_ignored
-                        ]
-                    }
+                    {"and": [{"name": "severity", "op": "neq", "val": value} for value in self.__severities_ignored]}
                 )
             else:
                 filter_data.append(
@@ -59,11 +49,7 @@ class FaradayFilter:
                 )
         if self.__confirmed:
             if filter_data:
-                filter_data.append(
-                    {"and": [{"name": "confirmed", "op": "eq", "val": "true"}]}
-                )
+                filter_data.append({"and": [{"name": "confirmed", "op": "eq", "val": "true"}]})
             else:
-                filter_data.append(
-                    {"name": "confirmed", "op": "eq", "val": "true"}
-                )
+                filter_data.append({"name": "confirmed", "op": "eq", "val": "true"})
         return {"filters": filter_data, "limit": limit, "offset": offset}

@@ -31,19 +31,11 @@ class ServiceCommands(cmd2.CommandSet):
 
     # List Service
     list_service_parser = cmd2.Cmd2ArgumentParser()
-    list_service_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace"
-    )
-    list_service_parser.add_argument(
-        "-j", "--json-output", action="store_true", help="JSON output"
-    )
-    list_service_parser.add_argument(
-        "-p", "--pretty", action="store_true", help="Pretty Tables"
-    )
+    list_service_parser.add_argument("-w", "--workspace-name", type=str, help="Workspace")
+    list_service_parser.add_argument("-j", "--json-output", action="store_true", help="JSON output")
+    list_service_parser.add_argument("-p", "--pretty", action="store_true", help="Pretty Tables")
 
-    @cmd2.as_subcommand_to(
-        "service", "list", list_service_parser, help="list services"
-    )
+    @cmd2.as_subcommand_to("service", "list", list_service_parser, help="list services")
     def list_services(self, args: argparse.Namespace):
         """List services"""
 
@@ -63,9 +55,7 @@ class ServiceCommands(cmd2.CommandSet):
 
         def get_service_host(host_id):
             if host_id not in host_cache:
-                host_cache[host_id] = self._cmd.api_client.get_host(
-                    workspace_name, host_id
-                )
+                host_cache[host_id] = self._cmd.api_client.get_host(workspace_name, host_id)
             return host_cache[host_id]
 
         if not args.workspace_name:
@@ -85,9 +75,7 @@ class ServiceCommands(cmd2.CommandSet):
                 self._cmd.perror(f"No services in workspace: {workspace_name}")
             else:
                 if args.json_output:
-                    self._cmd.poutput(
-                        json.dumps(services["services"], indent=4)
-                    )
+                    self._cmd.poutput(json.dumps(services["services"], indent=4))
                 else:
                     data = [
                         OrderedDict(
