@@ -48,7 +48,7 @@ black:
     stage: .pre
     script:
       - pip install .[dev]
-      - black --line-length=79 --check .
+      - black --line-length=120 --check .
 
 .generate_license: &generate_license
   - mkdir -p ~/.faraday/doc
