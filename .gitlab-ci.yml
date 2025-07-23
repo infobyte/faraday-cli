@@ -67,7 +67,7 @@ black:
       - *generate_license
 
       - apt-get update -y
-      - apt-get install -y git pandoc libsasl2-dev python3-dev libldap2-dev libssl-dev libpq-dev
+      - apt-get install -y git build-essential pandoc libsasl2-dev python3-dev libldap2-dev libssl-dev libpq-dev
 
       - virtualenv faraday_venv
       - source faraday_venv/bin/activate
