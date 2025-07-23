@@ -67,7 +67,7 @@ black:
       - *generate_license
 
       - apt-get update -y
-      - apt-get install pandoc libsasl2-dev python3-dev libldap2-dev libssl-dev -y
+      - apt-get install git pandoc libsasl2-dev python3-dev libldap2-dev libssl-dev -y
 
       - virtualenv faraday_venv
       - source faraday_venv/bin/activate
