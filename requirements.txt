@@ -5,7 +5,7 @@ jsonschema>=3.2.0
 PyYAML>=5.4.1
 simple-rest-client>=1.0.8
 tabulate>=0.8.9
-validators>=0.18.2
+validators>=0.18.2,<=0.20.0
 spinners>=0.0.24
 termcolor>=1.1.0
 cmd2>=2.3.0
