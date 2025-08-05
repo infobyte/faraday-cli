@@ -23,9 +23,7 @@ class AgentCommands(cmd2.CommandSet):
 
     # List Agents
     list_agent_parser = argparse.ArgumentParser()
-    list_agent_parser.add_argument(
-        "-j", "--json-output", action="store_true", help="Show output in json"
-    )
+    list_agent_parser.add_argument("-j", "--json-output", action="store_true", help="Show output in json")
     list_agent_parser.add_argument(
         "-p",
         "--pretty",
@@ -33,9 +31,7 @@ class AgentCommands(cmd2.CommandSet):
         help="Show table in a pretty format",
     )
 
-    @cmd2.as_subcommand_to(
-        "agent", "list", list_agent_parser, help="list agents"
-    )
+    @cmd2.as_subcommand_to("agent", "list", list_agent_parser, help="list agents")
     def list_agents(self, args: argparse.Namespace):
         """List agents"""
         agents = self._cmd.api_client.list_agents()
@@ -52,9 +48,7 @@ class AgentCommands(cmd2.CommandSet):
                             "NAME": x["name"],
                             "ACTIVE": x["active"],
                             "STATUS": x["status"],
-                            "EXECUTORS": ", ".join(
-                                [i["name"] for i in x["executors"]]
-                            ),
+                            "EXECUTORS": ", ".join([i["name"] for i in x["executors"]]),
                         }
                     )
                     for x in agents
@@ -70,9 +64,7 @@ class AgentCommands(cmd2.CommandSet):
 
     get_agent_parser = argparse.ArgumentParser()
     get_agent_parser.add_argument("agent_id", type=int, help="ID of the Agent")
-    get_agent_parser.add_argument(
-        "-j", "--json-output", action="store_true", help="Show output in json"
-    )
+    get_agent_parser.add_argument("-j", "--json-output", action="store_true", help="Show output in json")
     get_agent_parser.add_argument(
         "-p",
         "--pretty",
@@ -80,9 +72,7 @@ class AgentCommands(cmd2.CommandSet):
         help="Show table in a pretty format",
     )
 
-    @cmd2.as_subcommand_to(
-        "agent", "get", get_agent_parser, help="get an agent"
-    )
+    @cmd2.as_subcommand_to("agent", "get", get_agent_parser, help="get an agent")
     def get_agent(self, args: argparse.Namespace):
         """Get agent"""
         try:
@@ -114,9 +104,7 @@ class AgentCommands(cmd2.CommandSet):
                                     f"{parameter} [Type: "
                                     f"{parameter_data['type']} - Required: "
                                     f"{parameter_data['mandatory']}]\n"
-                                    for parameter, parameter_data in x[
-                                        "parameters_metadata"
-                                    ].items()
+                                    for parameter, parameter_data in x["parameters_metadata"].items()
                                 ]
                             ),
                             "LAST_RUN": x["last_run"],
@@ -142,21 +130,15 @@ class AgentCommands(cmd2.CommandSet):
                 )
 
     run_executor_parser = argparse.ArgumentParser()
-    run_executor_parser.add_argument(
-        "-a", "--agent-id", type=int, help="ID of the agent", required=True
-    )
-    run_executor_parser.add_argument(
-        "-e", "--executor-name", type=str, help="Executor name", required=True
-    )
+    run_executor_parser.add_argument("-a", "--agent-id", type=int, help="ID of the agent", required=True)
+    run_executor_parser.add_argument("-e", "--executor-name", type=str, help="Executor name", required=True)
     run_executor_parser.add_argument(
         "-p",
         "--executor-params",
         type=str,
         help="Executor Params in json",
     )
-    run_executor_parser.add_argument(
-        "--stdin", action="store_true", help="Read executor-params from stdin"
-    )
+    run_executor_parser.add_argument("--stdin", action="store_true", help="Read executor-params from stdin")
     run_executor_parser.add_argument(
         "-w",
         "--workspace-name",
@@ -203,9 +185,7 @@ class AgentCommands(cmd2.CommandSet):
         required=False,
     )
 
-    @cmd2.as_subcommand_to(
-        "agent", "run", run_executor_parser, help="run an executor"
-    )
+    @cmd2.as_subcommand_to("agent", "run", run_executor_parser, help="run an executor")
     def run_executor(self, args):
         """Run executor"""
         ask_for_parameters = False
@@ -248,9 +228,7 @@ class AgentCommands(cmd2.CommandSet):
                         executor = executor_data
                         break
                 if not executor:
-                    self._cmd.perror(
-                        f"Invalid executor name [{args.executor_name}]"
-                    )
+                    self._cmd.perror(f"Invalid executor name [{args.executor_name}]")
                     return
                 if ask_for_parameters:
                     executor_params = {}
@@ -258,9 +236,7 @@ class AgentCommands(cmd2.CommandSet):
                         "boolean": click.BOOL,
                         "integer": click.INT,
                     }
-                    for parameter, parameter_data in executor[
-                        "parameters_metadata"
-                    ].items():
+                    for parameter, parameter_data in executor["parameters_metadata"].items():
                         value = os.getenv(
                             f"FARADAY_CLI_EXECUTOR_{executor['name'].upper()}_{parameter}",
                             None,
@@ -269,9 +245,7 @@ class AgentCommands(cmd2.CommandSet):
                             if parameter_data["mandatory"]:
                                 value = click.prompt(
                                     f"{parameter} ({parameter_data['type']})",
-                                    type=types_mapping.get(
-                                        parameter_data["type"], click.STRING
-                                    ),
+                                    type=types_mapping.get(parameter_data["type"], click.STRING),
                                     show_default=False,
                                 )
                             else:
@@ -286,10 +260,7 @@ class AgentCommands(cmd2.CommandSet):
                     executor_params = json.dumps(executor_params)
                 executor_parameters_schema = {
                     "type": "object",
-                    "properties": {
-                        x: {"type": "string"}
-                        for x in executor["parameters_metadata"].keys()
-                    },
+                    "properties": {x: {"type": "string"} for x in executor["parameters_metadata"].keys()},
                     "required": [
                         i[0]
                         for i in filter(
@@ -299,15 +270,12 @@ class AgentCommands(cmd2.CommandSet):
                     ],
                 }
                 try:
-                    utils.json_schema_validator(executor_parameters_schema)(
-                        executor_params
-                    )
+                    utils.json_schema_validator(executor_parameters_schema)(executor_params)
                 except InvalidJsonSchema as e:
                     self._cmd.perror(e)
                 else:
                     run_message = (
-                        f"Running executor: {agent['name']}/{executor['name']}"
-                        f"\nParameters: {executor_params}"
+                        f"Running executor: {agent['name']}/{executor['name']}" f"\nParameters: {executor_params}"
                     )
                     self._cmd.poutput(
                         cmd2.style(

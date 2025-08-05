@@ -74,9 +74,7 @@ class FaradayShell(Cmd):
     delattr(Cmd, "do_py")
 
     def __init__(self, *args, **kwargs):
-        super().__init__(
-            persistent_history_file="~/.faraday-cli_history", *args, **kwargs
-        )
+        super().__init__(persistent_history_file="~/.faraday-cli_history", *args, **kwargs)
         self.hidden_commands += ["EOF", "cd", "alias", "macro"]
         self.shell_mode = False
         self.TABLE_PRETTY_FORMAT = "psql"
@@ -97,9 +95,7 @@ class FaradayShell(Cmd):
                 )
             )
         if active_config.faraday_url and active_config.token:
-            intro.append(
-                style(f"Server: {active_config.faraday_url}", fg=COLORS.GREEN)
-            )
+            intro.append(style(f"Server: {active_config.faraday_url}", fg=COLORS.GREEN))
             self.api_client = FaradayApi(
                 active_config.faraday_url,
                 ignore_ssl=active_config.ignore_ssl,
@@ -140,8 +136,7 @@ class FaradayShell(Cmd):
             Settable(
                 "ignore_info_severity",
                 bool,
-                "Ignore Informational vulnerabilities "
-                "from reports and commands",
+                "Ignore Informational vulnerabilities " "from reports and commands",
                 onchange_cb=self._onchange_ignore_info_severity,
                 settable_object=self,
             )
@@ -170,9 +165,7 @@ class FaradayShell(Cmd):
     def check_update_available():
         try:
             latest_version = luddite.get_version_pypi("faraday-cli")
-            update_available = version.parse(latest_version) > version.parse(
-                __version__
-            )
+            update_available = version.parse(latest_version) > version.parse(__version__)
             return update_available, latest_version
         except:  # noqa: E722
             return False, __version__
@@ -233,12 +226,8 @@ class FaradayShell(Cmd):
         action="store_true",
         help="Ignore SSL verification",
     )
-    auth_parser.add_argument(
-        "-u", "--user", type=str, help="Faraday user", required=False
-    )
-    auth_parser.add_argument(
-        "-p", "--password", type=str, help="Faraday password", required=False
-    )
+    auth_parser.add_argument("-u", "--user", type=str, help="Faraday user", required=False)
+    auth_parser.add_argument("-p", "--password", type=str, help="Faraday password", required=False)
 
     @with_argparser(auth_parser)
     def do_auth(self, args):
@@ -248,19 +237,13 @@ class FaradayShell(Cmd):
         password = args.password
         ignore_ssl = args.ignore_ssl
         if not faraday_url:
-            faraday_url = utils.validate_url(
-                click.prompt(
-                    "\nFaraday url", default=active_config.faraday_url
-                )
-            )
+            faraday_url = utils.validate_url(click.prompt("\nFaraday url", default=active_config.faraday_url))
             url_data = urlparse(faraday_url)
             if url_data.scheme == "https":
                 ignore_ssl = (
                     click.prompt(
                         f"\nValidate SSL certificate for [{faraday_url}]",
-                        type=click.Choice(
-                            choices=["Y", "N"], case_sensitive=False
-                        ),
+                        type=click.Choice(choices=["Y", "N"], case_sensitive=False),
                         default="Y",
                     )
                     == "N"
@@ -286,9 +269,7 @@ class FaradayShell(Cmd):
                 active_config.token = token
                 active_config.workspace = None
                 active_config.save()
-                self.api_client = FaradayApi(
-                    faraday_url, ignore_ssl=ignore_ssl, token=token
-                )
+                self.api_client = FaradayApi(faraday_url, ignore_ssl=ignore_ssl, token=token)
                 self.poutput(style("Saving config", fg=COLORS.GREEN))
                 self.poutput(
                     style(
@@ -347,9 +328,7 @@ class FaradayShell(Cmd):
             data = self.data_queue.get()
             message = f"{self.emojis['arrow_up']} Sending data to workspace: {data['workspace']}"  # noqa: E501
             self.poutput(style(message, fg=COLORS.GREEN))
-            upload_error = send_to_faraday(
-                data["workspace"], data["json_data"]
-            )
+            upload_error = send_to_faraday(data["workspace"], data["json_data"])
             if upload_error is not None:
                 self.poutput(
                     style(
@@ -358,9 +337,7 @@ class FaradayShell(Cmd):
                     )
                 )
             else:
-                self.poutput(
-                    style(f"\n{self.emojis['check']} Done", fg=COLORS.GREEN)
-                )
+                self.poutput(style(f"\n{self.emojis['check']} Done", fg=COLORS.GREEN))
         return Cmd.postcmd(self, stop, line)
 
     def update_prompt(self) -> None:
@@ -375,9 +352,7 @@ class FaradayShell(Cmd):
 
     # Status
     status_parser = argparse.ArgumentParser()
-    status_parser.add_argument(
-        "-p", "--pretty", action="store_true", help="Pretty Tables"
-    )
+    status_parser.add_argument("-p", "--pretty", action="store_true", help="Pretty Tables")
 
     def print_output(self, message):
         if os.getenv("KAKER_MODE", "0") == "1":
@@ -418,9 +393,7 @@ class FaradayShell(Cmd):
                 tabulate(
                     data,
                     headers="keys",
-                    tablefmt=(
-                        self.TABLE_PRETTY_FORMAT if args.pretty else "simple"
-                    ),
+                    tablefmt=(self.TABLE_PRETTY_FORMAT if args.pretty else "simple"),
                 ),
                 fg=COLORS.GREEN,
             )
@@ -470,9 +443,7 @@ class FaradayShell(Cmd):
 
     # Vulnerability
     vulnerability_parser = argparse.ArgumentParser()
-    vulnerability_subparsers = vulnerability_parser.add_subparsers(
-        title="action"
-    )
+    vulnerability_subparsers = vulnerability_parser.add_subparsers(title="action")
 
     @with_argparser(vulnerability_parser)
     @with_category("Objects")
@@ -500,9 +471,7 @@ class FaradayShell(Cmd):
 
     # Executive Report
     executive_report_parser = argparse.ArgumentParser()
-    executive_report_subparsers = executive_report_parser.add_subparsers(
-        title="action"
-    )
+    executive_report_subparsers = executive_report_parser.add_subparsers(title="action")
 
     @with_argparser(executive_report_parser)
     @with_category("Objects")
@@ -531,9 +500,7 @@ class FaradayShell(Cmd):
     # Run Command
     def run_command(self, plugin, user, command):
         current_path = os.path.abspath(os.getcwd())
-        modified_command = plugin.processCommandString(
-            getpass.getuser(), current_path, command
-        )
+        modified_command = plugin.processCommandString(getpass.getuser(), current_path, command)
         if modified_command:
             command = modified_command
         p = subprocess.Popen(
@@ -548,9 +515,7 @@ class FaradayShell(Cmd):
             sys.stdout.write(line)
             output.write(line)
             if retcode is not None:
-                extra_lines = map(
-                    lambda x: x.decode("utf-8"), p.stdout.readlines()
-                )
+                extra_lines = map(lambda x: x.decode("utf-8"), p.stdout.readlines())
                 sys.stdout.writelines(line)
                 output.writelines(extra_lines)
                 break
@@ -585,9 +550,7 @@ class FaradayShell(Cmd):
                         f"{self.emojis['laptop']} Processing {plugin.id} command",
                         fg="green",
                     )
-                    command_json = utils.run_tool(
-                        plugin, getpass.getuser(), statement.raw
-                    )
+                    command_json = utils.run_tool(plugin, getpass.getuser(), statement.raw)
                     if not command_json:
                         click.secho(
                             f"{self.emojis['cross']} Command execution error!!",

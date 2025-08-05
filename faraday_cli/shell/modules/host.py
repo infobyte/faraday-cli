@@ -32,15 +32,9 @@ class HostCommands(cmd2.CommandSet):
 
     # List Host
     list_host_parser = cmd2.Cmd2ArgumentParser()
-    list_host_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace name"
-    )
-    list_host_parser.add_argument(
-        "-j", "--json-output", action="store_true", help="Show output in json"
-    )
-    list_host_parser.add_argument(
-        "-ip", "--show-ip", action="store_true", help="Show ip only"
-    )
+    list_host_parser.add_argument("-w", "--workspace-name", type=str, help="Workspace name")
+    list_host_parser.add_argument("-j", "--json-output", action="store_true", help="Show output in json")
+    list_host_parser.add_argument("-ip", "--show-ip", action="store_true", help="Show ip only")
     list_host_parser.add_argument(
         "-p",
         "--pretty",
@@ -83,9 +77,7 @@ class HostCommands(cmd2.CommandSet):
                     self._cmd.poutput(host["value"]["ip"])
             else:
                 if not hosts["rows"]:
-                    self._cmd.perror(
-                        f"No hosts in workspace: {workspace_name}"
-                    )
+                    self._cmd.perror(f"No hosts in workspace: {workspace_name}")
                 else:
                     data = [
                         OrderedDict(
@@ -93,20 +85,13 @@ class HostCommands(cmd2.CommandSet):
                                 "ID": x["value"]["id"],
                                 "IP": x["value"]["ip"],
                                 "OS": x["value"]["os"],
-                                "HOSTNAMES": "\n".join(
-                                    x["value"]["hostnames"]
-                                ),
+                                "HOSTNAMES": "\n".join(x["value"]["hostnames"]),
                                 "SERVICES": (
                                     "-"
-                                    if len(x["value"]["service_summaries"])
-                                    == 0
+                                    if len(x["value"]["service_summaries"]) == 0
                                     else len(x["value"]["service_summaries"])
                                 ),
-                                "VULNS": (
-                                    "-"
-                                    if x["value"]["vulns"] == 0
-                                    else x["value"]["vulns"]
-                                ),
+                                "VULNS": ("-" if x["value"]["vulns"] == 0 else x["value"]["vulns"]),
                             }
                         )
                         for x in hosts["rows"]
@@ -128,9 +113,7 @@ class HostCommands(cmd2.CommandSet):
         help="Workspace name",
         required=False,
     )
-    get_host_parser.add_argument(
-        "-j", "--json-output", action="store_true", help="Show output in json"
-    )
+    get_host_parser.add_argument("-j", "--json-output", action="store_true", help="Show output in json")
     get_host_parser.add_argument(
         "-p",
         "--pretty",
@@ -158,9 +141,7 @@ class HostCommands(cmd2.CommandSet):
             stream=sys.stderr,
         )
         def get_host_services(workspace_name, host_id):
-            return self._cmd.api_client.get_host_services(
-                workspace_name, host_id
-            )
+            return self._cmd.api_client.get_host_services(workspace_name, host_id)
 
         @Halo(
             text="Gathering data",
@@ -182,10 +163,7 @@ class HostCommands(cmd2.CommandSet):
         try:
             host = get_host_data(workspace_name, args.host_id)
         except NotFoundError:
-            self._cmd.perror(
-                f"Host ID: {args.host_id} "
-                f"in Workspace {workspace_name} not found"
-            )
+            self._cmd.perror(f"Host ID: {args.host_id} " f"in Workspace {workspace_name} not found")
         else:
             if args.json_output:
                 self._cmd.poutput(json.dumps(host, indent=4))
@@ -209,11 +187,7 @@ class HostCommands(cmd2.CommandSet):
                     tabulate(
                         host_data,
                         headers="keys",
-                        tablefmt=(
-                            self._cmd.TABLE_PRETTY_FORMAT
-                            if args.pretty
-                            else "simple"
-                        ),
+                        tablefmt=(self._cmd.TABLE_PRETTY_FORMAT if args.pretty else "simple"),
                     )
                 )
                 if host["services"] > 0:
@@ -228,9 +202,7 @@ class HostCommands(cmd2.CommandSet):
                                 "PORT": x["port"],
                                 "VERSION": x["version"],
                                 "STATUS": x["status"],
-                                "VULNS": (
-                                    "-" if x["vulns"] == 0 else x["vulns"]
-                                ),
+                                "VULNS": ("-" if x["vulns"] == 0 else x["vulns"]),
                             }
                         )
                         for x in services
@@ -240,11 +212,7 @@ class HostCommands(cmd2.CommandSet):
                         tabulate(
                             services_data,
                             headers="keys",
-                            tablefmt=(
-                                self._cmd.TABLE_PRETTY_FORMAT
-                                if args.pretty
-                                else "simple"
-                            ),
+                            tablefmt=(self._cmd.TABLE_PRETTY_FORMAT if args.pretty else "simple"),
                         )
                     )
                 if host["vulns"] > 0:
@@ -256,9 +224,7 @@ class HostCommands(cmd2.CommandSet):
                                 "NAME": x["value"]["name"],
                                 "SEVERITY": cmd2.style(
                                     x["value"]["severity"].upper(),
-                                    fg=utils.get_severity_color(
-                                        x["value"]["severity"]
-                                    ),
+                                    fg=utils.get_severity_color(x["value"]["severity"]),
                                 ),
                                 "STATUS": x["value"]["status"],
                                 "CONFIRMED": x["value"]["confirmed"],
@@ -272,11 +238,7 @@ class HostCommands(cmd2.CommandSet):
                         tabulate(
                             vulns_data,
                             headers="keys",
-                            tablefmt=(
-                                self._cmd.TABLE_PRETTY_FORMAT
-                                if args.pretty
-                                else "simple"
-                            ),
+                            tablefmt=(self._cmd.TABLE_PRETTY_FORMAT if args.pretty else "simple"),
                         )
                     )
 
@@ -291,9 +253,7 @@ class HostCommands(cmd2.CommandSet):
         required=False,
     )
 
-    @cmd2.as_subcommand_to(
-        "host", "delete", delete_host_parser, help="delete a host"
-    )
+    @cmd2.as_subcommand_to("host", "delete", delete_host_parser, help="delete a host")
     def delete_host(self, args):
         """Delete Host"""
         if not args.workspace_name:
@@ -321,9 +281,7 @@ class HostCommands(cmd2.CommandSet):
         type=str,
         help=f"Host data in json format: {HOST_CREATE_JSON_SCHEMA}",
     )
-    create_host_parser.add_argument(
-        "--stdin", action="store_true", help="Read host-data from stdin"
-    )
+    create_host_parser.add_argument("--stdin", action="store_true", help="Read host-data from stdin")
     create_host_parser.add_argument(
         "-w",
         "--workspace-name",
@@ -337,9 +295,7 @@ class HostCommands(cmd2.CommandSet):
         help="Doesnt resolve hostname",
     )
 
-    @cmd2.as_subcommand_to(
-        "host", "create", create_host_parser, help="create hosts"
-    )
+    @cmd2.as_subcommand_to("host", "create", create_host_parser, help="create hosts")
     def create_hosts(self, args: argparse.Namespace):
         """Create Hosts"""
         if not args.workspace_name:
@@ -359,9 +315,7 @@ class HostCommands(cmd2.CommandSet):
             else:
                 host_data = args.host_data
         try:
-            json_data = utils.json_schema_validator(HOST_CREATE_JSON_SCHEMA)(
-                host_data
-            )
+            json_data = utils.json_schema_validator(HOST_CREATE_JSON_SCHEMA)(host_data)
         except Exception as e:
             self._cmd.perror(f"{e}")
         else:
@@ -377,12 +331,8 @@ class HostCommands(cmd2.CommandSet):
                     else:
                         _host_data["hostnames"] = [hostname]
                 try:
-                    host = self._cmd.api_client.create_host(
-                        workspace_name, _host_data
-                    )
+                    host = self._cmd.api_client.create_host(workspace_name, _host_data)
                 except Exception as e:
                     self._cmd.perror(f"{e}")
                 else:
-                    self._cmd.poutput(
-                        f"Created host\n{json.dumps(host, indent=4)}"
-                    )
+                    self._cmd.poutput(f"Created host\n{json.dumps(host, indent=4)}")

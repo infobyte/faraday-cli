@@ -57,13 +57,9 @@ class FaradayApi:
             except InvalidCredentials:
                 raise
             except AuthError:
-                raise InvalidCredentials(
-                    "Invalid credentials, run 'faraday-cli auth'"
-                )
+                raise InvalidCredentials("Invalid credentials, run 'faraday-cli auth'")
             except ClientConnectionError as e:
-                raise Exception(
-                    f"Connection error: {e} (check you faraday server)"
-                )
+                raise Exception(f"Connection error: {e} (check you faraday server)")
             except DuplicatedError as e:
                 raise Exception(f"{e}")
             except NotFoundError:
@@ -72,13 +68,8 @@ class FaradayApi:
                 if e.response.status_code == 402:
                     raise ExpiredLicense("Your Faraday license is expired")
                 else:
-                    if (
-                        e.response.headers["content-type"]
-                        == "application/json"
-                    ):
-                        raise RequestError(
-                            e.response.body.get("message", e.response.body)
-                        )
+                    if e.response.headers["content-type"] == "application/json":
+                        raise RequestError(e.response.body.get("message", e.response.body))
                     else:
                         raise RequestError(e)
             except Exception as e:
@@ -89,12 +80,8 @@ class FaradayApi:
         return hanlde
 
     def _build_resources(self):
-        self.faraday_api.add_resource(
-            resource_name="login", resource_class=resources.LoginResource
-        )
-        self.faraday_api.add_resource(
-            resource_name="config", resource_class=resources.ConfigResource
-        )
+        self.faraday_api.add_resource(resource_name="login", resource_class=resources.LoginResource)
+        self.faraday_api.add_resource(resource_name="config", resource_class=resources.ConfigResource)
         self.faraday_api.add_resource(
             resource_name="workspace",
             resource_class=resources.WorkspaceResource,
@@ -103,22 +90,14 @@ class FaradayApi:
             resource_name="bulk_create",
             resource_class=resources.BulkCreateResource,
         )
-        self.faraday_api.add_resource(
-            resource_name="host", resource_class=resources.HostResource
-        )
-        self.faraday_api.add_resource(
-            resource_name="service", resource_class=resources.ServiceResource
-        )
+        self.faraday_api.add_resource(resource_name="host", resource_class=resources.HostResource)
+        self.faraday_api.add_resource(resource_name="service", resource_class=resources.ServiceResource)
         self.faraday_api.add_resource(
             resource_name="credential",
             resource_class=resources.CredentialResource,
         )
-        self.faraday_api.add_resource(
-            resource_name="agent", resource_class=resources.AgentResource
-        )
-        self.faraday_api.add_resource(
-            resource_name="vuln", resource_class=resources.VulnResource
-        )
+        self.faraday_api.add_resource(resource_name="agent", resource_class=resources.AgentResource)
+        self.faraday_api.add_resource(resource_name="vuln", resource_class=resources.VulnResource)
         self.faraday_api.add_resource(
             resource_name="vuln_evidence",
             resource_class=resources.VulnEvidenceResource,
@@ -151,9 +130,7 @@ class FaradayApi:
                 if second_factor:
                     second_factor_body = {"secret": second_factor}
                     try:
-                        self.faraday_api.login.second_factor(
-                            body=second_factor_body
-                        )
+                        self.faraday_api.login.second_factor(body=second_factor_body)
                     except AuthError:
                         raise Invalid2FA("Invalid 2FA")
                 token_response = self.faraday_api.login.get_token()
@@ -207,11 +184,7 @@ class FaradayApi:
         if get_inactives:
             return response.body
         else:
-            return [
-                workspace
-                for workspace in response.body["rows"]
-                if workspace["active"]
-            ]
+            return [workspace for workspace in response.body["rows"] if workspace["active"]]
 
     @handle_errors
     def get_workspace(self, workspace_name: str):
@@ -220,9 +193,7 @@ class FaradayApi:
 
     @handle_errors
     def filter_workspaces(self, query_filter: dict):
-        response = self.faraday_api.workspace.filter(
-            params={"q": json.dumps(query_filter)}
-        )
+        response = self.faraday_api.workspace.filter(params={"q": json.dumps(query_filter)})
         return response.body
 
     @handle_errors
@@ -233,9 +204,7 @@ class FaradayApi:
     @handle_errors
     def get_hosts(self, workspace_name: str, port: int = None):
         if port:
-            response = self.faraday_api.host.list(
-                workspace_name, params={"port": port}
-            )
+            response = self.faraday_api.host.list(workspace_name, params={"port": port})
         else:
             response = self.faraday_api.host.list(workspace_name)
         return response.body
@@ -251,18 +220,12 @@ class FaradayApi:
         return response.body
 
     @handle_errors
-    def upload_evidence_to_vuln(
-        self, workspace_name: str, vulnerability_id: int, image_path: str
-    ):
+    def upload_evidence_to_vuln(self, workspace_name: str, vulnerability_id: int, image_path: str):
         files = {"file": open(image_path, "rb")}
         original_headers = self.faraday_api.headers.copy()
-        self.faraday_api.headers.pop(
-            "Content-Type"
-        )  # This hack is for this issue
+        self.faraday_api.headers.pop("Content-Type")  # This hack is for this issue
         # https://github.com/allisson/python-simple-rest-client/issues/41
-        response = self.faraday_api.vuln_evidence.create(
-            workspace_name, vulnerability_id, files=files
-        )
+        response = self.faraday_api.vuln_evidence.create(workspace_name, vulnerability_id, files=files)
         self.faraday_api.headers = original_headers
         return response.body
 
@@ -272,19 +235,13 @@ class FaradayApi:
         return response.body
 
     @handle_errors
-    def update_vuln(
-        self, workspace_name: str, vulnerability_id: int, body: str
-    ):
-        response = self.faraday_api.vuln.patch(
-            workspace_name, str(vulnerability_id), body=body
-        )
+    def update_vuln(self, workspace_name: str, vulnerability_id: int, body: str):
+        response = self.faraday_api.vuln.patch(workspace_name, str(vulnerability_id), body=body)
         return response
 
     @handle_errors
     def get_vulns(self, workspace_name: str, query_filter: dict = None):
-        response = self.faraday_api.vuln.filter(
-            workspace_name, params={"q": json.dumps(query_filter)}
-        )
+        response = self.faraday_api.vuln.filter(workspace_name, params={"q": json.dumps(query_filter)})
         return response.body
 
     @handle_errors
@@ -348,9 +305,7 @@ class FaradayApi:
     @handle_errors
     def create_host(self, workspace_name: str, host_params):
         try:
-            response = self.faraday_api.host.create(
-                workspace_name, body=host_params
-            )
+            response = self.faraday_api.host.create(workspace_name, body=host_params)
         except ClientError as e:
             if e.response.status_code == 409:
                 raise exceptions.DuplicatedError("Host already exist")
@@ -366,22 +321,16 @@ class FaradayApi:
 
     @handle_errors
     def get_host_vulns(self, workspace_name: str, host_ip):
-        response = self.faraday_api.host.get_vulns(
-            workspace_name, params={"target": host_ip}
-        )
+        response = self.faraday_api.host.get_vulns(workspace_name, params={"target": host_ip})
         return response.body
 
     @handle_errors
     def bulk_create(self, workspace_name, data):
-        response = self.faraday_api.bulk_create.create(
-            workspace_name, body=data
-        )
+        response = self.faraday_api.bulk_create.create(workspace_name, body=data)
         return response.body
 
     @handle_errors
-    def create_workspace(
-        self, workspace_name: str, description="", users=None
-    ):
+    def create_workspace(self, workspace_name: str, description="", users=None):
         default_users = ["faraday"]
         if users:
             if isinstance(users, str):
@@ -410,9 +359,7 @@ class FaradayApi:
     @handle_errors
     def disable_workspace(self, workspace_name: str):
         try:
-            response = self.faraday_api.workspace.update(
-                workspace_name, body={"active": False}
-            )
+            response = self.faraday_api.workspace.update(workspace_name, body={"active": False})
         except ClientError:
             raise
         else:
@@ -421,9 +368,7 @@ class FaradayApi:
     @handle_errors
     def enable_workspace(self, workspace_name: str):
         try:
-            response = self.faraday_api.workspace.update(
-                workspace_name, body={"active": True}
-            )
+            response = self.faraday_api.workspace.update(workspace_name, body={"active": True})
         except ClientError:
             raise
         else:
@@ -437,25 +382,17 @@ class FaradayApi:
     @handle_errors
     def is_workspace_available(self, workspace_name):
         workspaces = self.get_workspaces()
-        available_workspaces = [
-            ws for ws in map(lambda x: x["name"], workspaces)
-        ]
+        available_workspaces = [ws for ws in map(lambda x: x["name"], workspaces)]
         return workspace_name in available_workspaces
 
     @handle_errors
     def get_executive_report_templates(self, workspace_name: str):
-        response = self.faraday_api.executive_report.list_templates(
-            workspace_name
-        )
+        response = self.faraday_api.executive_report.list_templates(workspace_name)
         return response.body
 
     @handle_errors
-    def generate_executive_report(
-        self, workspace_name: str, report_data: dict
-    ):
-        response = self.faraday_api.executive_report.generate(
-            workspace_name, body=report_data
-        )
+    def generate_executive_report(self, workspace_name: str, report_data: dict):
+        response = self.faraday_api.executive_report.generate(workspace_name, body=report_data)
         return response.body["id"]
 
     @handle_errors

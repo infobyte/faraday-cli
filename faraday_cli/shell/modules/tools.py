@@ -14,9 +14,7 @@ class ToolCommands(cmd2.CommandSet):
         super().__init__()
 
     tool_parser = cmd2.Cmd2ArgumentParser()
-    tool_parser.add_argument(
-        "-w", "--workspace-name", type=str, help="Workspace"
-    )
+    tool_parser.add_argument("-w", "--workspace-name", type=str, help="Workspace")
     tool_parser.add_argument(
         "--create-workspace",
         action="store_true",
@@ -76,9 +74,7 @@ class ToolCommands(cmd2.CommandSet):
         help="Process the output of the command regardless of the results",
     )
 
-    @cmd2.as_subcommand_to(
-        "tool", "run", tool_parser, help="run a tool and process it"
-    )
+    @cmd2.as_subcommand_to("tool", "run", tool_parser, help="run a tool and process it")
     def process_tool(self, args):
         """Process Tool execution in Faraday"""
         if not args.json_output:
@@ -123,8 +119,7 @@ class ToolCommands(cmd2.CommandSet):
             if not args.json_output:
                 self._cmd.poutput(
                     cmd2.style(
-                        f"{self._cmd.emojis['laptop']} "
-                        f"Processing {plugin.id} command",
+                        f"{self._cmd.emojis['laptop']} " f"Processing {plugin.id} command",
                         fg=COLORS.GREEN,
                     )
                 )
@@ -142,9 +137,7 @@ class ToolCommands(cmd2.CommandSet):
                 force=args.force,
             )
             if not command_json:
-                self._cmd.perror(
-                    f"{self._cmd.emojis['cross']} Command execution error!!"
-                )
+                self._cmd.perror(f"{self._cmd.emojis['cross']} Command execution error!!")
             else:
                 if args.json_output:
                     self._cmd.poutput(json.dumps(command_json, indent=4))
@@ -156,6 +149,4 @@ class ToolCommands(cmd2.CommandSet):
                         }
                     )
         else:
-            self._cmd.perror(
-                f"Could not detect plugin for command: {args.command}"
-            )
+            self._cmd.perror(f"Could not detect plugin for command: {args.command}")

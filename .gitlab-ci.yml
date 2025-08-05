@@ -48,7 +48,7 @@ black:
     stage: .pre
     script:
       - pip install .[dev]
-      - black --line-length=79 --check .
+      - black --line-length=120 --check .
 
 .generate_license: &generate_license
   - mkdir -p ~/.faraday/doc
@@ -67,7 +67,7 @@ black:
       - *generate_license
 
       - apt-get update -y
-      - apt-get install pandoc libsasl2-dev python3-dev libldap2-dev libssl-dev -y
+      - apt-get install -y git build-essential pandoc libsasl2-dev python3-dev libldap2-dev libssl-dev libpq-dev
 
       - virtualenv faraday_venv
       - source faraday_venv/bin/activate
@@ -130,22 +130,26 @@ black:
     - if: '$TEST_ALPHA'
       when: on_success
 
-unit_test 3.8:
-    extends: .latest_unit_test_base
-    image: python:3.8
+unit_tests:
+  extends: .latest_unit_test_base
+  parallel:
+    matrix:
+      - PYTHON_VERSION: "3.9-slim-bookworm"
+      - PYTHON_VERSION: "3.10-slim-bookworm"
+      - PYTHON_VERSION: "3.11-slim-bookworm"
+      - PYTHON_VERSION: "3.12-slim-bookworm"
+  image: python:${PYTHON_VERSION}
+  allow_failure: true
 
-unit_test 3.9:
-    extends: .latest_unit_test_base
-    image: python:3.9-rc
-    allow_failure: true
-
-alpha_unit_test 3.8:
-    extends: .alpha_unit_test_base
-    image: python:3.8
-
-alpha_unit_test 3.9:
-    extends: .alpha_unit_test_base
-    image: python:3.9-rc
+alpha_unit_tests:
+  extends: .alpha_unit_test_base
+  parallel:
+    matrix:
+      - PYTHON_VERSION: "3.9-slim-bookworm"
+      - PYTHON_VERSION: "3.10-slim-bookworm"
+      - PYTHON_VERSION: "3.11-slim-bookworm"
+      - PYTHON_VERSION: "3.12-slim-bookworm"
+  image: python:${PYTHON_VERSION}
 
 
 publish_pypi:

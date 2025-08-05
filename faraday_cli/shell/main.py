@@ -6,15 +6,10 @@ from faraday_cli.shell.shell import FaradayShell
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Commands as arguments")
-    command_help = (
-        "optional command to run, "
-        "if no command given, enter an interactive shell"
-    )
+    command_help = "optional command to run, " "if no command given, enter an interactive shell"
     parser.add_argument("command", nargs="?", help=command_help)
     arg_help = "optional arguments for command"
-    parser.add_argument(
-        "command_args", nargs=argparse.REMAINDER, help=arg_help
-    )
+    parser.add_argument("command_args", nargs=argparse.REMAINDER, help=arg_help)
 
     args = parser.parse_args(argv)
     app = FaradayShell()

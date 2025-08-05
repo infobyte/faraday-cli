@@ -14,9 +14,7 @@ def test_auth_with_invalid_credentials(faraday_cli_app_no_config, faraday_url):
     assert out.stderr.strip() == "Invalid credentials"
 
 
-def test_auth_with_valid_credentials(
-    faraday_cli_app_no_config, faraday_url, faraday_user, faraday_password
-):
+def test_auth_with_valid_credentials(faraday_cli_app_no_config, faraday_url, faraday_user, faraday_password):
     command = f"auth -f {faraday_url} -u {faraday_user} -p {faraday_password}"
     out = faraday_cli_app_no_config.app_cmd(command)
     assert isinstance(out, CommandResult)

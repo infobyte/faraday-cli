@@ -2,9 +2,7 @@ import os
 import yaml
 from pathlib import Path
 
-DEFAULT_CONFIG_FILE = os.environ.get(
-    "FARADAY_CLI_CONFIG", "~/.faraday-cli.yml"
-)
+DEFAULT_CONFIG_FILE = os.environ.get("FARADAY_CLI_CONFIG", "~/.faraday-cli.yml")
 
 
 class Config:
@@ -28,23 +26,13 @@ class Config:
             if self.config_exists():
                 with open(self.config_file) as f:
                     config_data = yaml.load(f, Loader=yaml.FullLoader)
-                self.faraday_url = config_data.get("auth", {}).get(
-                    "faraday_url"
-                )
+                self.faraday_url = config_data.get("auth", {}).get("faraday_url")
                 self.token = config_data.get("auth", {}).get("token")
                 self.ignore_ssl = config_data.get("auth", {}).get("ignore_ssl")
-                self.workspace = config_data.get("faraday", {}).get(
-                    "workspace"
-                )
-                self.custom_plugins_path = config_data.get("settings", {}).get(
-                    "custom_plugins_path"
-                )
-                self.ignore_info_severity = config_data.get(
-                    "settings", {}
-                ).get("ignore_info_severity", False)
-                self.auto_command_detection = config_data.get(
-                    "settings", {}
-                ).get("auto_command_detection", True)
+                self.workspace = config_data.get("faraday", {}).get("workspace")
+                self.custom_plugins_path = config_data.get("settings", {}).get("custom_plugins_path")
+                self.ignore_info_severity = config_data.get("settings", {}).get("ignore_info_severity", False)
+                self.auto_command_detection = config_data.get("settings", {}).get("auto_command_detection", True)
         except KeyError:
             pass
 

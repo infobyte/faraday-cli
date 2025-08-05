@@ -42,10 +42,7 @@ RANGE_SEVERITIES = (
 
 
 def validate_url(value):
-    if sys.version_info < (3, 8):
-        valid_url = url(value)
-    else:
-        valid_url = url(value, simple_host=True)
+    valid_url = url(value)
     if valid_url:
         return value
     else:
@@ -107,36 +104,18 @@ def get_severity_color(severity):
 
 def get_ignore_info_severity_filter() -> dict:
     query_filter = {
-        "filters": [
-            {
-                "and": [
-                    {"name": "severity", "op": "neq", "val": severity}
-                    for severity in IGNORE_SEVERITIES
-                ]
-            }
-        ]
+        "filters": [{"and": [{"name": "severity", "op": "neq", "val": severity} for severity in IGNORE_SEVERITIES]}]
     }
     return query_filter
 
 
 def get_severity_filter(severities: list) -> dict:
-    query_filter = {
-        "filters": [
-            {
-                "or": [
-                    {"name": "severity", "op": "eq", "val": severity}
-                    for severity in severities
-                ]
-            }
-        ]
-    }
+    query_filter = {"filters": [{"or": [{"name": "severity", "op": "eq", "val": severity} for severity in severities]}]}
     return query_filter
 
 
 def get_confirmed_filter() -> dict:
-    query_filter = {
-        "filters": [{"name": "confirmed", "op": "==", "val": "true"}]
-    }
+    query_filter = {"filters": [{"name": "confirmed", "op": "==", "val": "true"}]}
     return query_filter
 
 
@@ -147,9 +126,7 @@ def get_active_workspaces_filter() -> dict:
 
 def run_tool(plugin, user, command, show_output=True, force=False):
     current_path = os.path.abspath(os.getcwd())
-    modified_command = plugin.processCommandString(
-        getpass.getuser(), current_path, command
-    )
+    modified_command = plugin.processCommandString(getpass.getuser(), current_path, command)
     if modified_command:
         command = modified_command
     p = subprocess.Popen(
@@ -165,9 +142,7 @@ def run_tool(plugin, user, command, show_output=True, force=False):
             sys.stdout.write(line)
         output.write(line)
         if retcode is not None:
-            extra_lines = map(
-                lambda x: x.decode("utf-8"), p.stdout.readlines()
-            )
+            extra_lines = map(lambda x: x.decode("utf-8"), p.stdout.readlines())
             if show_output:
                 sys.stdout.writelines(line)
             output.writelines(extra_lines)

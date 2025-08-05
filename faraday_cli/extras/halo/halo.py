@@ -83,9 +83,7 @@ class Halo(object):
         self.text = text
         self._text_color = text_color
 
-        self._interval = (
-            int(interval) if int(interval) > 0 else self._spinner["interval"]
-        )
+        self._interval = int(interval) if int(interval) > 0 else self._spinner["interval"]
         self._stream = stream
 
         self.placement = placement
@@ -235,9 +233,7 @@ class Halo(object):
         """
         if placement not in self.SPINNER_PLACEMENTS:
             raise ValueError(
-                "Unknown spinner placement '{0}', available are {1}".format(
-                    placement, self.SPINNER_PLACEMENTS
-                )
+                "Unknown spinner placement '{0}', available are {1}".format(placement, self.SPINNER_PLACEMENTS)
             )
         self._placement = placement
 
@@ -369,9 +365,7 @@ class Halo(object):
                 """
                 Make the text scroll like a marquee
                 """
-                stripped_text = (
-                    stripped_text + " " + stripped_text[:terminal_width]
-                )
+                stripped_text = stripped_text + " " + stripped_text[:terminal_width]
                 for x in range(0, text_length + 1):
                     frames.append(stripped_text[x : terminal_width + x])
         elif terminal_width < text_length and not animation:
@@ -437,15 +431,7 @@ class Halo(object):
         self._frame_index = self._frame_index % len(frames)
 
         text_frame = self.text_frame()
-        return "{0} {1}".format(
-            *[
-                (
-                    (text_frame, frame)
-                    if self._placement == "right"
-                    else (frame, text_frame)
-                )
-            ][0]
-        )
+        return "{0} {1}".format(*[(text_frame, frame) if self._placement == "right" else (frame, text_frame)][0])
 
     def text_frame(self):
         """Builds and returns the text frame to be rendered
@@ -529,9 +515,7 @@ class Halo(object):
         -------
         self
         """
-        return self.stop_and_persist(
-            symbol=LogSymbols.SUCCESS.value, text=text
-        )
+        return self.stop_and_persist(symbol=LogSymbols.SUCCESS.value, text=text)
 
     def fail(self, text=None):
         """Shows and persists fail symbol and text and exits.
@@ -555,9 +539,7 @@ class Halo(object):
         -------
         self
         """
-        return self.stop_and_persist(
-            symbol=LogSymbols.WARNING.value, text=text
-        )
+        return self.stop_and_persist(symbol=LogSymbols.WARNING.value, text=text)
 
     def info(self, text=None):
         """Shows and persists info symbol and text and exits.
@@ -601,15 +583,7 @@ class Halo(object):
 
         self.stop()
 
-        output = "{0} {1}\n".format(
-            *[
-                (
-                    (text, symbol)
-                    if self._placement == "right"
-                    else (symbol, text)
-                )
-            ][0]
-        )
+        output = "{0} {1}\n".format(*[(text, symbol) if self._placement == "right" else (symbol, text)][0])
 
         try:
             self._write(output)
