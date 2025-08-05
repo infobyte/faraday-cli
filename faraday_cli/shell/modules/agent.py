@@ -13,6 +13,7 @@ from simple_rest_client.exceptions import NotFoundError
 from faraday_cli.config import active_config
 from faraday_cli.shell import utils
 from faraday_cli.shell.exceptions import InvalidJson, InvalidJsonSchema
+from faraday_cli.shell.utils import RANGE_SEVERITIES
 
 
 @cmd2.with_default_category("Agents")
@@ -169,6 +170,20 @@ class AgentCommands(cmd2.CommandSet):
         action="append",
         default=[],
     )
+    run_executor_parser.add_argument(
+        "--min-severity",
+        type=str,
+        help="Minimum severity of vulnerabilities to import",
+        choices=RANGE_SEVERITIES,
+        required=False,
+    )
+    run_executor_parser.add_argument(
+        "--max-severity",
+        type=str,
+        help="Maximum severity of vulnerabilities to import",
+        choices=RANGE_SEVERITIES,
+        required=False,
+    )
 
     @cmd2.as_subcommand_to("agent", "run", run_executor_parser, help="run an executor")
     def run_executor(self, args):
@@ -279,6 +294,8 @@ class AgentCommands(cmd2.CommandSet):
                             args.vuln_tag,
                             args.host_tag,
                             args.service_tag,
+                            args.min_severity,
+                            args.max_severity,
                         )
                     except Exception as e:
                         self._cmd.perror(str(e))

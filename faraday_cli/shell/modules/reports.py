@@ -6,6 +6,7 @@ import json
 import cmd2
 from cmd2 import Fg as COLORS
 from faraday_cli.config import active_config
+from faraday_cli.shell.utils import RANGE_SEVERITIES
 
 
 @cmd2.with_default_category("Tools Reports")
@@ -52,6 +53,20 @@ class ReportsCommands(cmd2.CommandSet):
         help="Tag to add to services",
         required=False,
         action="append",
+    )
+    report_parser.add_argument(
+        "--min-severity",
+        type=str,
+        help="Minimum severity of vulnerabilities to import",
+        choices=RANGE_SEVERITIES,
+        required=False,
+    )
+    report_parser.add_argument(
+        "--max-severity",
+        type=str,
+        help="Maximum severity of vulnerabilities to import",
+        choices=RANGE_SEVERITIES,
+        required=False,
     )
     report_parser.add_argument("report_path", help="Path of the report file")
 
@@ -111,6 +126,8 @@ class ReportsCommands(cmd2.CommandSet):
         plugin.vuln_tag = args.vuln_tag
         plugin.host_tag = args.host_tag
         plugin.service_tag = args.service_tag
+        plugin.min_severity = args.min_severity
+        plugin.max_severity = args.max_severity
         plugin.processReport(report_path.absolute().as_posix(), getpass.getuser())
         if args.json_output:
             self._cmd.poutput(json.dumps(plugin.get_data(), indent=4))

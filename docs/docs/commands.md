@@ -505,6 +505,8 @@ $ faraday-cli tool report $HOME/Downloads/openvas-report.xml
 | `--vuln-tag VULN_TAG`    | Tag to add to vulnerabilities       |
 | `--host-tag HOST_TAG`    | Tag to add to hosts       |
 | `--service-tag SERVICE_TAG` | Tag to add to services      |
+| `--min-severity SEVERITY` | Minimum severity of vulnerabilities to import (unclassified/info/low/med/high/critical)      |
+| `--max-severity SEVERITY` | Maximum severity of vulnerabilities to import (unclassified/info/low/med/high/critical)      |
 
 ### tool run
 
@@ -549,6 +551,8 @@ Nmap done: 1 IP address (1 host up) scanned in 11.12 seconds
 | `--vuln-tag VULN_TAG`    | Tag to add to vulnerabilities       |
 | `--host-tag HOST_TAG`    | Tag to add to hosts       |
 | `--service-tag SERVICE_TAG` | Tag to add to services      |
+| `--min-severity SEVERITY` | Minimum severity of vulnerabilities to import (unclassified/info/low/med/high/critical)      |
+| `--max-severity SEVERITY` | Maximum severity of vulnerabilities to import (unclassified/info/low/med/high/critical)      |
 
 ## Vulnerabilities Stats
 

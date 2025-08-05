@@ -5,6 +5,7 @@ import cmd2
 from cmd2 import Fg as COLORS
 from faraday_cli.config import active_config
 from faraday_cli.shell import utils
+from faraday_cli.shell.utils import RANGE_SEVERITIES
 
 
 @cmd2.with_default_category("Tools execution")
@@ -51,6 +52,20 @@ class ToolCommands(cmd2.CommandSet):
         help="Tag to add to services",
         required=False,
         action="append",
+    )
+    tool_parser.add_argument(
+        "--min-severity",
+        type=str,
+        help="Minimum severity of vulnerabilities to import",
+        choices=RANGE_SEVERITIES,
+        required=False,
+    )
+    tool_parser.add_argument(
+        "--max-severity",
+        type=str,
+        help="Maximum severity of vulnerabilities to import",
+        choices=RANGE_SEVERITIES,
+        required=False,
     )
     tool_parser.add_argument("command", help="Command of the tool to process")
     tool_parser.add_argument(
@@ -111,6 +126,8 @@ class ToolCommands(cmd2.CommandSet):
             plugin.vuln_tag = args.vuln_tag
             plugin.host_tag = args.host_tag
             plugin.service_tag = args.service_tag
+            plugin.min_severity = args.min_severity
+            plugin.max_severity = args.max_severity
             show_command_output = not args.json_output
             command_json = utils.run_tool(
                 plugin,

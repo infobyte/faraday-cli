@@ -31,6 +31,14 @@ SEVERITY_COLORS = {
     "info": COLORS.BLUE,
     "unclassified": COLORS.CYAN,
 }
+RANGE_SEVERITIES = (
+    "unclassified",
+    "info",
+    "low",
+    "med",
+    "high",
+    "critical",
+)
 
 
 def validate_url(value):
