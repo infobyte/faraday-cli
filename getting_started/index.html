@@ -1,0 +1,948 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Faraday command line tool">
+      
+      
+        <meta name="author" content="Faradaysec">
+      
+      
+        <link rel="canonical" href="https://faradaysec.com/getting_started/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../commands/">
+      
+      
+      <link rel="icon" href="../images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+    
+    
+      
+        <title>Getting started - Faraday Cli</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../css/faraday_doc.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#installation-instructions" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Faraday Cli" class="md-header__button md-logo" aria-label="Faraday Cli" data-md-component="logo">
+      
+  <img src="../images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Faraday Cli
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Getting started
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/infobyte/faraday-cli" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M202.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1M496 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2m-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3m-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1"/></svg>
+  </div>
+  <div class="md-source__repository">
+    infobyte/faraday-cli
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Faraday Cli" class="md-nav__button md-logo" aria-label="Faraday Cli" data-md-component="logo">
+      
+  <img src="../images/logo.svg" alt="logo">
+
+    </a>
+    Faraday Cli
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/infobyte/faraday-cli" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M202.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1M496 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2m-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3m-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1"/></svg>
+  </div>
+  <div class="md-source__repository">
+    infobyte/faraday-cli
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Getting started
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting started
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation Instructions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation Instructions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install" class="md-nav__link">
+    <span class="md-ellipsis">
+      Install
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-faraday-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Faraday Cli
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using Faraday Cli">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authenticate-with-your-faraday-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authenticate with your Faraday server
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-a-workspace-or-select-active-workspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create a workspace or select active Workspace
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#now-load-information-into-faraday" class="md-nav__link">
+    <span class="md-ellipsis">
+      Now load information into faraday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Now load information into faraday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#process-reports-from-any-of-the-many-tools-we-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Process reports from any of the many tools we support
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#or-run-the-tools-with-faraday-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      Or run the tools with faraday-cli
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shell-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shell Mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command Mode
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Command Mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#change-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Change settings
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Commands
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Settings
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation Instructions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation Instructions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install" class="md-nav__link">
+    <span class="md-ellipsis">
+      Install
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-faraday-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Faraday Cli
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using Faraday Cli">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authenticate-with-your-faraday-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authenticate with your Faraday server
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-a-workspace-or-select-active-workspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create a workspace or select active Workspace
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#now-load-information-into-faraday" class="md-nav__link">
+    <span class="md-ellipsis">
+      Now load information into faraday
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Now load information into faraday">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#process-reports-from-any-of-the-many-tools-we-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Process reports from any of the many tools we support
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#or-run-the-tools-with-faraday-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      Or run the tools with faraday-cli
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shell-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shell Mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command Mode
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Command Mode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#change-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Change settings
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h2 id="installation-instructions">Installation Instructions<a class="headerlink" href="#installation-instructions" title="Permanent link">&para;</a></h2>
+<h3 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h3>
+<div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">pip</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>faraday-cli
+</code></pre></div>
+</div>
+<input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">git</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/infobyte/faraday-cli.git
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>faraday-cli
+$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
+</code></pre></div>
+</div>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Python version</p>
+<p>Python 3.7 and up required.</p>
+</div>
+<h1 id="using-faraday-cli">Using Faraday Cli<a class="headerlink" href="#using-faraday-cli" title="Permanent link">&para;</a></h1>
+<h2 id="authenticate-with-your-faraday-server">Authenticate with your Faraday server<a class="headerlink" href="#authenticate-with-your-faraday-server" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>$ faraday-cli
+
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+
+v:2.1.0
+Server: http://localhost:5985
+Faraday&gt; auth
+
+Faraday url [http://localhost:5985]:
+
+User: faraday
+
+Password:
+Saving config
+✔ Authenticated with faraday: http://localhost:5985
+Faraday&gt;
+</code></pre></div>
+<h2 id="create-a-workspace-or-select-active-workspace">Create a workspace or select active Workspace<a class="headerlink" href="#create-a-workspace-or-select-active-workspace" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>$ faraday-cli
+
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+
+v:2.1.0
+Server: http://localhost:5985
+Faraday&gt; workspace create test
+✔ Created workspace: test
+[ws:test]&gt;
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>$ faraday-cli
+
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+
+v:2.1.0
+Server: http://localhost:5985
+Faraday&gt; workspace select test
+✔ Selected workspace: test
+[ws:test]&gt;
+</code></pre></div>
+<h2 id="now-load-information-into-faraday">Now load information into faraday<a class="headerlink" href="#now-load-information-into-faraday" title="Permanent link">&para;</a></h2>
+<h3 id="process-reports-from-any-of-the-many-tools-we-support">Process reports from any of the many tools we support<a class="headerlink" href="#process-reports-from-any-of-the-many-tools-we-support" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>$ faraday-cli
+
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+
+v:2.1.0
+Server: http://localhost:5985
+[ws:test]&gt; tool report /path/to/openvas.xml
+📄 Processing Openvas report
+⬆ Sending data to workspace: test
+✔ Done
+</code></pre></div>
+<h3 id="or-run-the-tools-with-faraday-cli">Or run the tools with faraday-cli<a class="headerlink" href="#or-run-the-tools-with-faraday-cli" title="Permanent link">&para;</a></h3>
+<p>Faraday Cli can be used in two modes:</p>
+<ul>
+<li>shell mode: faraday-cli reacts as a shell to your commands</li>
+<li>command mode: faraday-cli reacts as a command with parameters</li>
+</ul>
+<h2 id="shell-mode">Shell Mode<a class="headerlink" href="#shell-mode" title="Permanent link">&para;</a></h2>
+<p>In this mode Faraday-cli will react as a shell, so if you type an OS command it will process it as a shell.</p>
+<p>If <em>auto_command_detection</em> is enabled it will try to process any tool we support to send the info to faraday.</p>
+<p>Or you can use the command <code>tool run XXXX</code></p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli
+
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+
+v:2.1.0
+Server: http://localhost:5985
+[ws:test]&gt; cd /tmp
+[ws:test]&gt; ls -l
+total 24
+drwxr-xr-x@  4 user    wheel  128 Dec  9 09:38 com.google.Keystone
+-rw-------   1 root    wheel   36 Dec  9 08:31 fseventsd-uuid
+drwxr-xr-x  21 root    wheel  672 Dec  9 08:38 msu-target-6bZPmxQ0
+srwxrwxrwx   1 user    wheel    0 Dec  9 08:31 mysql.sock
+-rw-------   1 user    wheel    4 Dec  9 08:31 mysql.sock.lock
+srwxrwxrwx   1 user    wheel    0 Dec  9 08:31 mysqlx.sock
+-rw-------   1 user    wheel    5 Dec  9 08:31 mysqlx.sock.lock
+drwxr-xr-x   2 root    wheel   64 Dec  9 08:31 powerlog
+drwx------   2 root    wheel   64 Dec  9 08:31 pritunl
+[ws:test]&gt; nmap localhost
+💻 Processing Nmap command
+Starting Nmap 7.80 ( https://nmap.org ) at 2021-01-14 13:34 -03
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.00026s latency).
+Other addresses for localhost (not scanned): ::1
+Not shown: 961 closed ports, 29 filtered ports
+PORT      STATE SERVICE
+22/tcp    open  ssh
+80/tcp    open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 5.45 seconds
+⬆ Sending data to workspace: test
+✔ Done
+[ws:test]&gt; tool run &quot;nmap localhost&quot;
+💻 Processing Nmap command
+Starting Nmap 7.80 ( https://nmap.org ) at 2021-01-14 13:34 -03
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.00026s latency).
+Other addresses for localhost (not scanned): ::1
+Not shown: 961 closed ports, 29 filtered ports
+PORT      STATE SERVICE
+22/tcp    open  ssh
+80/tcp    open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 5.45 seconds
+⬆ Sending data to workspace: test
+✔ Done
+</code></pre></div>
+<p>You can mix faraday-cli commands with other commands</p>
+<div class="highlight"><pre><span></span><code>[ws:test]&gt; vuln list | tail -3
+   3  Exposed metrics              LOW         opened    False        192.241.149.70 [Service - (443/tcp) https]   grafana.faradaysec.com
+   6  name                         CRITICAL    opened    True         123.230.222.247 [Host - ID:3]                sandbox.faradaysec.com
+   5  Python Django Admin Panel 2  CRITICAL    opened    False        133.230.222.247 [Service - (443/tcp) https]  sandbox.faradaysec.com
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>[ws:test]&gt; vuln list -j| jq &#39;.[0]| {target: .value.target, cve: .value.cve[0], name: .value.name}&#39;
+{
+  &quot;target&quot;: &quot;111.248.115.223&quot;,
+  &quot;cve&quot;: &quot;CVE-2007-0994&quot;,
+  &quot;name&quot;: &quot;Grafana panel detect&quot;
+}
+</code></pre></div>
+<h2 id="command-mode">Command Mode<a class="headerlink" href="#command-mode" title="Permanent link">&para;</a></h2>
+<p>Every faraday cli command can be used as an individual command from the command line.</p>
+<p>This is useful when integrating faraday cli to batch process, scripts or pipelines.</p>
+<div class="highlight"><pre><span></span><code>$ faraday-cli tool run \&quot;nmap localhost\&quot;
+💻 Processing Nmap command
+Starting Nmap 7.80 ( https://nmap.org ) at 2021-01-14 13:34 -03
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.0010s latency).
+Other addresses for localhost (not scanned): ::1
+Not shown: 500 closed ports, 490 filtered ports
+PORT      STATE SERVICE
+22/tcp    open  ssh
+80/tcp    open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 2.55 seconds
+⬆ Sending data to workspace: test
+✔ Done
+</code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>For more information check out our <a href="../commands/">commands</a> section.</p>
+</div>
+<h3 id="change-settings">Change settings<a class="headerlink" href="#change-settings" title="Permanent link">&para;</a></h3>
+<p>You can change some settings from the cli itself.</p>
+<ul>
+<li><em>custom_plugins_path</em> <strong>(Path where the cli will look for custom plugins)</strong></li>
+<li><em>ignore_info_severity</em> <strong>(If set to True the cli will ignore all INFORMATIONAL vulnerabilities)</strong> [DEFAULT: False]</li>
+<li><em>auto_command_detection</em> <strong>(If set to True the cli will try process a tool when is run in shell mode)</strong> [DEFAULT: True]</li>
+</ul>
+<div class="highlight"><pre><span></span><code>$ faraday-cli
+
+    ______                     __               _________
+   / ____/___ __________ _____/ /___ ___  __   / ____/ (_)
+  / /_  / __ `/ ___/ __ `/ __  / __ `/ / / /  / /   / / /
+ / __/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  / /___/ / /
+/_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
+                                   /____/
+
+Server: http://localhost:5985
+[ws:test]&gt; set ignore_info_severity true
+ignore_info_severity - was: False
+now: True
+[ws:test]&gt;
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/infobyte/faraday-cli" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M202.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1M496 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2m-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3m-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/faradaysec" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M459.4 151.7c.3 4.5.3 9.1.3 13.6 0 138.7-105.6 298.6-298.6 298.6-59.5 0-114.7-17.2-161.1-47.1 8.4 1 16.6 1.3 25.3 1.3 49.1 0 94.2-16.6 130.3-44.8-46.1-1-84.8-31.2-98.1-72.8 6.5 1 13 1.6 19.8 1.6 9.4 0 18.8-1.3 27.6-3.6-48.1-9.7-84.1-52-84.1-103v-1.3c14 7.8 30.2 12.7 47.4 13.3-28.3-18.8-46.8-51-46.8-87.4 0-19.5 5.2-37.4 14.3-53C87.4 130.8 165 172.4 252.1 176.9c-1.6-7.8-2.6-15.9-2.6-24C249.5 95.1 296.3 48 354.4 48c30.2 0 57.5 12.7 76.7 33.1 23.7-4.5 46.5-13.3 66.6-25.3-7.8 24.4-24.4 44.8-46.1 57.8 21.1-2.3 41.6-8.1 60.4-16.2-14.3 20.8-32.2 39.3-52.6 54.3"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/company/faradaysec/" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://instagram.com/faradaysec" target="_blank" rel="noopener" title="instagram.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M224.3 141a115 115 0 1 0-.6 230 115 115 0 1 0 .6-230m-.6 40.4a74.6 74.6 0 1 1 .6 149.2 74.6 74.6 0 1 1-.6-149.2m93.4-45.1a26.8 26.8 0 1 1 53.6 0 26.8 26.8 0 1 1-53.6 0m129.7 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8M399 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+    
+  </body>
+</html>
