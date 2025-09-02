@@ -1,3 +1,9 @@
+2.2.0 [Sep 2nd, 2025]:
+---
+ * [ADD] Added `min-severity` and `max-severity` parameters for importing vulnerabilities. #97
+ * [MOD] Updated `vuln list` command documentation. #93
+ * [MOD] Modified `validators` package version requirement. #100
+
 2.1.12 [Jan 6th, 2025]:
 ---
  * [MOD] Updated report generation to support multiple workspaces. #89
