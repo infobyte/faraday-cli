@@ -134,10 +134,10 @@ unit_tests:
   extends: .latest_unit_test_base
   parallel:
     matrix:
-      - PYTHON_VERSION: "3.9-slim-bookworm"
       - PYTHON_VERSION: "3.10-slim-bookworm"
       - PYTHON_VERSION: "3.11-slim-bookworm"
       - PYTHON_VERSION: "3.12-slim-bookworm"
+      - PYTHON_VERSION: "3.13-slim-bookworm"
   image: python:${PYTHON_VERSION}
   allow_failure: true
 
@@ -145,10 +145,10 @@ alpha_unit_tests:
   extends: .alpha_unit_test_base
   parallel:
     matrix:
-      - PYTHON_VERSION: "3.9-slim-bookworm"
       - PYTHON_VERSION: "3.10-slim-bookworm"
       - PYTHON_VERSION: "3.11-slim-bookworm"
       - PYTHON_VERSION: "3.12-slim-bookworm"
+      - PYTHON_VERSION: "3.13-slim-bookworm"
   image: python:${PYTHON_VERSION}
 
 
