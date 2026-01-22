@@ -94,7 +94,10 @@ black:
       - virtualenv faraday_cli_venv
       - source faraday_cli_venv/bin/activate
       - git clone https://github.com/python-cmd2/cmd2.git
-      - cd cmd2/plugins/ext_test
+      - cd cmd2  # cmd2 2.7.0 is the last version compatible to avoid 3.0.0 breaking changes
+      - git fetch --tags  # cmd2 2.7.0 is the last version compatible to avoid 3.0.0 breaking changes
+      - git checkout 2.7.0  # cmd2 2.7.0 is the last version compatible to avoid 3.0.0 breaking changes
+      - cd plugins/ext_test
       - pip install .
       - cd ../../..
       - pip install $PIP_INSTALL_FLAGS .[test]
