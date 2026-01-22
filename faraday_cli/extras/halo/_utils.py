@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Utilities for Halo library."""
+
 import codecs
 import platform
 import six
