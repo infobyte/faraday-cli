@@ -126,6 +126,7 @@ dmypy.json
 .pyre/
 
 .idea
+.DS_Store
 
 #project settings
 *.project

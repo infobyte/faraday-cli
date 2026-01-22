@@ -10,7 +10,6 @@ from simple_rest_client.exceptions import NotFoundError
 from faraday_cli.extras.halo.halo import Halo
 from faraday_cli.config import active_config
 
-
 HOST_CREATE_JSON_SCHEMA = {
     "type": "array",
     "items": {

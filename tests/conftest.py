@@ -4,7 +4,6 @@ from pathlib import Path
 import cmd2_ext_test
 import pytest
 
-
 TEST_BASE = os.path.abspath(os.path.dirname(__file__))
 TEST_DATA = os.path.join(TEST_BASE, "data")
 
