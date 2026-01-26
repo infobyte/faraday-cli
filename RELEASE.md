@@ -1,3 +1,7 @@
+2.2.1 [Jan 26th, 2026]:
+---
+ * [MOD] Pinned cmd2 to <3 to avoid breaking changes introduced in v3. #102
+
 2.2.0 [Sep 2nd, 2025]:
 ---
  * [ADD] Added `min-severity` and `max-severity` parameters for importing vulnerabilities. #97
@@ -129,4 +133,3 @@
 ---
  * First version released, use with caution as it is still beta phase.
  * Access a faraday server from your CLI, your CI o any other bash interpreter.
-
