@@ -5,6 +5,15 @@ Use faraday directly from your favorite terminal
 
 faraday-cli is the official client that make automating your security workflows, easier.
 
+Before installing, we recommend creating and activating a Python virtual environment to avoid affecting your system Python packages. For example:
+
+```shell
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+You can also use `virtualenv` if you prefer. Once the virtual environment is active, run the installation commands below.
+
 ## Install from pip
 
 ```
