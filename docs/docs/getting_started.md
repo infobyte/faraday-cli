@@ -1,5 +1,14 @@
 ## Installation Instructions
 
+Before installing, we recommend creating and activating a Python virtual environment to avoid affecting your system Python packages. For example:
+
+```shell
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+You can also use `virtualenv` if you prefer. Once the virtual environment is active, run the installation commands below.
+
 
 ### Install
 === "pip"
@@ -31,7 +40,6 @@ $ faraday-cli
 /_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
                                    /____/
 
-v:2.1.0
 Server: http://localhost:5985
 Faraday> auth
 
@@ -57,7 +65,6 @@ $ faraday-cli
 /_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
                                    /____/
 
-v:2.1.0
 Server: http://localhost:5985
 Faraday> workspace create test
 ✔ Created workspace: test
@@ -74,7 +81,6 @@ $ faraday-cli
 /_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
                                    /____/
 
-v:2.1.0
 Server: http://localhost:5985
 Faraday> workspace select test
 ✔ Selected workspace: test
@@ -95,7 +101,6 @@ $ faraday-cli
 /_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
                                    /____/
 
-v:2.1.0
 Server: http://localhost:5985
 [ws:test]> tool report /path/to/openvas.xml
 📄 Processing Openvas report
@@ -129,7 +134,6 @@ $ faraday-cli
 /_/    \__,_/_/   \__,_/\__,_/\__,_/\__, /   \____/_/_/
                                    /____/
 
-v:2.1.0
 Server: http://localhost:5985
 [ws:test]> cd /tmp
 [ws:test]> ls -l
