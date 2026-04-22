@@ -265,7 +265,7 @@ class FaradayShell(Cmd):
                     second_factor = None
                 token = api_client.get_token(second_factor)
                 active_config.faraday_url = faraday_url
-                active_config.ignore_ssl = args.ignore_ssl
+                active_config.ignore_ssl = ignore_ssl
                 active_config.token = token
                 active_config.workspace = None
                 active_config.save()
