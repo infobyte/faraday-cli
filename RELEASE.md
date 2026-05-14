@@ -1,3 +1,8 @@
+2.2.2 [May 14th, 2026]:
+---
+ * [FIX] Fix ignore_ssl not being saved when set via interactive prompt. #98
+ * [MOD] Instalation guide virtualenv recomendation. #107
+
 2.2.1 [Jan 26th, 2026]:
 ---
  * [MOD] Pinned cmd2 to <3 to avoid breaking changes introduced in v3. #102
