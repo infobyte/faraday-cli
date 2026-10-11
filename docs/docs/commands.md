@@ -737,8 +737,7 @@ $ faraday-cli faradai scan --target https://example.com --workspace my_workspace
 ```
 
 ```
-$ faraday-cli faradai scan --target https://example.com -w my_workspace \
-    --mode Dual --rounds 40 --watch
+$ faraday-cli faradai scan --target https://example.com -w my_workspace --advanced --watch
 ```
 
 | Parameter            | Description                                             |
@@ -747,7 +746,8 @@ $ faraday-cli faradai scan --target https://example.com -w my_workspace \
 | `-w`, `--workspace`  | Workspace name (repeatable); defaults to the active one |
 | `--instruction`      | Pentest instruction for the agent                       |
 | `--mode`             | `Dual` (default), `Claude`, or `Codex`                  |
-| `--rounds`           | Max agent rounds (default: 40)                          |
+| `--rounds`           | Max agent rounds (default: **20** standard; **80** with `--advanced`). Explicit `--rounds` overrides the tier. |
+| `--advanced`         | Advanced (deeper) scan — 80 rounds instead of the standard 20 |
 | `--agent-id`         | Explicit cloud-agent id (skips FaradAI auto-discovery)  |
 | `--watch`            | Poll the launched command(s) until they finish          |
 | `--standalone`       | Run against the FaradAI-scan SaaS using the stored `faradai_scan` credentials |

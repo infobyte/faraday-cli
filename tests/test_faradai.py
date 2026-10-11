@@ -187,7 +187,8 @@ def test_scan_standalone_without_token_errors(monkeypatch):
         workspace=None,
         instruction="x",
         mode="Dual",
-        rounds=40,
+        rounds=None,
+        advanced=False,
         watch=False,
     )
     fc.scan(args)
@@ -220,15 +221,66 @@ def test_scan_standalone_with_token_posts_to_saas(monkeypatch):
         workspace=None,
         instruction="full",
         mode="Dual",
-        rounds=40,
+        rounds=None,
+        advanced=False,
         watch=False,
     )
     fc.scan(args)
 
     assert posted["agent_id"] == 3
     assert posted["args"]["TARGET"] == "http://t"
+    assert posted["args"]["ROUNDS"] == 20  # standard default
     assert posted["workspaces"] == ["ext_corp_com"]  # stored ext_<domain> workspace
     assert any("Command id(s): 11" in o for o in fc._cmd.outputs)
+
+
+def test_scan_advanced_uses_80_rounds(monkeypatch):
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", "tok-9", raising=False)
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_workspace", "ext_corp_com", raising=False)
+    posted = {}
+
+    class _FakeClient:
+        def list_cloud_agents(self):
+            return [{"id": 3, "name": "FaradAI", "slug": "faradai"}]
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            posted["args"] = args
+            return {"command_ids": [{"id": 12}]}
+
+    fc = _bound_cmd()
+    monkeypatch.setattr(fc, "_standalone_client", lambda: _FakeClient())
+    # --advanced with no explicit --rounds → 80
+    fc.scan(
+        SimpleNamespace(
+            standalone=True,
+            agent_id=None,
+            target="http://t",
+            workspace=None,
+            instruction="full",
+            mode="Dual",
+            rounds=None,
+            advanced=True,
+            watch=False,
+        )
+    )
+    assert posted["args"]["ROUNDS"] == 80
+
+    # explicit --rounds overrides --advanced
+    posted.clear()
+    fc.scan(
+        SimpleNamespace(
+            standalone=True,
+            agent_id=None,
+            target="http://t",
+            workspace=None,
+            instruction="full",
+            mode="Dual",
+            rounds=35,
+            advanced=True,
+            watch=False,
+        )
+    )
+    assert posted["args"]["ROUNDS"] == 35
 
 
 # --- triage -----------------------------------------------------------------

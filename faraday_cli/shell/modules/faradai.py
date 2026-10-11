@@ -12,6 +12,11 @@ from simple_rest_client.exceptions import NotFoundError
 
 from faraday_cli.config import active_config
 
+# Agent rounds per scan tier. Standard (default) is a quick first scan;
+# Advanced goes deeper. --rounds overrides either explicitly.
+STANDARD_ROUNDS = 20
+ADVANCED_ROUNDS = 80
+
 # Default pentest instruction when the user doesn't pass --instruction. Mirrors
 # the operator's canonical FaradAI cloud-agent run.
 DEFAULT_INSTRUCTION = (
@@ -131,7 +136,17 @@ class FaradaiCommands(cmd2.CommandSet):
         default="Dual",
         help="Execution mode (default: Dual)",
     )
-    scan_parser.add_argument("--rounds", type=int, default=40, help="Max agent rounds (default: 40)")
+    scan_parser.add_argument(
+        "--rounds",
+        type=int,
+        default=None,
+        help=f"Max agent rounds (default: {STANDARD_ROUNDS}; {ADVANCED_ROUNDS} with --advanced)",
+    )
+    scan_parser.add_argument(
+        "--advanced",
+        action="store_true",
+        help=f"Advanced (deeper) scan — {ADVANCED_ROUNDS} rounds instead of the standard {STANDARD_ROUNDS}",
+    )
     scan_parser.add_argument(
         "--agent-id",
         type=int,
@@ -188,11 +203,22 @@ class FaradaiCommands(cmd2.CommandSet):
             self._cmd.perror("No active Workspace")
             return
 
+        # Rounds: explicit --rounds wins; else --advanced (80) or standard (20).
+        if args.rounds is not None:
+            rounds = args.rounds
+            tier = "custom"
+        elif args.advanced:
+            rounds = ADVANCED_ROUNDS
+            tier = "advanced"
+        else:
+            rounds = STANDARD_ROUNDS
+            tier = "standard"
+
         scan_args = {
             "TARGET": args.target,
             "INSTRUCTION": args.instruction,
             "MODE": args.mode,
-            "ROUNDS": args.rounds,
+            "ROUNDS": rounds,
         }
 
         self._cmd.poutput(
@@ -200,7 +226,7 @@ class FaradaiCommands(cmd2.CommandSet):
                 f"Launching FaradAI scan\n"
                 f"  Target:     {args.target}\n"
                 f"  Mode:       {args.mode}\n"
-                f"  Rounds:     {args.rounds}\n"
+                f"  Rounds:     {rounds} ({tier})\n"
                 f"  Workspaces: {', '.join(workspaces)}",
                 fg=COLORS.GREEN,
             )
