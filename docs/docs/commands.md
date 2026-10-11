@@ -750,6 +750,39 @@ $ faraday-cli faradai scan --target https://example.com -w my_workspace \
 | `--rounds`           | Max agent rounds (default: 40)                          |
 | `--agent-id`         | Explicit cloud-agent id (skips FaradAI auto-discovery)  |
 | `--watch`            | Poll the launched command(s) until they finish          |
+| `--standalone`       | Run against the FaradAI-scan SaaS using the stored `faradai_scan` credentials |
+
+### FaradAI-scan SaaS (register / verify / login)
+
+!!! info
+    The FaradAI-scan SaaS (`https://faradai-scan.apps.faradaysec.com`) lets you
+    self-register from the CLI — no Faraday web UI. New accounts get one free
+    scan per tier; further scans need purchased credits.
+
+Zero-to-scan flow:
+
+```
+$ faraday-cli faradai register --email you@corp.com
+# → check your inbox for a 6-digit code
+$ faraday-cli faradai verify --email you@corp.com --code 123456
+$ faraday-cli faradai scan --target https://example.com --standalone
+```
+
+Returning users re-authenticate without a new code:
+
+```
+$ faraday-cli faradai login --email you@corp.com
+```
+
+The credentials are stored under the `faradai_scan` section of
+`~/.faraday-cli.yml`, separate from your main `auth` server connection.
+Password is prompted securely if `--password` is omitted.
+
+| Command           | Parameters                                                      |
+|-------------------|-----------------------------------------------------------------|
+| `faradai register`| `--email` (required), `--password`, `--scan-url`                |
+| `faradai verify`  | `--email` (required), `--code` (required), `--password`, `--scan-url` |
+| `faradai login`   | `--email` (required), `--password`, `--scan-url`                |
 
 
 

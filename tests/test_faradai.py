@@ -2,14 +2,15 @@
 
 These are offline unit tests (no live Faraday server): they mock the
 simple_rest_client resource methods so the assertions target the CLI's own
-logic — the run-body shape (the regression guard against the tkt_70 bug) and
-the FaradAI auto-discovery.
+logic — the run-body shape (the regression guard against the tkt_70 bug), the
+FaradAI auto-discovery, and the SaaS register/verify/standalone flow.
 """
 
 from types import SimpleNamespace
 
 from faraday_cli.api_client import FaradayApi
-from faraday_cli.shell.modules.faradai import _find_faradai_agent
+from faraday_cli.shell.modules import faradai as faradai_mod
+from faraday_cli.shell.modules.faradai import FaradaiCommands, _find_faradai_agent
 
 
 def _api():
@@ -95,3 +96,133 @@ def test_find_faradai_agent_matches_on_slug_only():
     cmd = _FakeCmd([{"id": 9, "name": "Scanner", "slug": "faradai-prod"}])
     agent = _find_faradai_agent(cmd)
     assert agent["id"] == 9
+
+
+# --- SaaS register / verify / standalone ------------------------------------
+
+
+class _FakeResp:
+    def __init__(self, status_code, payload=None):
+        self.status_code = status_code
+        self._payload = payload
+        self.content = b"x" if payload is not None else b""
+
+    def json(self):
+        if self._payload is None:
+            raise ValueError("no json")
+        return self._payload
+
+
+def _bound_cmd():
+    """A FaradaiCommands instance with a mock _cmd (as cmd2 wires at register).
+
+    cmd2's ``_cmd`` is a read-only property backed by the name-mangled
+    ``_CommandSet__cmd_internal`` attribute, so set that directly.
+    """
+    fc = FaradaiCommands()
+    mock = SimpleNamespace(errors=[], outputs=[], api_client=None)
+    mock.perror = lambda m: mock.errors.append(m)
+    mock.poutput = lambda m: mock.outputs.append(m)
+    fc._CommandSet__cmd_internal = mock
+    return fc
+
+
+def test_register_posts_email_and_password(monkeypatch):
+    captured = {}
+
+    def fake_post(url, json=None, timeout=None):
+        captured["url"] = url
+        captured["json"] = json
+        return _FakeResp(200, {"status": "code_sent"})
+
+    monkeypatch.setattr(faradai_mod.requests, "post", fake_post)
+    fc = _bound_cmd()
+    args = SimpleNamespace(email="me@corp.com", password="hunter2pass", scan_url="https://scan.x")
+    fc.register(args)
+
+    assert captured["url"] == "https://scan.x/api/register"
+    assert captured["json"] == {"email": "me@corp.com", "password": "hunter2pass"}
+    assert any("Verification code sent" in o for o in fc._cmd.outputs)
+
+
+def test_register_reports_disabled_on_404(monkeypatch):
+    monkeypatch.setattr(faradai_mod.requests, "post", lambda *a, **k: _FakeResp(404))
+    fc = _bound_cmd()
+    fc.register(SimpleNamespace(email="me@corp.com", password="hunter2pass", scan_url="https://scan.x"))
+    assert any("not enabled" in e for e in fc._cmd.errors)
+
+
+def test_verify_persists_token_to_config(monkeypatch):
+    monkeypatch.setattr(
+        faradai_mod.requests,
+        "post",
+        lambda *a, **k: _FakeResp(200, {"token": "tok-9", "faraday_url": "https://scan.real", "email": "me@corp.com"}),
+    )
+    saved = {}
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_url", "https://scan.x", raising=False)
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", None, raising=False)
+    monkeypatch.setattr(
+        faradai_mod.active_config,
+        "save",
+        lambda: saved.update(
+            url=faradai_mod.active_config.faradai_scan_url,
+            token=faradai_mod.active_config.faradai_scan_token,
+        ),
+    )
+    fc = _bound_cmd()
+    fc.verify(SimpleNamespace(email="me@corp.com", code="123456", password="hunter2pass", scan_url="https://scan.x"))
+
+    assert saved == {"url": "https://scan.real", "token": "tok-9"}
+
+
+def test_scan_standalone_without_token_errors(monkeypatch):
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", None, raising=False)
+    fc = _bound_cmd()
+    args = SimpleNamespace(
+        standalone=True,
+        agent_id=None,
+        target="http://t",
+        workspace=None,
+        instruction="x",
+        mode="Dual",
+        rounds=40,
+        watch=False,
+    )
+    fc.scan(args)
+    assert any("Not registered" in e for e in fc._cmd.errors)
+
+
+def test_scan_standalone_with_token_posts_to_saas(monkeypatch):
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", "tok-9", raising=False)
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_url", "https://scan.real", raising=False)
+
+    posted = {}
+
+    class _FakeClient:
+        def list_cloud_agents(self):
+            return [{"id": 3, "name": "FaradAI", "slug": "faradai"}]
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            posted["agent_id"] = agent_id
+            posted["args"] = args
+            posted["workspaces"] = workspaces
+            return {"command_ids": [{"id": 11}]}
+
+    fc = _bound_cmd()
+    monkeypatch.setattr(fc, "_standalone_client", lambda: _FakeClient())
+    args = SimpleNamespace(
+        standalone=True,
+        agent_id=None,
+        target="http://t",
+        workspace=None,
+        instruction="full",
+        mode="Dual",
+        rounds=40,
+        watch=False,
+    )
+    fc.scan(args)
+
+    assert posted["agent_id"] == 3
+    assert posted["args"]["TARGET"] == "http://t"
+    assert posted["workspaces"] == ["faradai-scan"]  # default standalone workspace
+    assert any("Command id(s): 11" in o for o in fc._cmd.outputs)
