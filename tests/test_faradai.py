@@ -678,9 +678,12 @@ def test_scan_default_instruction_standard(monkeypatch):
             watch=False,
         )
     )
-    # standard scan → wizard standard template, no GOAL by default
+    # standard scan → condensed standard instruction + default standard goal
     assert posted["args"]["INSTRUCTION"] == instr.STANDARD_INSTRUCTION
-    assert "GOAL" not in posted["args"]
+    assert posted["args"]["GOAL"] == instr.STANDARD_GOAL
+    # both stay within the server's 256-char cap
+    assert len(posted["args"]["INSTRUCTION"]) <= 256
+    assert len(posted["args"]["GOAL"]) <= 256
 
 
 def test_scan_default_instruction_advanced_and_goal(monkeypatch):
@@ -745,5 +748,21 @@ def test_triage_default_instruction(monkeypatch):
             watch=False,
         )
     )
-    # triage → wizard triage template as INSTRUCTION
-    assert posted["args"]["INSTRUCTION"] == instr.TRIAGE_INSTRUCTION
+    # triage cloud agent has no INSTRUCTION param — the brief goes in GOAL
+    assert posted["args"]["GOAL"] == instr.TRIAGE_INSTRUCTION
+    assert "INSTRUCTION" not in posted["args"]
+    assert len(posted["args"]["GOAL"]) <= 256
+
+
+def test_all_default_instructions_within_256():
+    """Every default INSTRUCTION/GOAL must fit the server's 256-char cap."""
+    from faraday_cli.shell.modules import faradai_instructions as instr
+
+    for name in (
+        "STANDARD_INSTRUCTION",
+        "ADVANCED_INSTRUCTION",
+        "TRIAGE_INSTRUCTION",
+        "STANDARD_GOAL",
+        "ADVANCED_GOAL",
+    ):
+        assert len(getattr(instr, name)) <= 256, name

@@ -14,6 +14,7 @@ from simple_rest_client.exceptions import NotFoundError
 
 from faraday_cli.config import active_config
 from faraday_cli.shell.modules.faradai_instructions import (
+    SCAN_GOALS,
     SCAN_INSTRUCTIONS,
     TRIAGE_INSTRUCTION,
 )
@@ -251,13 +252,10 @@ class FaradaiCommands(cmd2.CommandSet):
         scan_args = {
             "TARGET": args.target,
             "INSTRUCTION": instruction,
+            "GOAL": args.goal or SCAN_GOALS[tier],
             "MODE": args.mode,
             "ROUNDS": rounds,
         }
-        # GOAL only when provided — matches the wizard (GOAL is the operator's
-        # focus-areas, empty by default).
-        if args.goal:
-            scan_args["GOAL"] = args.goal
 
         self._cmd.poutput(
             cmd2.style(
@@ -420,12 +418,12 @@ class FaradaiCommands(cmd2.CommandSet):
                 return
 
         # WORKSPACES is the mandatory param; its presence is what tells the CAM
-        # this is a triage run. Pass as a comma-separated string. INSTRUCTION
-        # defaults to the wizard's staged triage template (same as the web
-        # wizard sends) unless the user overrides it with --instruction.
+        # this is a triage run. The triage cloud agent has NO `INSTRUCTION`
+        # param (only scan does) — its guidance channel is `GOAL`, so the
+        # default triage brief goes there (overridable with --goal / --instruction).
         triage_args = {
             "WORKSPACES": ",".join(workspaces),
-            "INSTRUCTION": args.instruction or TRIAGE_INSTRUCTION,
+            "GOAL": args.goal or args.instruction or TRIAGE_INSTRUCTION,
         }
         if args.severities:
             triage_args["SEVERITIES"] = args.severities
@@ -441,8 +439,6 @@ class FaradaiCommands(cmd2.CommandSet):
             triage_args["BATCH_SIZE"] = args.batch_size
         if args.rounds is not None:
             triage_args["ROUNDS"] = args.rounds
-        if args.goal:
-            triage_args["GOAL"] = args.goal
         if args.dry_run:
             triage_args["DRY_RUN"] = True
 
