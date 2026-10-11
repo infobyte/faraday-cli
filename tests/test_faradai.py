@@ -137,10 +137,10 @@ def test_register_posts_email_and_password(monkeypatch):
 
     monkeypatch.setattr(faradai_mod.requests, "post", fake_post)
     fc = _bound_cmd()
-    args = SimpleNamespace(email="me@corp.com", password="hunter2pass", scan_url="https://scan.x")
+    args = SimpleNamespace(email="me@corp.com", password="hunter2pass", dashboard_url="https://scan.x/_ai")
     fc.register(args)
 
-    assert captured["url"] == "https://scan.x/api/register"
+    assert captured["url"] == "https://scan.x/_ai/api/register"
     assert captured["json"] == {"email": "me@corp.com", "password": "hunter2pass"}
     assert any("Verification code sent" in o for o in fc._cmd.outputs)
 
@@ -148,7 +148,7 @@ def test_register_posts_email_and_password(monkeypatch):
 def test_register_reports_disabled_on_404(monkeypatch):
     monkeypatch.setattr(faradai_mod.requests, "post", lambda *a, **k: _FakeResp(404))
     fc = _bound_cmd()
-    fc.register(SimpleNamespace(email="me@corp.com", password="hunter2pass", scan_url="https://scan.x"))
+    fc.register(SimpleNamespace(email="me@corp.com", password="hunter2pass", dashboard_url="https://scan.x/_ai"))
     assert any("not enabled" in e for e in fc._cmd.errors)
 
 
@@ -170,7 +170,9 @@ def test_verify_persists_token_to_config(monkeypatch):
         ),
     )
     fc = _bound_cmd()
-    fc.verify(SimpleNamespace(email="me@corp.com", code="123456", password="hunter2pass", scan_url="https://scan.x"))
+    fc.verify(
+        SimpleNamespace(email="me@corp.com", code="123456", password="hunter2pass", dashboard_url="https://scan.x/_ai")
+    )
 
     assert saved == {"url": "https://scan.real", "token": "tok-9"}
 
@@ -226,3 +228,65 @@ def test_scan_standalone_with_token_posts_to_saas(monkeypatch):
     assert posted["args"]["TARGET"] == "http://t"
     assert posted["workspaces"] == ["faradai-scan"]  # default standalone workspace
     assert any("Command id(s): 11" in o for o in fc._cmd.outputs)
+
+
+# --- triage -----------------------------------------------------------------
+
+
+def test_find_faradai_agent_pentest_vs_triage_disambiguation():
+    """Both agents contain 'faradai'; pentest lookup must skip the triage one
+    and vice-versa (otherwise scan would see 'multiple matches')."""
+    agents = [
+        {"id": 1, "name": "FaradAI", "slug": "faradai"},
+        {"id": 2, "name": "FaradAI Triage", "slug": "faradai-triage"},
+    ]
+    pentest = _find_faradai_agent(_FakeCmd(agents), kind="pentest")
+    triage = _find_faradai_agent(_FakeCmd(agents), kind="triage")
+    assert pentest["id"] == 1
+    assert triage["id"] == 2
+
+
+def test_triage_builds_params_and_targets_triage_agent(monkeypatch):
+    posted = {}
+
+    class _FakeClient:
+        def list_cloud_agents(self):
+            return [
+                {"id": 1, "name": "FaradAI", "slug": "faradai"},
+                {"id": 2, "name": "FaradAI Triage", "slug": "faradai-triage"},
+            ]
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            posted["agent_id"] = agent_id
+            posted["args"] = args
+            posted["workspaces"] = workspaces
+            return {"command_ids": [{"id": 22}]}
+
+    fc = _bound_cmd()
+    fc._cmd.api_client = _FakeClient()
+    args = SimpleNamespace(
+        standalone=False,
+        agent_id=None,
+        workspace=["ws-a", "ws-b"],
+        severities="critical,high",
+        confirmed_only=True,
+        auto_close_fp=False,
+        target_filter=None,
+        reproduce=True,
+        batch_size=10,
+        rounds=None,
+        goal=None,
+        dry_run=False,
+        watch=False,
+    )
+    fc.triage(args)
+
+    assert posted["agent_id"] == 2  # the triage cloud agent, not pentest
+    assert posted["args"]["WORKSPACES"] == "ws-a,ws-b"  # mandatory, comma-joined
+    assert posted["args"]["SEVERITIES"] == "critical,high"
+    assert posted["args"]["CONFIRMED_ONLY"] is True
+    assert posted["args"]["REPRODUCE"] is True
+    assert posted["args"]["BATCH_SIZE"] == 10
+    assert "AUTO_CLOSE_FP" not in posted["args"]  # flag off → omitted
+    assert "TARGET" not in posted["args"]  # triage has no TARGET
+    assert any("Command id(s): 22" in o for o in fc._cmd.outputs)

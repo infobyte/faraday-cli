@@ -752,6 +752,33 @@ $ faraday-cli faradai scan --target https://example.com -w my_workspace \
 | `--watch`            | Poll the launched command(s) until they finish          |
 | `--standalone`       | Run against the FaradAI-scan SaaS using the stored `faradai_scan` credentials |
 
+### faradai triage
+
+Run a FaradAI **triage** over the existing findings of one or more workspaces
+(re-test/reproduce, enrich, optionally auto-close false positives). This targets
+the separate *FaradAI Triage* cloud agent (auto-discovered); triage has no
+`--target` — it works over `--workspace` findings, not a URL.
+
+```
+$ faraday-cli faradai triage --workspace my_workspace --severities critical,high --reproduce
+```
+
+| Parameter            | Description                                             |
+|----------------------|---------------------------------------------------------|
+| `-w`, `--workspace`  | Workspace to triage (repeatable, at least one required) |
+| `--severities`       | Comma-separated severities (e.g. `critical,high,medium`) |
+| `--confirmed-only`   | Only triage findings already marked confirmed           |
+| `--auto-close-fp`    | Auto-close findings determined to be false positives    |
+| `--target-filter`    | Only triage findings matching this target/host filter   |
+| `--reproduce`        | Actively re-test (reproduce) each finding               |
+| `--batch-size`       | Findings per triage batch                               |
+| `--rounds`           | Max agent rounds                                        |
+| `--goal`             | Free-text goal for the triage run                       |
+| `--agent-id`         | Explicit cloud-agent id (skips auto-discovery)          |
+| `--watch`            | Poll the launched command(s) until they finish          |
+| `--standalone`       | Run against the FaradAI-scan SaaS                       |
+| `--dry-run`          | Plan without mutating findings                          |
+
 ### FaradAI-scan SaaS (register / verify / login)
 
 !!! info

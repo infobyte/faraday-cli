@@ -20,27 +20,43 @@ DEFAULT_INSTRUCTION = (
 )
 
 
-def _find_faradai_agent(cmd, api_client=None):
-    """Return the single FaradAI cloud-agent dict, or None (after perror).
+def _find_faradai_agent(cmd, api_client=None, kind="pentest"):
+    """Return the single FaradAI cloud-agent dict for ``kind``, or None (perror).
 
     Cloud-agent dicts expose ``id``/``name``/``slug`` (no ``active``/``status``/
-    ``executors``). Match ``faradai`` case-insensitively on name or slug. Zero
-    matches → perror + None; multiple → print an id/name table + None so the
-    user can disambiguate with ``--agent-id``. ``api_client`` defaults to the
-    connected server's client; the standalone path passes a scan-scoped one.
+    ``executors``). The server registers two FaradAI cloud agents: pentest
+    (name "FaradAI", slug "faradai") and triage (name "FaradAI Triage", slug
+    "faradai-triage"). Both contain "faradai", so matching must distinguish by
+    the "triage" token: ``kind="triage"`` wants it present, ``kind="pentest"``
+    wants it absent — otherwise a pentest lookup would ambiguously match both.
+
+    Zero matches → perror + None; multiple → print an id/name table + None so
+    the user can disambiguate with ``--agent-id``. ``api_client`` defaults to
+    the connected server's client; the standalone path passes a scan-scoped one.
     """
     client = api_client if api_client is not None else cmd.api_client
     agents = client.list_cloud_agents() or []
-    matches = [
-        a
-        for a in agents
-        if "faradai" in str(a.get("name") or "").lower() or "faradai" in str(a.get("slug") or "").lower()
-    ]
+
+    def _is_faradai(a):
+        text = f"{a.get('name') or ''} {a.get('slug') or ''}".lower()
+        return "faradai" in text
+
+    def _is_triage(a):
+        text = f"{a.get('name') or ''} {a.get('slug') or ''}".lower()
+        return "triage" in text
+
+    if kind == "triage":
+        matches = [a for a in agents if _is_faradai(a) and _is_triage(a)]
+        label = "FaradAI Triage"
+    else:
+        matches = [a for a in agents if _is_faradai(a) and not _is_triage(a)]
+        label = "FaradAI"
+
     if not matches:
-        cmd.perror("No FaradAI cloud agent found on this server")
+        cmd.perror(f"No {label} cloud agent found on this server")
         return None
     if len(matches) > 1:
-        cmd.perror("Multiple FaradAI cloud agents found — pass --agent-id <id>:")
+        cmd.perror(f"Multiple {label} cloud agents found — pass --agent-id <id>:")
         data = [OrderedDict({"ID": a.get("id"), "NAME": a.get("name"), "SLUG": a.get("slug")}) for a in matches]
         cmd.poutput(tabulate(data, headers="keys", tablefmt="simple"))
         return None
@@ -186,8 +202,17 @@ class FaradaiCommands(cmd2.CommandSet):
             )
         )
 
+        self._launch_and_report(api_client, agent_id, scan_args, workspaces, "Scan", args.watch)
+
+    def _launch_and_report(self, api_client, agent_id, run_args, workspaces, verb, watch):
+        """Run a cloud agent and render the command ids; optionally --watch.
+
+        Shared by `faradai scan` and `faradai triage`. ``verb`` is the word used
+        in the success line ("Scan" / "Triage"). CloudAgent run returns
+        ``{'command_ids': [{'id': N}], 'cam_execution': {...}, 'cam_status': 200}``.
+        """
         try:
-            response = api_client.run_cloud_agent(agent_id, scan_args, workspaces)
+            response = api_client.run_cloud_agent(agent_id, run_args, workspaces)
         except NotFoundError:
             self._cmd.perror("Cloud agent not found")
             return
@@ -195,22 +220,137 @@ class FaradaiCommands(cmd2.CommandSet):
             self._cmd.perror(str(e))
             return
 
-        # CloudAgent run returns {'command_ids': [{'id': N}], 'cam_execution':
-        # {...}, 'cam_status': 200}.
         command_ids = [c.get("id") for c in (response.get("command_ids") or []) if c.get("id") is not None]
         if command_ids:
             self._cmd.poutput(
                 cmd2.style(
-                    f"Scan launched. Command id(s): {', '.join(str(c) for c in command_ids)}",
+                    f"{verb} launched. Command id(s): {', '.join(str(c) for c in command_ids)}",
                     fg=COLORS.GREEN,
                 )
             )
         else:
-            self._cmd.poutput(cmd2.style("Scan launched.", fg=COLORS.GREEN))
+            self._cmd.poutput(cmd2.style(f"{verb} launched.", fg=COLORS.GREEN))
             self._cmd.poutput(json.dumps(response, indent=2))
 
-        if args.watch:
+        if watch:
             self._watch_commands(api_client, workspaces[0], command_ids)
+
+    # ---- faradai triage ----
+    triage_parser = argparse.ArgumentParser()
+    triage_parser.add_argument(
+        "-w",
+        "--workspace",
+        action="append",
+        type=str,
+        required=True,
+        help="Workspace name to triage (repeatable, at least one required)",
+    )
+    triage_parser.add_argument(
+        "--severities",
+        type=str,
+        default=None,
+        help="Comma-separated severities to triage (e.g. critical,high,medium)",
+    )
+    triage_parser.add_argument(
+        "--confirmed-only",
+        action="store_true",
+        help="Only triage findings already marked confirmed",
+    )
+    triage_parser.add_argument(
+        "--auto-close-fp",
+        action="store_true",
+        help="Auto-close findings determined to be false positives",
+    )
+    triage_parser.add_argument(
+        "--target-filter",
+        type=str,
+        default=None,
+        help="Only triage findings matching this target/host filter",
+    )
+    triage_parser.add_argument(
+        "--reproduce",
+        action="store_true",
+        help="Actively re-test (reproduce) each finding against the live target",
+    )
+    triage_parser.add_argument("--batch-size", type=int, default=None, help="Findings per triage batch")
+    triage_parser.add_argument("--rounds", type=int, default=None, help="Max agent rounds")
+    triage_parser.add_argument("--goal", type=str, default=None, help="Free-text goal for the triage run")
+    triage_parser.add_argument(
+        "--agent-id",
+        type=int,
+        default=None,
+        help="Explicit cloud-agent id (skips FaradAI Triage auto-discovery)",
+    )
+    triage_parser.add_argument(
+        "--watch",
+        action="store_true",
+        help="Poll the launched command(s) until they finish",
+    )
+    triage_parser.add_argument(
+        "--standalone",
+        action="store_true",
+        help="Run against the FaradAI-scan SaaS using the stored faradai_scan credentials",
+    )
+    triage_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Ask the agent to plan without mutating findings",
+    )
+
+    @cmd2.as_subcommand_to("faradai", "triage", triage_parser, help="run a FaradAI triage over workspace findings")
+    def triage(self, args: argparse.Namespace):
+        """Launch a FaradAI triage cloud-agent run over existing workspace findings."""
+        # Pick the API client: standalone → scan-scoped; else connected server.
+        if args.standalone:
+            api_client = self._standalone_client()
+            if api_client is None:
+                return
+        else:
+            api_client = self._cmd.api_client
+
+        # Resolve the triage cloud-agent id (explicit, else auto-discover).
+        if args.agent_id is not None:
+            agent_id = args.agent_id
+        else:
+            agent = _find_faradai_agent(self._cmd, api_client, kind="triage")
+            if agent is None:
+                return
+            agent_id = agent.get("id")
+
+        # WORKSPACES is the mandatory param; its presence is what tells the CAM
+        # this is a triage run. Pass as a comma-separated string.
+        workspaces = args.workspace
+        triage_args = {"WORKSPACES": ",".join(workspaces)}
+        if args.severities:
+            triage_args["SEVERITIES"] = args.severities
+        if args.confirmed_only:
+            triage_args["CONFIRMED_ONLY"] = True
+        if args.auto_close_fp:
+            triage_args["AUTO_CLOSE_FP"] = True
+        if args.target_filter:
+            triage_args["TARGET_FILTER"] = args.target_filter
+        if args.reproduce:
+            triage_args["REPRODUCE"] = True
+        if args.batch_size is not None:
+            triage_args["BATCH_SIZE"] = args.batch_size
+        if args.rounds is not None:
+            triage_args["ROUNDS"] = args.rounds
+        if args.goal:
+            triage_args["GOAL"] = args.goal
+        if args.dry_run:
+            triage_args["DRY_RUN"] = True
+
+        self._cmd.poutput(
+            cmd2.style(
+                f"Launching FaradAI triage\n"
+                f"  Workspaces: {', '.join(workspaces)}\n"
+                f"  Severities: {args.severities or 'all'}\n"
+                f"  Reproduce:  {args.reproduce}",
+                fg=COLORS.GREEN,
+            )
+        )
+        # Triage's own workspace is the first one listed (used by --watch).
+        self._launch_and_report(api_client, agent_id, triage_args, workspaces, "Triage", args.watch)
 
     def _watch_commands(self, api_client, workspace_name, command_ids):
         """Poll each command's status until it leaves the running state.
@@ -271,30 +411,30 @@ class FaradaiCommands(cmd2.CommandSet):
         help="Account password (prompted securely if omitted)",
     )
     register_parser.add_argument(
-        "--scan-url",
+        "--dashboard-url",
         type=str,
         default=None,
-        help="FaradAI-scan instance URL (default: configured faradai_scan url)",
+        help="FaradAI dashboard URL serving /api/register (default: configured dashboard url, with /_ai)",
     )
 
     @cmd2.as_subcommand_to("faradai", "register", register_parser, help="register on the FaradAI-scan SaaS")
     def register(self, args: argparse.Namespace):
         """Start a FaradAI-scan registration — emails a verification code."""
-        scan_url = (args.scan_url or active_config.faradai_scan_url).rstrip("/")
+        dashboard_url = (args.dashboard_url or active_config.faradai_dashboard_url).rstrip("/")
         password = args.password or click.prompt(
             "Password", hide_input=True, confirmation_prompt=True, show_default=False
         )
         try:
             resp = requests.post(
-                f"{scan_url}/api/register",
+                f"{dashboard_url}/api/register",
                 json={"email": args.email, "password": password},
                 timeout=30,
             )
         except requests.RequestException as e:
-            self._cmd.perror(f"Could not reach {scan_url}: {e}")
+            self._cmd.perror(f"Could not reach {dashboard_url}: {e}")
             return
         if resp.status_code == 404:
-            self._cmd.perror(f"Public registration is not enabled on {scan_url}")
+            self._cmd.perror(f"Public registration is not enabled on {dashboard_url}")
             return
         if resp.status_code != 200:
             self._cmd.perror(self._error_message(resp))
@@ -317,25 +457,25 @@ class FaradaiCommands(cmd2.CommandSet):
         help="Account password (prompted securely if omitted)",
     )
     verify_parser.add_argument(
-        "--scan-url",
+        "--dashboard-url",
         type=str,
         default=None,
-        help="FaradAI-scan instance URL (default: configured faradai_scan url)",
+        help="FaradAI dashboard URL serving /api/verify (default: configured dashboard url, with /_ai)",
     )
 
     @cmd2.as_subcommand_to("faradai", "verify", verify_parser, help="verify a FaradAI-scan registration")
     def verify(self, args: argparse.Namespace):
         """Confirm the emailed code — provisions the account and stores the token."""
-        scan_url = (args.scan_url or active_config.faradai_scan_url).rstrip("/")
+        dashboard_url = (args.dashboard_url or active_config.faradai_dashboard_url).rstrip("/")
         password = args.password or click.prompt("Password", hide_input=True, show_default=False)
         try:
             resp = requests.post(
-                f"{scan_url}/api/verify",
+                f"{dashboard_url}/api/verify",
                 json={"email": args.email, "code": args.code, "password": password},
                 timeout=60,
             )
         except requests.RequestException as e:
-            self._cmd.perror(f"Could not reach {scan_url}: {e}")
+            self._cmd.perror(f"Could not reach {dashboard_url}: {e}")
             return
         if resp.status_code == 404:
             self._cmd.perror("No pending registration (or registration disabled). Run 'faradai register' first.")
@@ -348,7 +488,9 @@ class FaradaiCommands(cmd2.CommandSet):
         if not token:
             self._cmd.perror("Verify succeeded but no token was returned.")
             return
-        active_config.faradai_scan_url = (data.get("faraday_url") or scan_url).rstrip("/")
+        # verify returns the Faraday *server* URL (faraday_url) for scans/login —
+        # distinct from the dashboard URL used for register/verify.
+        active_config.faradai_scan_url = (data.get("faraday_url") or active_config.faradai_scan_url).rstrip("/")
         active_config.faradai_scan_token = token
         active_config.save()
         self._cmd.poutput(
