@@ -171,15 +171,19 @@ class FaradaiCommands(cmd2.CommandSet):
             agent_id = agent.get("id")
 
         # Resolve workspace(s). Authenticated path: --workspace or the active
-        # workspace, else error. Standalone path: --workspace or a per-user
-        # default derived from the email local-part (the SaaS UX needs only
-        # --target), never erroring on a missing active workspace.
+        # workspace. Standalone path: --workspace or the user's stored
+        # ext_<domain> workspace (from verify) so the SaaS UX needs only
+        # --target. Error clearly if neither is available.
         if args.workspace:
             workspaces = args.workspace
         elif not args.standalone and active_config.workspace:
             workspaces = [active_config.workspace]
         elif args.standalone:
-            workspaces = [self._standalone_default_workspace()]
+            default_ws = self._standalone_default_workspace()
+            if not default_ws:
+                self._cmd.perror("No workspace stored. Pass --workspace <name> (or re-run 'faradai verify').")
+                return
+            workspaces = [default_ws]
         else:
             self._cmd.perror("No active Workspace")
             return
@@ -317,9 +321,36 @@ class FaradaiCommands(cmd2.CommandSet):
                 return
             agent_id = agent.get("id")
 
+        workspaces = args.workspace
+
+        # Pre-flight: triage re-tests EXISTING findings, so a workspace with no
+        # vulns has nothing to do. Check each workspace's vuln count up front and
+        # refuse to launch when they're all empty (a triage over an empty
+        # workspace otherwise spawns a runner that finds nothing — wasted budget
+        # + a confusing "Element not found"). Skipped on --dry-run (planning is
+        # fine on an empty ws) and when the count can't be fetched (fail-open).
+        if not args.dry_run:
+            empties, total = [], 0
+            for ws in workspaces:
+                try:
+                    stats = (api_client.get_workspace(ws) or {}).get("stats") or {}
+                    n = int(stats.get("total_vulns") or 0)
+                except Exception:
+                    n = -1  # couldn't fetch → don't block
+                if n == 0:
+                    empties.append(ws)
+                elif n > 0:
+                    total += n
+            if empties and total == 0:
+                self._cmd.perror(
+                    "Nothing to triage: workspace(s) "
+                    f"{', '.join(empties)} have no findings. Run a scan first "
+                    "(faradai scan), or pass --dry-run to plan anyway."
+                )
+                return
+
         # WORKSPACES is the mandatory param; its presence is what tells the CAM
         # this is a triage run. Pass as a comma-separated string.
-        workspaces = args.workspace
         triage_args = {"WORKSPACES": ",".join(workspaces)}
         if args.severities:
             triage_args["SEVERITIES"] = args.severities
@@ -489,9 +520,13 @@ class FaradaiCommands(cmd2.CommandSet):
             self._cmd.perror("Verify succeeded but no token was returned.")
             return
         # verify returns the Faraday *server* URL (faraday_url) for scans/login —
-        # distinct from the dashboard URL used for register/verify.
+        # distinct from the dashboard URL used for register/verify. It also
+        # returns the user's own ext_<domain> workspace, stored as the
+        # standalone default so scans need only --target.
         active_config.faradai_scan_url = (data.get("faraday_url") or active_config.faradai_scan_url).rstrip("/")
         active_config.faradai_scan_token = token
+        if data.get("workspace"):
+            active_config.faradai_scan_workspace = data["workspace"]
         active_config.save()
         self._cmd.poutput(
             cmd2.style(
@@ -561,14 +596,14 @@ class FaradaiCommands(cmd2.CommandSet):
 
     @staticmethod
     def _standalone_default_workspace():
-        """Per-user default workspace for standalone scans (email local-part).
+        """Per-user default workspace for standalone scans.
 
-        The SaaS seeds a workspace named after the user; fall back to a stable
-        name derived from the stored token context isn't available, so use a
-        constant last resort.
+        Uses the ext_<domain> workspace that `verify` stored in the config.
+        Returns None when none is stored (the caller then errors clearly asking
+        for --workspace, rather than silently hitting a workspace the user
+        can't access).
         """
-        # No email stored in config; use a stable default the SaaS recognizes.
-        return "faradai-scan"
+        return active_config.faradai_scan_workspace
 
     @staticmethod
     def _error_message(resp):

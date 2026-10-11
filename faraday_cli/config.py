@@ -32,6 +32,9 @@ class Config:
         self.faradai_dashboard_url = DEFAULT_FARADAI_DASHBOARD_URL
         self.faradai_scan_url = DEFAULT_FARADAI_SCAN_URL
         self.faradai_scan_token = None
+        # The user's own ext_<domain> workspace returned by verify — the
+        # standalone scan/triage default so the SaaS UX needs only --target.
+        self.faradai_scan_workspace = None
         self.load()
 
     def config_exists(self) -> bool:
@@ -56,6 +59,7 @@ class Config:
                 self.faradai_dashboard_url = faradai_scan.get("dashboard_url") or DEFAULT_FARADAI_DASHBOARD_URL
                 self.faradai_scan_url = faradai_scan.get("url") or DEFAULT_FARADAI_SCAN_URL
                 self.faradai_scan_token = faradai_scan.get("token")
+                self.faradai_scan_workspace = faradai_scan.get("workspace")
         except KeyError:
             pass
 
@@ -76,6 +80,7 @@ class Config:
                 "dashboard_url": self.faradai_dashboard_url,
                 "url": self.faradai_scan_url,
                 "token": self.faradai_scan_token,
+                "workspace": self.faradai_scan_workspace,
             },
         }
         with open(self.config_file, "w") as f:

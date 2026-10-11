@@ -197,6 +197,7 @@ def test_scan_standalone_without_token_errors(monkeypatch):
 def test_scan_standalone_with_token_posts_to_saas(monkeypatch):
     monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", "tok-9", raising=False)
     monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_url", "https://scan.real", raising=False)
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_workspace", "ext_corp_com", raising=False)
 
     posted = {}
 
@@ -226,7 +227,7 @@ def test_scan_standalone_with_token_posts_to_saas(monkeypatch):
 
     assert posted["agent_id"] == 3
     assert posted["args"]["TARGET"] == "http://t"
-    assert posted["workspaces"] == ["faradai-scan"]  # default standalone workspace
+    assert posted["workspaces"] == ["ext_corp_com"]  # stored ext_<domain> workspace
     assert any("Command id(s): 11" in o for o in fc._cmd.outputs)
 
 
@@ -255,6 +256,9 @@ def test_triage_builds_params_and_targets_triage_agent(monkeypatch):
                 {"id": 1, "name": "FaradAI", "slug": "faradai"},
                 {"id": 2, "name": "FaradAI Triage", "slug": "faradai-triage"},
             ]
+
+        def get_workspace(self, name):
+            return {"stats": {"total_vulns": 7}}  # non-empty → triage proceeds
 
         def run_cloud_agent(self, agent_id, args, workspaces):
             posted["agent_id"] = agent_id
@@ -290,3 +294,78 @@ def test_triage_builds_params_and_targets_triage_agent(monkeypatch):
     assert "AUTO_CLOSE_FP" not in posted["args"]  # flag off → omitted
     assert "TARGET" not in posted["args"]  # triage has no TARGET
     assert any("Command id(s): 22" in o for o in fc._cmd.outputs)
+
+
+def test_triage_refuses_empty_workspace(monkeypatch):
+    """A workspace with 0 findings has nothing to triage → refuse pre-flight."""
+    launched = {"called": False}
+
+    class _FakeClient:
+        def list_cloud_agents(self):
+            return [{"id": 2, "name": "FaradAI Triage", "slug": "faradai-triage"}]
+
+        def get_workspace(self, name):
+            return {"stats": {"total_vulns": 0}}  # empty
+
+        def run_cloud_agent(self, *a, **k):
+            launched["called"] = True
+            return {"command_ids": [{"id": 99}]}
+
+    fc = _bound_cmd()
+    fc._cmd.api_client = _FakeClient()
+    args = SimpleNamespace(
+        standalone=False,
+        agent_id=None,
+        workspace=["ext_empty_com"],
+        severities=None,
+        confirmed_only=False,
+        auto_close_fp=False,
+        target_filter=None,
+        reproduce=False,
+        batch_size=None,
+        rounds=None,
+        goal=None,
+        dry_run=False,
+        watch=False,
+    )
+    fc.triage(args)
+
+    assert launched["called"] is False  # never dispatched
+    assert any("Nothing to triage" in e for e in fc._cmd.errors)
+
+
+def test_triage_empty_workspace_allowed_with_dry_run(monkeypatch):
+    """--dry-run plans even on an empty workspace (skips the pre-flight)."""
+    launched = {"called": False}
+
+    class _FakeClient:
+        def list_cloud_agents(self):
+            return [{"id": 2, "name": "FaradAI Triage", "slug": "faradai-triage"}]
+
+        def get_workspace(self, name):
+            return {"stats": {"total_vulns": 0}}
+
+        def run_cloud_agent(self, *a, **k):
+            launched["called"] = True
+            return {"command_ids": [{"id": 99}]}
+
+    fc = _bound_cmd()
+    fc._cmd.api_client = _FakeClient()
+    args = SimpleNamespace(
+        standalone=False,
+        agent_id=None,
+        workspace=["ext_empty_com"],
+        severities=None,
+        confirmed_only=False,
+        auto_close_fp=False,
+        target_filter=None,
+        reproduce=False,
+        batch_size=None,
+        rounds=None,
+        goal=None,
+        dry_run=True,
+        watch=False,
+    )
+    fc.triage(args)
+
+    assert launched["called"] is True  # dry-run proceeds despite empty ws
