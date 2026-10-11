@@ -136,6 +136,7 @@ def test_register_posts_email_and_password(monkeypatch):
         return _FakeResp(200, {"status": "code_sent"})
 
     monkeypatch.setattr(faradai_mod.requests, "post", fake_post)
+    monkeypatch.setattr(faradai_mod.active_config, "save", lambda: None)
     fc = _bound_cmd()
     args = SimpleNamespace(email="me@corp.com", password="hunter2pass", dashboard_url="https://scan.x/_ai")
     fc.register(args)
@@ -143,38 +144,76 @@ def test_register_posts_email_and_password(monkeypatch):
     assert captured["url"] == "https://scan.x/_ai/api/register"
     assert captured["json"] == {"email": "me@corp.com", "password": "hunter2pass"}
     assert any("Verification code sent" in o for o in fc._cmd.outputs)
+    # explicit password → stashed, not announced as generated
+    assert faradai_mod.active_config.faradai_pending_email == "me@corp.com"
+    assert faradai_mod.active_config.faradai_pending_password == "hunter2pass"
+    assert not any("Generated password" in o for o in fc._cmd.outputs)
+
+
+def test_register_autogenerates_password_when_omitted(monkeypatch):
+    captured = {}
+
+    def fake_post(url, json=None, timeout=None):
+        captured["json"] = json
+        return _FakeResp(200, {"status": "code_sent"})
+
+    monkeypatch.setattr(faradai_mod.requests, "post", fake_post)
+    monkeypatch.setattr(faradai_mod.active_config, "save", lambda: None)
+    fc = _bound_cmd()
+    fc.register(SimpleNamespace(email="me@corp.com", password=None, dashboard_url="https://scan.x/_ai"))
+
+    pw = captured["json"]["password"]
+    assert pw and len(pw) >= 12  # a real generated password was sent
+    assert any(c in "!@#$%^&*-_=+" for c in pw)  # satisfies the special-char policy
+    assert faradai_mod.active_config.faradai_pending_password == pw  # stashed for verify
+    assert any("Generated password" in o for o in fc._cmd.outputs)  # shown to the user
 
 
 def test_register_reports_disabled_on_404(monkeypatch):
     monkeypatch.setattr(faradai_mod.requests, "post", lambda *a, **k: _FakeResp(404))
+    monkeypatch.setattr(faradai_mod.active_config, "save", lambda: None)
     fc = _bound_cmd()
-    fc.register(SimpleNamespace(email="me@corp.com", password="hunter2pass", dashboard_url="https://scan.x/_ai"))
+    fc.register(SimpleNamespace(email="me@corp.com", password="hunter2pass!", dashboard_url="https://scan.x/_ai"))
     assert any("not enabled" in e for e in fc._cmd.errors)
 
 
-def test_verify_persists_token_to_config(monkeypatch):
-    monkeypatch.setattr(
-        faradai_mod.requests,
-        "post",
-        lambda *a, **k: _FakeResp(200, {"token": "tok-9", "faraday_url": "https://scan.real", "email": "me@corp.com"}),
-    )
-    saved = {}
+def test_verify_uses_positional_code_and_pending_creds(monkeypatch):
+    """`faradai verify <code>` with no --email/--password uses the pending
+    registration stashed by `faradai register`, and clears it on success."""
+    sent = {}
+
+    def fake_post(url, json=None, timeout=None):
+        sent["json"] = json
+        return _FakeResp(200, {"token": "tok-9", "faraday_url": "https://scan.real", "workspace": "ext_corp_com"})
+
+    monkeypatch.setattr(faradai_mod.requests, "post", fake_post)
     monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_url", "https://scan.x", raising=False)
     monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", None, raising=False)
-    monkeypatch.setattr(
-        faradai_mod.active_config,
-        "save",
-        lambda: saved.update(
-            url=faradai_mod.active_config.faradai_scan_url,
-            token=faradai_mod.active_config.faradai_scan_token,
-        ),
-    )
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_pending_email", "me@corp.com", raising=False)
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_pending_password", "stashed-pw!", raising=False)
+    monkeypatch.setattr(faradai_mod.active_config, "save", lambda: None)
+
     fc = _bound_cmd()
+    # positional code, no --email/--password/--code
     fc.verify(
-        SimpleNamespace(email="me@corp.com", code="123456", password="hunter2pass", dashboard_url="https://scan.x/_ai")
+        SimpleNamespace(code="123456", code_flag=None, email=None, password=None, dashboard_url="https://scan.x/_ai")
     )
 
-    assert saved == {"url": "https://scan.real", "token": "tok-9"}
+    # pending creds were used in the POST
+    assert sent["json"] == {"email": "me@corp.com", "code": "123456", "password": "stashed-pw!"}
+    # token + workspace stored, pending cleared
+    assert faradai_mod.active_config.faradai_scan_token == "tok-9"
+    assert faradai_mod.active_config.faradai_scan_workspace == "ext_corp_com"
+    assert faradai_mod.active_config.faradai_pending_email is None
+    assert faradai_mod.active_config.faradai_pending_password is None
+
+
+def test_verify_errors_without_code(monkeypatch):
+    fc = _bound_cmd()
+    fc.verify(
+        SimpleNamespace(code=None, code_flag=None, email="x@y.com", password="p", dashboard_url="https://scan.x/_ai")
+    )
+    assert any("Missing code" in e for e in fc._cmd.errors)
 
 
 def test_scan_standalone_without_token_errors(monkeypatch):

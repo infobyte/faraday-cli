@@ -798,20 +798,24 @@ Zero-to-scan flow:
 
 ```
 $ faraday-cli faradai register --email you@corp.com
-# → check your inbox for a 6-digit code
-$ faraday-cli faradai verify --email you@corp.com --code 123456
+# → a strong password is generated and shown; a 6-digit code is emailed
+$ faraday-cli faradai verify 123456
 $ faraday-cli faradai scan --target https://example.com --standalone
 ```
 
-Returning users re-authenticate without a new code:
+`register` stashes the email + password, so `verify` needs only the code.
+Pass `--password` to choose your own; omit it and one is generated for you and
+printed once (save it — it's what you log in with later). Returning users
+re-authenticate without a new code:
 
 ```
 $ faraday-cli faradai login --email you@corp.com
 ```
 
 The credentials are stored under the `faradai_scan` section of
-`~/.faraday-cli.yml`, separate from your main `auth` server connection.
-Password is prompted securely if `--password` is omitted.
+`~/.faraday-cli.yml`, separate from your main `auth` server connection. The
+pending email/password are cleared from the config once `verify` succeeds (the
+token is what persists).
 
 `verify` and `login` also store your `ext_<domain>` workspace (when your
 account is scoped to a single one), so later scans need only `--target`.

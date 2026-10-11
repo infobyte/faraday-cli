@@ -35,6 +35,13 @@ class Config:
         # The user's own ext_<domain> workspace returned by verify — the
         # standalone scan/triage default so the SaaS UX needs only --target.
         self.faradai_scan_workspace = None
+        # In-flight registration: email + password stashed by `faradai register`
+        # so `faradai verify <code>` needs neither flag. Cleared on a successful
+        # verify (the token is what persists afterwards). The password is only
+        # stored here while a registration is pending — a transient like the
+        # emailed code, not a durable credential.
+        self.faradai_pending_email = None
+        self.faradai_pending_password = None
         self.load()
 
     def config_exists(self) -> bool:
@@ -60,6 +67,8 @@ class Config:
                 self.faradai_scan_url = faradai_scan.get("url") or DEFAULT_FARADAI_SCAN_URL
                 self.faradai_scan_token = faradai_scan.get("token")
                 self.faradai_scan_workspace = faradai_scan.get("workspace")
+                self.faradai_pending_email = faradai_scan.get("pending_email")
+                self.faradai_pending_password = faradai_scan.get("pending_password")
         except KeyError:
             pass
 
@@ -81,6 +90,8 @@ class Config:
                 "url": self.faradai_scan_url,
                 "token": self.faradai_scan_token,
                 "workspace": self.faradai_scan_workspace,
+                "pending_email": self.faradai_pending_email,
+                "pending_password": self.faradai_pending_password,
             },
         }
         with open(self.config_file, "w") as f:

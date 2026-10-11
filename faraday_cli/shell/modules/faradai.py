@@ -1,5 +1,7 @@
 import json
 import argparse
+import secrets
+import string
 import time
 from collections import OrderedDict
 
@@ -20,6 +22,25 @@ from faraday_cli.shell.modules.faradai_instructions import (
 # Advanced goes deeper. --rounds overrides either explicitly.
 STANDARD_ROUNDS = 20
 ADVANCED_ROUNDS = 80
+
+
+def _generate_password(length: int = 16) -> str:
+    """Generate a strong random password that satisfies the Faraday policy.
+
+    The server requires at least one special character (and a reasonable
+    length), so guarantee one special plus a mix of upper/lower/digits.
+    """
+    specials = "!@#$%^&*-_=+"
+    alphabet = string.ascii_letters + string.digits + specials
+    while True:
+        pw = "".join(secrets.choice(alphabet) for _ in range(length))
+        if (
+            any(c.islower() for c in pw)
+            and any(c.isupper() for c in pw)
+            and any(c.isdigit() for c in pw)
+            and any(c in specials for c in pw)
+        ):
+            return pw
 
 
 def _find_faradai_agent(cmd, api_client=None, kind="pentest"):
@@ -487,7 +508,7 @@ class FaradaiCommands(cmd2.CommandSet):
         "--password",
         type=str,
         default=None,
-        help="Account password (prompted securely if omitted)",
+        help="Account password (auto-generated and shown if omitted)",
     )
     register_parser.add_argument(
         "--dashboard-url",
@@ -500,9 +521,11 @@ class FaradaiCommands(cmd2.CommandSet):
     def register(self, args: argparse.Namespace):
         """Start a FaradAI-scan registration — emails a verification code."""
         dashboard_url = (args.dashboard_url or active_config.faradai_dashboard_url).rstrip("/")
-        password = args.password or click.prompt(
-            "Password", hide_input=True, confirmation_prompt=True, show_default=False
-        )
+        # Password: use the one given, otherwise generate a strong one so the
+        # user doesn't have to invent (or type) one. Either way it's stashed
+        # with the email so `faradai verify <code>` needs no flags.
+        generated = args.password is None
+        password = args.password or _generate_password()
         try:
             resp = requests.post(
                 f"{dashboard_url}/api/register",
@@ -518,22 +541,37 @@ class FaradaiCommands(cmd2.CommandSet):
         if resp.status_code != 200:
             self._cmd.perror(self._error_message(resp))
             return
-        self._cmd.poutput(
-            cmd2.style(
-                f"Verification code sent to {args.email}.\n" f"Run: faradai verify --email {args.email} --code <code>",
-                fg=COLORS.GREEN,
-            )
-        )
+        # Stash email + password so verify is just `faradai verify <code>`.
+        active_config.faradai_pending_email = args.email
+        active_config.faradai_pending_password = password
+        active_config.save()
+        lines = [f"Verification code sent to {args.email}."]
+        if generated:
+            lines.append(f"Generated password: {password}  (save it — you'll log in with it later)")
+        lines.append("Run: faradai verify <code>")
+        self._cmd.poutput(cmd2.style("\n".join(lines), fg=COLORS.GREEN))
 
     # ---- faradai verify ----
     verify_parser = argparse.ArgumentParser()
-    verify_parser.add_argument("--email", type=str, required=True, help="Email being verified")
-    verify_parser.add_argument("--code", type=str, required=True, help="6-digit verification code")
+    verify_parser.add_argument(
+        "code",
+        type=str,
+        nargs="?",
+        default=None,
+        help="6-digit verification code (positional; or use --code)",
+    )
+    verify_parser.add_argument("--code", dest="code_flag", type=str, default=None, help="6-digit verification code")
+    verify_parser.add_argument(
+        "--email",
+        type=str,
+        default=None,
+        help="Email being verified (default: the pending registration's email)",
+    )
     verify_parser.add_argument(
         "--password",
         type=str,
         default=None,
-        help="Account password (prompted securely if omitted)",
+        help="Account password (default: the pending registration's password)",
     )
     verify_parser.add_argument(
         "--dashboard-url",
@@ -544,13 +582,30 @@ class FaradaiCommands(cmd2.CommandSet):
 
     @cmd2.as_subcommand_to("faradai", "verify", verify_parser, help="verify a FaradAI-scan registration")
     def verify(self, args: argparse.Namespace):
-        """Confirm the emailed code — provisions the account and stores the token."""
+        """Confirm the emailed code — provisions the account and stores the token.
+
+        Usage is just ``faradai verify <code>`` after ``faradai register`` — the
+        email and password are taken from the pending registration. Override
+        with --email / --password when verifying a registration started
+        elsewhere.
+        """
         dashboard_url = (args.dashboard_url or active_config.faradai_dashboard_url).rstrip("/")
-        password = args.password or click.prompt("Password", hide_input=True, show_default=False)
+        code = args.code or args.code_flag
+        if not code:
+            self._cmd.perror("Missing code. Usage: faradai verify <code>")
+            return
+        email = args.email or active_config.faradai_pending_email
+        if not email:
+            self._cmd.perror("No pending email. Pass --email or run 'faradai register' first.")
+            return
+        # Password: explicit flag → the pending (register-stashed) one → prompt.
+        password = args.password or active_config.faradai_pending_password
+        if not password:
+            password = click.prompt("Password", hide_input=True, show_default=False)
         try:
             resp = requests.post(
                 f"{dashboard_url}/api/verify",
-                json={"email": args.email, "code": args.code, "password": password},
+                json={"email": email, "code": code, "password": password},
                 timeout=60,
             )
         except requests.RequestException as e:
@@ -575,6 +630,10 @@ class FaradaiCommands(cmd2.CommandSet):
         active_config.faradai_scan_token = token
         if data.get("workspace"):
             active_config.faradai_scan_workspace = data["workspace"]
+        # Registration is complete — the token is the durable credential now, so
+        # drop the transient pending email/password.
+        active_config.faradai_pending_email = None
+        active_config.faradai_pending_password = None
         active_config.save()
         self._cmd.poutput(
             cmd2.style(
