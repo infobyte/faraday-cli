@@ -194,6 +194,12 @@ class FaradaiCommands(cmd2.CommandSet):
         # Pick the API client: standalone → a scan-scoped client built from the
         # stored faradai_scan profile; otherwise the connected Faraday server.
         if args.standalone:
+            # Not registered yet? Walk the user through register+verify inline
+            # so a first-time `faradai scan --standalone` self-provisions the
+            # account (and its ext_<domain> workspace) before scanning.
+            if not active_config.faradai_scan_token:
+                if not self._guided_onboarding():
+                    return
             api_client = self._standalone_client()
             if api_client is None:
                 return
@@ -521,35 +527,60 @@ class FaradaiCommands(cmd2.CommandSet):
     def register(self, args: argparse.Namespace):
         """Start a FaradAI-scan registration — emails a verification code."""
         dashboard_url = (args.dashboard_url or active_config.faradai_dashboard_url).rstrip("/")
-        # Password: use the one given, otherwise generate a strong one so the
-        # user doesn't have to invent (or type) one. Either way it's stashed
-        # with the email so `faradai verify <code>` needs no flags.
-        generated = args.password is None
-        password = args.password or _generate_password()
+        if not self._do_register(args.email, args.password, dashboard_url):
+            return
+        self._cmd.poutput(cmd2.style("Run: faradai verify <code>", fg=COLORS.GREEN))
+
+    def _do_register(self, email, password, dashboard_url):
+        """POST /api/register; stash email+password; report. Returns True on OK.
+
+        Shared by the `register` command and the guided onboarding. ``password``
+        None → generate a strong one and show it. The stash lets a later
+        `verify <code>` run without flags.
+        """
+        generated = password is None
+        password = password or _generate_password()
         try:
             resp = requests.post(
                 f"{dashboard_url}/api/register",
-                json={"email": args.email, "password": password},
+                json={"email": email, "password": password},
                 timeout=30,
             )
         except requests.RequestException as e:
             self._cmd.perror(f"Could not reach {dashboard_url}: {e}")
-            return
+            return False
         if resp.status_code == 404:
             self._cmd.perror(f"Public registration is not enabled on {dashboard_url}")
-            return
+            return False
         if resp.status_code != 200:
             self._cmd.perror(self._error_message(resp))
-            return
-        # Stash email + password so verify is just `faradai verify <code>`.
-        active_config.faradai_pending_email = args.email
+            return False
+        active_config.faradai_pending_email = email
         active_config.faradai_pending_password = password
         active_config.save()
-        lines = [f"Verification code sent to {args.email}."]
+        lines = [f"Verification code sent to {email}."]
         if generated:
             lines.append(f"Generated password: {password}  (save it — you'll log in with it later)")
-        lines.append("Run: faradai verify <code>")
         self._cmd.poutput(cmd2.style("\n".join(lines), fg=COLORS.GREEN))
+        return True
+
+    def _guided_onboarding(self):
+        """First-time standalone onboarding: register → prompt code → verify.
+
+        Runs when `faradai scan --standalone` finds no stored token. Prompts for
+        an email, registers (auto-generating a password), prompts for the
+        emailed code, and verifies — leaving a usable token + workspace so the
+        caller can proceed with the scan. Returns True on success.
+        """
+        self._cmd.poutput(cmd2.style("No FaradAI-scan account yet — let's create one.", fg=COLORS.CYAN))
+        email = click.prompt("Email")
+        dashboard_url = active_config.faradai_dashboard_url.rstrip("/")
+        if not self._do_register(email, None, dashboard_url):
+            return False
+        code = click.prompt("Verification code (check your email)")
+        if not self._do_verify(code, email, active_config.faradai_pending_password, dashboard_url):
+            return False
+        return True
 
     # ---- faradai verify ----
     verify_parser = argparse.ArgumentParser()
@@ -602,6 +633,20 @@ class FaradaiCommands(cmd2.CommandSet):
         password = args.password or active_config.faradai_pending_password
         if not password:
             password = click.prompt("Password", hide_input=True, show_default=False)
+        if self._do_verify(code, email, password, dashboard_url):
+            self._cmd.poutput(
+                cmd2.style(
+                    "FaradAI scan account ready. Try: faradai scan --target <url> --standalone",
+                    fg=COLORS.GREEN,
+                )
+            )
+
+    def _do_verify(self, code, email, password, dashboard_url):
+        """POST /api/verify; on success store token+url+workspace, clear pending.
+
+        Shared by the `verify` command and the guided onboarding. Returns True
+        on success (the caller prints the appropriate next-step message).
+        """
         try:
             resp = requests.post(
                 f"{dashboard_url}/api/verify",
@@ -610,18 +655,18 @@ class FaradaiCommands(cmd2.CommandSet):
             )
         except requests.RequestException as e:
             self._cmd.perror(f"Could not reach {dashboard_url}: {e}")
-            return
+            return False
         if resp.status_code == 404:
             self._cmd.perror("No pending registration (or registration disabled). Run 'faradai register' first.")
-            return
+            return False
         if resp.status_code != 200:
             self._cmd.perror(self._error_message(resp))
-            return
+            return False
         data = resp.json() if resp.content else {}
         token = data.get("token")
         if not token:
             self._cmd.perror("Verify succeeded but no token was returned.")
-            return
+            return False
         # verify returns the Faraday *server* URL (faraday_url) for scans/login —
         # distinct from the dashboard URL used for register/verify. It also
         # returns the user's own ext_<domain> workspace, stored as the
@@ -635,12 +680,7 @@ class FaradaiCommands(cmd2.CommandSet):
         active_config.faradai_pending_email = None
         active_config.faradai_pending_password = None
         active_config.save()
-        self._cmd.poutput(
-            cmd2.style(
-                "FaradAI scan account ready. Try: faradai scan --target <url> --standalone",
-                fg=COLORS.GREEN,
-            )
-        )
+        return True
 
     # ---- faradai login ----
     login_parser = argparse.ArgumentParser()

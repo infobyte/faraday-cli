@@ -216,23 +216,80 @@ def test_verify_errors_without_code(monkeypatch):
     assert any("Missing code" in e for e in fc._cmd.errors)
 
 
-def test_scan_standalone_without_token_errors(monkeypatch):
+def test_scan_standalone_without_token_triggers_onboarding(monkeypatch):
+    """A first-time `scan --standalone` (no stored token) runs the guided
+    register→verify onboarding, then proceeds to scan with the new token."""
     monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", None, raising=False)
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_workspace", "ext_corp_com", raising=False)
+
+    flow = {"onboarded": False}
+
+    def fake_onboarding():
+        flow["onboarded"] = True
+        # emulate a successful onboarding: a token is now present
+        faradai_mod.active_config.faradai_scan_token = "tok-new"
+        return True
+
+    posted = {}
+
+    class _FakeClient:
+        def list_cloud_agents(self):
+            return [{"id": 3, "name": "FaradAI", "slug": "faradai"}]
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            posted["workspaces"] = workspaces
+            return {"command_ids": [{"id": 77}]}
+
     fc = _bound_cmd()
-    args = SimpleNamespace(
-        standalone=True,
-        agent_id=None,
-        target="http://t",
-        workspace=None,
-        instruction="x",
-        mode="Dual",
-        rounds=None,
-        advanced=False,
-        goal=None,
-        watch=False,
+    monkeypatch.setattr(fc, "_guided_onboarding", fake_onboarding)
+    monkeypatch.setattr(fc, "_standalone_client", lambda: _FakeClient())
+    fc.scan(
+        SimpleNamespace(
+            standalone=True,
+            agent_id=None,
+            target="http://t",
+            workspace=None,
+            instruction="x",
+            mode="Dual",
+            rounds=None,
+            advanced=False,
+            goal=None,
+            watch=False,
+        )
     )
-    fc.scan(args)
-    assert any("Not registered" in e for e in fc._cmd.errors)
+    assert flow["onboarded"] is True
+    assert posted["workspaces"] == ["ext_corp_com"]
+    assert any("Command id(s): 77" in o for o in fc._cmd.outputs)
+
+
+def test_scan_standalone_aborts_if_onboarding_declined(monkeypatch):
+    """If onboarding fails/aborts, the scan does not proceed."""
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", None, raising=False)
+    launched = {"called": False}
+
+    class _FakeClient:
+        def run_cloud_agent(self, *a, **k):
+            launched["called"] = True
+            return {}
+
+    fc = _bound_cmd()
+    monkeypatch.setattr(fc, "_guided_onboarding", lambda: False)
+    monkeypatch.setattr(fc, "_standalone_client", lambda: _FakeClient())
+    fc.scan(
+        SimpleNamespace(
+            standalone=True,
+            agent_id=None,
+            target="http://t",
+            workspace=None,
+            instruction="x",
+            mode="Dual",
+            rounds=None,
+            advanced=False,
+            goal=None,
+            watch=False,
+        )
+    )
+    assert launched["called"] is False
 
 
 def test_scan_standalone_with_token_posts_to_saas(monkeypatch):

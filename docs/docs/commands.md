@@ -803,6 +803,18 @@ $ faraday-cli faradai verify 123456
 $ faraday-cli faradai scan --target https://example.com --standalone
 ```
 
+Or skip straight to scanning — a first-time `--standalone` scan with no account
+yet walks you through register + verify inline, then runs:
+
+```
+$ faraday-cli faradai scan --target https://example.com --standalone
+No FaradAI-scan account yet — let's create one.
+Email: you@corp.com
+# → password generated + shown, code emailed
+Verification code (check your email): 123456
+Launching FaradAI scan ...
+```
+
 `register` stashes the email + password, so `verify` needs only the code.
 Pass `--password` to choose your own; omit it and one is generated for you and
 printed once (save it — it's what you log in with later). Returning users

@@ -1,0 +1,1 @@
+[ADD] A first-time `faradai scan --standalone` with no account self-provisions it: prompts for an email, registers (auto-generating a password), prompts for the emailed code, verifies, then runs the scan. #113
