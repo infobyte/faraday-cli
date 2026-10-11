@@ -12,6 +12,7 @@ from cmd2 import Fg as COLORS
 from tabulate import tabulate
 from simple_rest_client.exceptions import NotFoundError
 
+from faraday_cli.api_client.exceptions import InvalidCredentials
 from faraday_cli.config import active_config
 from faraday_cli.shell.modules.faradai_instructions import (
     SCAN_GOALS,
@@ -195,13 +196,7 @@ class FaradaiCommands(cmd2.CommandSet):
         # Pick the API client: standalone → a scan-scoped client built from the
         # stored faradai_scan profile; otherwise the connected Faraday server.
         if args.standalone:
-            # Not registered yet? Walk the user through register+verify inline
-            # so a first-time `faradai scan --standalone` self-provisions the
-            # account (and its ext_<domain> workspace) before scanning.
-            if not active_config.faradai_scan_token:
-                if not self._guided_onboarding():
-                    return
-            api_client = self._standalone_client()
+            api_client = self._standalone_scan_client()
             if api_client is None:
                 return
         else:
@@ -211,7 +206,14 @@ class FaradaiCommands(cmd2.CommandSet):
         if args.agent_id is not None:
             agent_id = args.agent_id
         else:
-            agent = _find_faradai_agent(self._cmd, api_client)
+            try:
+                agent = _find_faradai_agent(self._cmd, api_client)
+            except InvalidCredentials:
+                self._cmd.perror(
+                    "Stored FaradAI-scan credentials are invalid or expired. "
+                    "Run 'faradai login --email <you>' (or re-register)."
+                )
+                return
             if agent is None:
                 return
             agent_id = agent.get("id")
@@ -372,9 +374,10 @@ class FaradaiCommands(cmd2.CommandSet):
     @cmd2.as_subcommand_to("faradai", "triage", triage_parser, help="run a FaradAI triage over workspace findings")
     def triage(self, args: argparse.Namespace):
         """Launch a FaradAI triage cloud-agent run over existing workspace findings."""
-        # Pick the API client: standalone → scan-scoped; else connected server.
+        # Pick the API client: standalone → scan-scoped (onboards / validates the
+        # stored token); else connected server.
         if args.standalone:
-            api_client = self._standalone_client()
+            api_client = self._standalone_scan_client()
             if api_client is None:
                 return
         else:
@@ -384,7 +387,14 @@ class FaradaiCommands(cmd2.CommandSet):
         if args.agent_id is not None:
             agent_id = args.agent_id
         else:
-            agent = _find_faradai_agent(self._cmd, api_client, kind="triage")
+            try:
+                agent = _find_faradai_agent(self._cmd, api_client, kind="triage")
+            except InvalidCredentials:
+                self._cmd.perror(
+                    "Stored FaradAI-scan credentials are invalid or expired. "
+                    "Run 'faradai login --email <you>' (or re-register)."
+                )
+                return
             if agent is None:
                 return
             agent_id = agent.get("id")
@@ -729,22 +739,52 @@ class FaradaiCommands(cmd2.CommandSet):
             msg += f" Default workspace: {ws}"
         self._cmd.poutput(cmd2.style(msg, fg=COLORS.GREEN))
 
-    def _standalone_client(self):
-        """Build a FaradayApi bound to the stored faradai_scan profile, or None.
+    def _clear_standalone_session(self):
+        """Forget the stored FaradAI-scan token/workspace (reset to unregistered)."""
+        active_config.faradai_scan_token = None
+        active_config.faradai_scan_workspace = None
+        active_config.save()
 
-        Returns None (after perror) when no scan token is stored — the user
-        must `faradai register`/`verify` or `faradai login` first.
-        """
+    def _build_standalone_client(self):
         from faraday_cli.api_client import FaradayApi
 
-        if not active_config.faradai_scan_token:
-            self._cmd.perror("Not registered. Run: faradai register --email <you>")
-            return None
         return FaradayApi(
             active_config.faradai_scan_url,
             ignore_ssl=active_config.ignore_ssl,
             token=active_config.faradai_scan_token,
         )
+
+    def _standalone_scan_client(self):
+        """Resolve a usable standalone client for `scan`/`triage --standalone`.
+
+        Self-healing: if there's no stored token, OR the stored one is
+        invalid/expired (e.g. the backing user was deleted), reset to the
+        unregistered state and run the guided onboarding (register + verify) so
+        the user just creates the account again — no manual re-login step.
+
+        Returns a FaradayApi or None (if the user aborts onboarding).
+        """
+        token = active_config.faradai_scan_token
+        if token:
+            client = self._build_standalone_client()
+            try:
+                valid = client.is_token_valid()
+            except Exception:
+                valid = True  # can't check (transient) → don't block; let the call surface it
+            if valid:
+                return client
+            # Stale token → drop it and fall through to onboarding.
+            self._cmd.poutput(
+                cmd2.style(
+                    "Stored FaradAI-scan session is invalid or expired — let's set it up again.",
+                    fg=COLORS.YELLOW,
+                )
+            )
+            self._clear_standalone_session()
+
+        if not self._guided_onboarding():
+            return None
+        return self._build_standalone_client()
 
     @staticmethod
     def _standalone_default_workspace():

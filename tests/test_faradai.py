@@ -218,17 +218,9 @@ def test_verify_errors_without_code(monkeypatch):
 
 def test_scan_standalone_without_token_triggers_onboarding(monkeypatch):
     """A first-time `scan --standalone` (no stored token) runs the guided
-    register→verify onboarding, then proceeds to scan with the new token."""
-    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", None, raising=False)
+    register→verify onboarding, then proceeds to scan with the new token.
+    _standalone_scan_client encapsulates onboarding + token validation."""
     monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_workspace", "ext_corp_com", raising=False)
-
-    flow = {"onboarded": False}
-
-    def fake_onboarding():
-        flow["onboarded"] = True
-        # emulate a successful onboarding: a token is now present
-        faradai_mod.active_config.faradai_scan_token = "tok-new"
-        return True
 
     posted = {}
 
@@ -241,8 +233,7 @@ def test_scan_standalone_without_token_triggers_onboarding(monkeypatch):
             return {"command_ids": [{"id": 77}]}
 
     fc = _bound_cmd()
-    monkeypatch.setattr(fc, "_guided_onboarding", fake_onboarding)
-    monkeypatch.setattr(fc, "_standalone_client", lambda: _FakeClient())
+    monkeypatch.setattr(fc, "_standalone_scan_client", lambda: _FakeClient())
     fc.scan(
         SimpleNamespace(
             standalone=True,
@@ -257,24 +248,17 @@ def test_scan_standalone_without_token_triggers_onboarding(monkeypatch):
             watch=False,
         )
     )
-    assert flow["onboarded"] is True
     assert posted["workspaces"] == ["ext_corp_com"]
     assert any("Command id(s): 77" in o for o in fc._cmd.outputs)
 
 
 def test_scan_standalone_aborts_if_onboarding_declined(monkeypatch):
-    """If onboarding fails/aborts, the scan does not proceed."""
-    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", None, raising=False)
+    """If onboarding fails/aborts (scan_client returns None), scan doesn't run."""
     launched = {"called": False}
 
-    class _FakeClient:
-        def run_cloud_agent(self, *a, **k):
-            launched["called"] = True
-            return {}
-
     fc = _bound_cmd()
-    monkeypatch.setattr(fc, "_guided_onboarding", lambda: False)
-    monkeypatch.setattr(fc, "_standalone_client", lambda: _FakeClient())
+    # _standalone_scan_client returns None when onboarding is declined / token bad
+    monkeypatch.setattr(fc, "_standalone_scan_client", lambda: None)
     fc.scan(
         SimpleNamespace(
             standalone=True,
@@ -310,7 +294,7 @@ def test_scan_standalone_with_token_posts_to_saas(monkeypatch):
             return {"command_ids": [{"id": 11}]}
 
     fc = _bound_cmd()
-    monkeypatch.setattr(fc, "_standalone_client", lambda: _FakeClient())
+    monkeypatch.setattr(fc, "_standalone_scan_client", lambda: _FakeClient())
     args = SimpleNamespace(
         standalone=True,
         agent_id=None,
@@ -346,7 +330,7 @@ def test_scan_advanced_uses_80_rounds(monkeypatch):
             return {"command_ids": [{"id": 12}]}
 
     fc = _bound_cmd()
-    monkeypatch.setattr(fc, "_standalone_client", lambda: _FakeClient())
+    monkeypatch.setattr(fc, "_standalone_scan_client", lambda: _FakeClient())
     # --advanced with no explicit --rounds → 80
     fc.scan(
         SimpleNamespace(
@@ -766,3 +750,43 @@ def test_all_default_instructions_within_256():
         "ADVANCED_GOAL",
     ):
         assert len(getattr(instr, name)) <= 256, name
+
+
+def test_scan_standalone_invalid_token_self_heals_via_onboarding(monkeypatch):
+    """A stored-but-invalid token (e.g. backing user deleted) must NOT bubble a
+    raw InvalidCredentials and must NOT just error: _standalone_scan_client
+    detects it (is_token_valid False), clears the stale session, and re-runs the
+    guided onboarding so the user just creates the account again."""
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", "stale-tok", raising=False)
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_url", "https://scan.real", raising=False)
+    monkeypatch.setattr(faradai_mod.active_config, "save", lambda: None)
+
+    class _FakeApi:
+        def __init__(self, *a, **k):
+            pass
+
+        def is_token_valid(self):
+            return False
+
+    monkeypatch.setattr(faradai_mod, "FaradayApi", _FakeApi, raising=False)
+    import faraday_cli.api_client as _apimod
+
+    monkeypatch.setattr(_apimod, "FaradayApi", _FakeApi, raising=False)
+
+    flow = {"onboarded": False, "cleared": False}
+
+    def fake_onboarding():
+        # by the time onboarding runs, the stale token must already be cleared
+        flow["cleared"] = faradai_mod.active_config.faradai_scan_token is None
+        flow["onboarded"] = True
+        faradai_mod.active_config.faradai_scan_token = "fresh-tok"
+        return True
+
+    fc = _bound_cmd()
+    monkeypatch.setattr(fc, "_guided_onboarding", fake_onboarding)
+
+    client = fc._standalone_scan_client()
+    assert flow["onboarded"] is True  # re-onboarded automatically
+    assert flow["cleared"] is True  # stale session cleared before onboarding
+    assert client is not None  # usable client built from the fresh token
+    assert any("set it up again" in o for o in fc._cmd.outputs)
