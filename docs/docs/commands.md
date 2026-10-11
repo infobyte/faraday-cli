@@ -744,13 +744,20 @@ $ faraday-cli faradai scan --target https://example.com -w my_workspace --advanc
 |----------------------|---------------------------------------------------------|
 | `--target`           | URL/host to scan (required)                             |
 | `-w`, `--workspace`  | Workspace name (repeatable); defaults to the active one |
-| `--instruction`      | Pentest instruction for the agent                       |
+| `--instruction`      | Pentest instruction (default: the FaradAI wizard's staged template for the tier — standard or advanced) |
+| `--goal`             | Free-text goal/focus for the run (wizard GOAL; empty by default) |
 | `--mode`             | `Dual` (default), `Claude`, or `Codex`                  |
 | `--rounds`           | Max agent rounds (default: **20** standard; **80** with `--advanced`). Explicit `--rounds` overrides the tier. |
-| `--advanced`         | Advanced (deeper) scan — 80 rounds instead of the standard 20 |
+| `--advanced`         | Advanced (deeper) scan — 80 rounds + the wizard full-audit instruction, instead of the standard 20 |
 | `--agent-id`         | Explicit cloud-agent id (skips FaradAI auto-discovery)  |
 | `--watch`            | Poll the launched command(s) until they finish          |
 | `--standalone`       | Run against the FaradAI-scan SaaS using the stored `faradai_scan` credentials |
+
+!!! note "Instructions match the web wizard"
+    `faradai scan` (standard/advanced) and `faradai triage` launch with the
+    same staged instruction templates the FaradAI web wizard sends — standard →
+    *standard*, `--advanced` → *full-audit*, triage → *triage*. Override with
+    `--instruction` for a custom run.
 
 ### faradai triage
 
@@ -774,6 +781,7 @@ $ faraday-cli faradai triage --workspace my_workspace --severities critical,high
 | `--batch-size`       | Findings per triage batch                               |
 | `--rounds`           | Max agent rounds                                        |
 | `--goal`             | Free-text goal for the triage run                       |
+| `--instruction`      | Triage instruction (default: the wizard's staged triage template) |
 | `--agent-id`         | Explicit cloud-agent id (skips auto-discovery)          |
 | `--watch`            | Poll the launched command(s) until they finish          |
 | `--standalone`       | Run against the FaradAI-scan SaaS                       |

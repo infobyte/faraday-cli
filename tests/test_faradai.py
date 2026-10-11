@@ -189,6 +189,7 @@ def test_scan_standalone_without_token_errors(monkeypatch):
         mode="Dual",
         rounds=None,
         advanced=False,
+        goal=None,
         watch=False,
     )
     fc.scan(args)
@@ -223,6 +224,7 @@ def test_scan_standalone_with_token_posts_to_saas(monkeypatch):
         mode="Dual",
         rounds=None,
         advanced=False,
+        goal=None,
         watch=False,
     )
     fc.scan(args)
@@ -260,6 +262,7 @@ def test_scan_advanced_uses_80_rounds(monkeypatch):
             mode="Dual",
             rounds=None,
             advanced=True,
+            goal=None,
             watch=False,
         )
     )
@@ -277,6 +280,7 @@ def test_scan_advanced_uses_80_rounds(monkeypatch):
             mode="Dual",
             rounds=35,
             advanced=True,
+            goal=None,
             watch=False,
         )
     )
@@ -312,6 +316,7 @@ def test_scan_authenticated_autodiscovers_single_workspace(monkeypatch):
             mode="Dual",
             rounds=None,
             advanced=False,
+            goal=None,
             watch=False,
         )
     )
@@ -347,6 +352,7 @@ def test_scan_authenticated_multiple_workspaces_requires_flag(monkeypatch):
             mode="Dual",
             rounds=None,
             advanced=False,
+            goal=None,
             watch=False,
         )
     )
@@ -442,6 +448,7 @@ def test_triage_builds_params_and_targets_triage_agent(monkeypatch):
         rounds=None,
         goal=None,
         dry_run=False,
+        instruction=None,
         watch=False,
     )
     fc.triage(args)
@@ -487,6 +494,7 @@ def test_triage_refuses_empty_workspace(monkeypatch):
         rounds=None,
         goal=None,
         dry_run=False,
+        instruction=None,
         watch=False,
     )
     fc.triage(args)
@@ -524,9 +532,122 @@ def test_triage_empty_workspace_allowed_with_dry_run(monkeypatch):
         batch_size=None,
         rounds=None,
         goal=None,
+        instruction=None,
         dry_run=True,
         watch=False,
     )
     fc.triage(args)
 
     assert launched["called"] is True  # dry-run proceeds despite empty ws
+
+
+# --- default instruction from the wizard templates --------------------------
+
+
+def _scan_capture_client():
+    posted = {}
+
+    class _FakeClient:
+        def list_cloud_agents(self):
+            return [{"id": 3, "name": "FaradAI", "slug": "faradai"}]
+
+        def get_workspaces(self):
+            return [{"name": "ext_corp_com", "active": True}]
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            posted["args"] = args
+            return {"command_ids": [{"id": 1}]}
+
+    return posted, _FakeClient()
+
+
+def test_scan_default_instruction_standard(monkeypatch):
+    from faraday_cli.shell.modules import faradai_instructions as instr
+
+    monkeypatch.setattr(faradai_mod.active_config, "workspace", None, raising=False)
+    posted, client = _scan_capture_client()
+    fc = _bound_cmd()
+    fc._cmd.api_client = client
+    fc.scan(
+        SimpleNamespace(
+            standalone=False,
+            agent_id=None,
+            target="http://t",
+            workspace=None,
+            instruction=None,
+            goal=None,
+            mode="Dual",
+            rounds=None,
+            advanced=False,
+            watch=False,
+        )
+    )
+    # standard scan → wizard standard template, no GOAL by default
+    assert posted["args"]["INSTRUCTION"] == instr.STANDARD_INSTRUCTION
+    assert "GOAL" not in posted["args"]
+
+
+def test_scan_default_instruction_advanced_and_goal(monkeypatch):
+    from faraday_cli.shell.modules import faradai_instructions as instr
+
+    monkeypatch.setattr(faradai_mod.active_config, "workspace", None, raising=False)
+    posted, client = _scan_capture_client()
+    fc = _bound_cmd()
+    fc._cmd.api_client = client
+    fc.scan(
+        SimpleNamespace(
+            standalone=False,
+            agent_id=None,
+            target="http://t",
+            workspace=None,
+            instruction=None,
+            goal="focus on auth",
+            mode="Dual",
+            rounds=None,
+            advanced=True,
+            watch=False,
+        )
+    )
+    # advanced scan → wizard full-audit template; --goal flows to GOAL
+    assert posted["args"]["INSTRUCTION"] == instr.ADVANCED_INSTRUCTION
+    assert posted["args"]["GOAL"] == "focus on auth"
+
+
+def test_triage_default_instruction(monkeypatch):
+    from faraday_cli.shell.modules import faradai_instructions as instr
+
+    posted = {}
+
+    class _FakeClient:
+        def list_cloud_agents(self):
+            return [{"id": 2, "name": "FaradAI Triage", "slug": "faradai-triage"}]
+
+        def get_workspace(self, name):
+            return {"stats": {"total_vulns": 5}}
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            posted["args"] = args
+            return {"command_ids": [{"id": 9}]}
+
+    fc = _bound_cmd()
+    fc._cmd.api_client = _FakeClient()
+    fc.triage(
+        SimpleNamespace(
+            standalone=False,
+            agent_id=None,
+            workspace=["ws-a"],
+            severities=None,
+            confirmed_only=False,
+            auto_close_fp=False,
+            target_filter=None,
+            reproduce=False,
+            batch_size=None,
+            rounds=None,
+            goal=None,
+            instruction=None,
+            dry_run=False,
+            watch=False,
+        )
+    )
+    # triage → wizard triage template as INSTRUCTION
+    assert posted["args"]["INSTRUCTION"] == instr.TRIAGE_INSTRUCTION

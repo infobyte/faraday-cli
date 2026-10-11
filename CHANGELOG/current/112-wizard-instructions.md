@@ -1,0 +1,1 @@
+[MOD] `faradai scan` / `faradai triage` now default to the FaradAI wizard's staged instruction templates (standard → standard, `--advanced` → full-audit, triage → triage); `faradai scan` gains `--goal`. #112

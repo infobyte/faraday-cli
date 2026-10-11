@@ -11,18 +11,15 @@ from tabulate import tabulate
 from simple_rest_client.exceptions import NotFoundError
 
 from faraday_cli.config import active_config
+from faraday_cli.shell.modules.faradai_instructions import (
+    SCAN_INSTRUCTIONS,
+    TRIAGE_INSTRUCTION,
+)
 
 # Agent rounds per scan tier. Standard (default) is a quick first scan;
 # Advanced goes deeper. --rounds overrides either explicitly.
 STANDARD_ROUNDS = 20
 ADVANCED_ROUNDS = 80
-
-# Default pentest instruction when the user doesn't pass --instruction. Mirrors
-# the operator's canonical FaradAI cloud-agent run.
-DEFAULT_INSTRUCTION = (
-    "Full web/API pentest: auth, IDOR/BOLA, SQLi, injection, XSS, SSRF, "
-    "mass assignment, JWT. Validate and chain real exploits."
-)
 
 
 def _find_faradai_agent(cmd, api_client=None, kind="pentest"):
@@ -126,8 +123,14 @@ class FaradaiCommands(cmd2.CommandSet):
     scan_parser.add_argument(
         "--instruction",
         type=str,
-        default=DEFAULT_INSTRUCTION,
-        help="Pentest instruction for the agent",
+        default=None,
+        help="Pentest instruction (default: the wizard's staged template for the tier — " "standard or advanced)",
+    )
+    scan_parser.add_argument(
+        "--goal",
+        type=str,
+        default=None,
+        help="Free-text goal/focus for the run (wizard GOAL; empty by default)",
     )
     scan_parser.add_argument(
         "--mode",
@@ -209,30 +212,32 @@ class FaradaiCommands(cmd2.CommandSet):
                 )
                 return
 
-        # Rounds: explicit --rounds wins; else --advanced (80) or standard (20).
-        if args.rounds is not None:
-            rounds = args.rounds
-            tier = "custom"
-        elif args.advanced:
-            rounds = ADVANCED_ROUNDS
-            tier = "advanced"
-        else:
-            rounds = STANDARD_ROUNDS
-            tier = "standard"
+        # Tier: --advanced selects the deeper template + 80 rounds; otherwise
+        # standard + 20. The tier picks the default INSTRUCTION (the same staged
+        # template the wizard sends); an explicit --rounds overrides the count
+        # but not the template.
+        tier = "advanced" if args.advanced else "standard"
+        rounds = args.rounds if args.rounds is not None else (ADVANCED_ROUNDS if args.advanced else STANDARD_ROUNDS)
+        rounds_label = "custom" if args.rounds is not None else tier
+        instruction = args.instruction or SCAN_INSTRUCTIONS[tier]
 
         scan_args = {
             "TARGET": args.target,
-            "INSTRUCTION": args.instruction,
+            "INSTRUCTION": instruction,
             "MODE": args.mode,
             "ROUNDS": rounds,
         }
+        # GOAL only when provided — matches the wizard (GOAL is the operator's
+        # focus-areas, empty by default).
+        if args.goal:
+            scan_args["GOAL"] = args.goal
 
         self._cmd.poutput(
             cmd2.style(
                 f"Launching FaradAI scan\n"
                 f"  Target:     {args.target}\n"
                 f"  Mode:       {args.mode}\n"
-                f"  Rounds:     {rounds} ({tier})\n"
+                f"  Rounds:     {rounds} ({rounds_label})\n"
                 f"  Workspaces: {', '.join(workspaces)}",
                 fg=COLORS.GREEN,
             )
@@ -312,6 +317,12 @@ class FaradaiCommands(cmd2.CommandSet):
     triage_parser.add_argument("--rounds", type=int, default=None, help="Max agent rounds")
     triage_parser.add_argument("--goal", type=str, default=None, help="Free-text goal for the triage run")
     triage_parser.add_argument(
+        "--instruction",
+        type=str,
+        default=None,
+        help="Triage instruction (default: the wizard's staged triage template)",
+    )
+    triage_parser.add_argument(
         "--agent-id",
         type=int,
         default=None,
@@ -382,8 +393,13 @@ class FaradaiCommands(cmd2.CommandSet):
                 return
 
         # WORKSPACES is the mandatory param; its presence is what tells the CAM
-        # this is a triage run. Pass as a comma-separated string.
-        triage_args = {"WORKSPACES": ",".join(workspaces)}
+        # this is a triage run. Pass as a comma-separated string. INSTRUCTION
+        # defaults to the wizard's staged triage template (same as the web
+        # wizard sends) unless the user overrides it with --instruction.
+        triage_args = {
+            "WORKSPACES": ",".join(workspaces),
+            "INSTRUCTION": args.instruction or TRIAGE_INSTRUCTION,
+        }
         if args.severities:
             triage_args["SEVERITIES"] = args.severities
         if args.confirmed_only:
