@@ -193,15 +193,21 @@ class FaradaiCommands(cmd2.CommandSet):
             workspaces = args.workspace
         elif not args.standalone and active_config.workspace:
             workspaces = [active_config.workspace]
-        elif args.standalone:
-            default_ws = self._standalone_default_workspace()
-            if not default_ws:
-                self._cmd.perror("No workspace stored. Pass --workspace <name> (or re-run 'faradai verify').")
-                return
-            workspaces = [default_ws]
+        elif args.standalone and self._standalone_default_workspace():
+            workspaces = [self._standalone_default_workspace()]
         else:
-            self._cmd.perror("No active Workspace")
-            return
+            # No explicit/active/stored workspace — auto-discover when the user
+            # (a pentester) can access exactly one workspace. Works for both the
+            # authenticated and standalone paths.
+            sole = self._sole_accessible_workspace(api_client)
+            if sole:
+                workspaces = [sole]
+            else:
+                self._cmd.perror(
+                    "No workspace resolved. Pass --workspace <name> "
+                    "(you have access to zero or multiple workspaces)."
+                )
+                return
 
         # Rounds: explicit --rounds wins; else --advanced (80) or standard (20).
         if args.rounds is not None:
@@ -600,8 +606,17 @@ class FaradaiCommands(cmd2.CommandSet):
             return
         active_config.faradai_scan_url = scan_url
         active_config.faradai_scan_token = token
+        # Store the user's ext_<domain> workspace when they have exactly one, so
+        # a later `faradai scan --standalone` needs only --target (same default
+        # verify provides). A token-scoped client is used to query it.
+        ws = self._sole_accessible_workspace(api)
+        if ws:
+            active_config.faradai_scan_workspace = ws
         active_config.save()
-        self._cmd.poutput(cmd2.style(f"Logged in to {scan_url}.", fg=COLORS.GREEN))
+        msg = f"Logged in to {scan_url}."
+        if ws:
+            msg += f" Default workspace: {ws}"
+        self._cmd.poutput(cmd2.style(msg, fg=COLORS.GREEN))
 
     def _standalone_client(self):
         """Build a FaradayApi bound to the stored faradai_scan profile, or None.
@@ -630,6 +645,22 @@ class FaradaiCommands(cmd2.CommandSet):
         can't access).
         """
         return active_config.faradai_scan_workspace
+
+    @staticmethod
+    def _sole_accessible_workspace(api_client):
+        """Return the user's workspace name when they can access exactly one.
+
+        A scan user is a pentester scoped to a single ext_<domain> workspace,
+        so when the server returns exactly one accessible active workspace we
+        can use it as the default (no --workspace needed). Returns None when
+        there are zero or many (caller then asks for --workspace) or on error.
+        """
+        try:
+            workspaces = api_client.get_workspaces() or []
+        except Exception:
+            return None
+        names = [w.get("name") for w in workspaces if w.get("name")]
+        return names[0] if len(names) == 1 else None
 
     @staticmethod
     def _error_message(resp):

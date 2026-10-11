@@ -805,10 +805,19 @@ The credentials are stored under the `faradai_scan` section of
 `~/.faraday-cli.yml`, separate from your main `auth` server connection.
 Password is prompted securely if `--password` is omitted.
 
+`verify` and `login` also store your `ext_<domain>` workspace (when your
+account is scoped to a single one), so later scans need only `--target`.
+
+!!! tip "Workspace auto-discovery"
+    You rarely need `--workspace`. When you have access to exactly one
+    workspace (the usual case for a scan user), `faradai scan` / `faradai
+    triage` resolve it automatically — on both the authenticated (`auth`) and
+    `--standalone` paths. Pass `--workspace` only when you can access several.
+
 | Command           | Parameters                                                      |
 |-------------------|-----------------------------------------------------------------|
-| `faradai register`| `--email` (required), `--password`, `--scan-url`                |
-| `faradai verify`  | `--email` (required), `--code` (required), `--password`, `--scan-url` |
+| `faradai register`| `--email` (required), `--password`, `--dashboard-url`           |
+| `faradai verify`  | `--email` (required), `--code` (required), `--password`, `--dashboard-url` |
 | `faradai login`   | `--email` (required), `--password`, `--scan-url`                |
 
 

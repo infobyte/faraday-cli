@@ -283,6 +283,115 @@ def test_scan_advanced_uses_80_rounds(monkeypatch):
     assert posted["args"]["ROUNDS"] == 35
 
 
+def test_scan_authenticated_autodiscovers_single_workspace(monkeypatch):
+    """Authenticated scan with no --workspace + no active workspace uses the
+    user's sole accessible workspace (pentester scoped to one)."""
+    monkeypatch.setattr(faradai_mod.active_config, "workspace", None, raising=False)
+    posted = {}
+
+    class _FakeClient:
+        def list_cloud_agents(self):
+            return [{"id": 3, "name": "FaradAI", "slug": "faradai"}]
+
+        def get_workspaces(self):
+            return [{"name": "ext_onlyone_com", "active": True}]
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            posted["workspaces"] = workspaces
+            return {"command_ids": [{"id": 50}]}
+
+    fc = _bound_cmd()
+    fc._cmd.api_client = _FakeClient()
+    fc.scan(
+        SimpleNamespace(
+            standalone=False,
+            agent_id=None,
+            target="http://t",
+            workspace=None,
+            instruction="full",
+            mode="Dual",
+            rounds=None,
+            advanced=False,
+            watch=False,
+        )
+    )
+    assert posted["workspaces"] == ["ext_onlyone_com"]
+
+
+def test_scan_authenticated_multiple_workspaces_requires_flag(monkeypatch):
+    """When the user can access several workspaces, auto-discovery refuses and
+    asks for --workspace instead of guessing."""
+    monkeypatch.setattr(faradai_mod.active_config, "workspace", None, raising=False)
+    launched = {"called": False}
+
+    class _FakeClient:
+        def list_cloud_agents(self):
+            return [{"id": 3, "name": "FaradAI", "slug": "faradai"}]
+
+        def get_workspaces(self):
+            return [{"name": "ws_a", "active": True}, {"name": "ws_b", "active": True}]
+
+        def run_cloud_agent(self, *a, **k):
+            launched["called"] = True
+            return {"command_ids": [{"id": 1}]}
+
+    fc = _bound_cmd()
+    fc._cmd.api_client = _FakeClient()
+    fc.scan(
+        SimpleNamespace(
+            standalone=False,
+            agent_id=None,
+            target="http://t",
+            workspace=None,
+            instruction="full",
+            mode="Dual",
+            rounds=None,
+            advanced=False,
+            watch=False,
+        )
+    )
+    assert launched["called"] is False
+    assert any("No workspace resolved" in e for e in fc._cmd.errors)
+
+
+def test_login_stores_sole_workspace(monkeypatch):
+    """faradai login persists the user's sole workspace as the scan default."""
+    saved = {}
+
+    class _FakeApi:
+        def __init__(self, *a, **k):
+            pass
+
+        def login(self, email, password):
+            return True
+
+        def get_token(self, second_factor=None):
+            return "tok-login"
+
+        def get_workspaces(self):
+            return [{"name": "ext_mycompany_com", "active": True}]
+
+    monkeypatch.setattr(faradai_mod, "FaradayApi", _FakeApi, raising=False)
+    # faradai.login imports FaradayApi locally; patch the source module too.
+    import faraday_cli.api_client as _apimod
+
+    monkeypatch.setattr(_apimod, "FaradayApi", _FakeApi, raising=False)
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_url", "https://scan.real", raising=False)
+    monkeypatch.setattr(
+        faradai_mod.active_config,
+        "save",
+        lambda: saved.update(
+            token=faradai_mod.active_config.faradai_scan_token,
+            workspace=faradai_mod.active_config.faradai_scan_workspace,
+        ),
+    )
+    fc = _bound_cmd()
+    fc.login(SimpleNamespace(email="me@mycompany.com", password="pw!", scan_url=None))
+
+    assert saved.get("token") == "tok-login"
+    assert saved.get("workspace") == "ext_mycompany_com"
+
+
 # --- triage -----------------------------------------------------------------
 
 
