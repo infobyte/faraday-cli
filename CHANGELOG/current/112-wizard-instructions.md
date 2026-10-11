@@ -1,1 +1,0 @@
-[MOD] `faradai scan` / `faradai triage` send default INSTRUCTION + GOAL distilled from the FaradAI wizard templates, kept within the server's 256-char param cap (standard / advanced scan; triage sends its brief via GOAL, the param the triage cloud agent accepts). `faradai scan` gains `--goal`. #112
