@@ -469,6 +469,20 @@ class FaradayShell(Cmd):
         else:
             self.do_help("agent")
 
+    # FaradAI (cloud agent)
+    faradai_parser = argparse.ArgumentParser()
+    faradai_subparsers = faradai_parser.add_subparsers(title="action")
+
+    @with_argparser(faradai_parser)
+    @with_category("Objects")
+    def do_faradai(self, ns: argparse.Namespace):
+        """faradai actions"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            handler(ns)
+        else:
+            self.do_help("faradai")
+
     # Executive Report
     executive_report_parser = argparse.ArgumentParser()
     executive_report_subparsers = executive_report_parser.add_subparsers(title="action")

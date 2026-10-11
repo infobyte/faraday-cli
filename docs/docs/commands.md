@@ -706,6 +706,53 @@ Run an executor.
 
 
 
+## FaradAI
+
+!!! info
+    FaradAI runs as a Faraday **cloud agent** (the `v3/cloud_agents` API), which
+    is distinct from the local Faraday Agents above. These commands discover the
+    FaradAI cloud agent on the connected server and launch an AI pentest against
+    a target.
+
+### faradai list
+
+List the cloud agents available on the server.
+
+```
+$ faraday-cli faradai list
+```
+
+| Parameter         | Description                   |
+|-------------------|-------------------------------|
+| `-j`, `--json-output` | Show output in json       |
+| `-p`, `--pretty`  | Show table in a pretty format |
+
+### faradai scan
+
+Launch a FaradAI pentest against a target. The FaradAI cloud agent is
+auto-discovered by name/slug; pass `--agent-id` to select it explicitly.
+
+```
+$ faraday-cli faradai scan --target https://example.com --workspace my_workspace
+```
+
+```
+$ faraday-cli faradai scan --target https://example.com -w my_workspace \
+    --mode Dual --rounds 40 --watch
+```
+
+| Parameter            | Description                                             |
+|----------------------|---------------------------------------------------------|
+| `--target`           | URL/host to scan (required)                             |
+| `-w`, `--workspace`  | Workspace name (repeatable); defaults to the active one |
+| `--instruction`      | Pentest instruction for the agent                       |
+| `--mode`             | `Dual` (default), `Claude`, or `Codex`                  |
+| `--rounds`           | Max agent rounds (default: 40)                          |
+| `--agent-id`         | Explicit cloud-agent id (skips FaradAI auto-discovery)  |
+| `--watch`            | Poll the launched command(s) until they finish          |
+
+
+
 ## Executive Reports
 
 !!! info

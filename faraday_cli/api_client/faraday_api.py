@@ -97,6 +97,10 @@ class FaradayApi:
             resource_class=resources.CredentialResource,
         )
         self.faraday_api.add_resource(resource_name="agent", resource_class=resources.AgentResource)
+        self.faraday_api.add_resource(
+            resource_name="cloud_agent",
+            resource_class=resources.CloudAgentResource,
+        )
         self.faraday_api.add_resource(resource_name="vuln", resource_class=resources.VulnResource)
         self.faraday_api.add_resource(
             resource_name="vuln_evidence",
@@ -290,6 +294,24 @@ class FaradayApi:
             "max_severity": max_severity,
         }
         response = self.faraday_api.agent.run(agent_id, body=body)
+        return response.body
+
+    @handle_errors
+    def list_cloud_agents(self):
+        response = self.faraday_api.cloud_agent.list()
+        return response.body
+
+    @handle_errors
+    def get_cloud_agent(self, cloud_agent_id):
+        response = self.faraday_api.cloud_agent.get(cloud_agent_id)
+        return response.body
+
+    @handle_errors
+    def run_cloud_agent(self, cloud_agent_id, args: dict, workspaces: list):
+        # CloudAgentRunSchema: flat {"workspaces", "args"} — NOT run_executor's
+        # executor_data/workspaces_names shape.
+        body = {"workspaces": workspaces, "args": args}
+        response = self.faraday_api.cloud_agent.run(cloud_agent_id, body=body)
         return response.body
 
     @handle_errors
