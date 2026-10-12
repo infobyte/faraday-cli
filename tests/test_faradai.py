@@ -124,6 +124,11 @@ def _bound_cmd():
     mock.perror = lambda m: mock.errors.append(m)
     mock.poutput = lambda m: mock.outputs.append(m)
     fc._CommandSet__cmd_internal = mock
+    # Default the tests to "a Faraday server is connected" so scan/triage with
+    # standalone=False use fc._cmd.api_client. Standalone tests pass
+    # standalone=True (which forces the SaaS path regardless), and the auto-
+    # fallback is covered explicitly by test_scan_auto_standalone_when_no_server.
+    fc._server_connected = lambda: True
     return fc
 
 
@@ -790,3 +795,39 @@ def test_scan_standalone_invalid_token_self_heals_via_onboarding(monkeypatch):
     assert flow["cleared"] is True  # stale session cleared before onboarding
     assert client is not None  # usable client built from the fresh token
     assert any("set it up again" in o for o in fc._cmd.outputs)
+
+
+def test_scan_auto_standalone_when_no_server(monkeypatch):
+    """With no Faraday server connected and no --standalone flag, scan should
+    auto-use the SaaS backend (no flag needed for scan-only users)."""
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_workspace", "ext_corp_com", raising=False)
+    posted = {}
+
+    class _FakeClient:
+        def list_cloud_agents(self):
+            return [{"id": 3, "name": "FaradAI", "slug": "faradai"}]
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            posted["workspaces"] = workspaces
+            return {"command_ids": [{"id": 77}]}
+
+    fc = _bound_cmd()
+    # No server connection → auto-fallback to the standalone SaaS client.
+    fc._server_connected = lambda: False
+    monkeypatch.setattr(fc, "_standalone_scan_client", lambda: _FakeClient())
+    fc.scan(
+        SimpleNamespace(
+            standalone=False,  # not forced — auto-detected
+            agent_id=None,
+            target="http://t",
+            workspace=None,
+            instruction="full",
+            mode="Dual",
+            rounds=None,
+            advanced=False,
+            goal=None,
+            watch=False,
+        )
+    )
+    # Used the SaaS client and its stored ext_<domain> workspace default.
+    assert posted["workspaces"] == ["ext_corp_com"]

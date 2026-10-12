@@ -81,6 +81,11 @@ class FaradayShell(Cmd):
         # names work). Cloud agents (the new `scanners` group) keep only the new
         # name since the CLI never shipped the old one.
         self.aliases["runners"] = "agent"
+        # Ergonomic top-level shortcuts for the two most common FaradAI actions,
+        # so `faraday-cli pentest --target ...` / `faraday-cli triage -w ...`
+        # work without remembering the `faradai` subcommand prefix.
+        self.aliases["pentest"] = "faradai scan"
+        self.aliases["triage"] = "faradai triage"
         self.shell_mode = False
         self.TABLE_PRETTY_FORMAT = "psql"
         # hide unwanted settings

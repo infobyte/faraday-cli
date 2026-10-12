@@ -788,12 +788,28 @@ $ faraday-cli scanners run -a 2 -w my_workspace \
     [`scanners list`](#scanners-list); to run FaradAI with raw parameters use
     [`scanners run --agent faradai`](#scanners-run).
 
+!!! tip "Shortcuts"
+    The two common actions have top-level shortcuts: **`faraday-cli pentest`**
+    (= `faradai scan`) and **`faraday-cli triage`** (= `faradai triage`). All
+    the flags below apply to the shortcut too.
+
+!!! note "Backend is auto-selected"
+    `faradai scan` / `faradai triage` run against your **connected Faraday
+    server** when you're authenticated (`faraday-cli auth`), and against the
+    **FaradAI-scan SaaS** when you're not. You only need `--standalone` to
+    *force* the SaaS path when a server is also connected. A first-time SaaS
+    user with no account is walked through register + verify inline.
+
 ### faradai scan
 
 Launch a FaradAI pentest against a target. The FaradAI cloud agent is
 auto-discovered by name/slug; pass `--agent-id` to select it explicitly.
 
 ```
+# shortcut — against the connected server, or the SaaS when not authenticated
+$ faraday-cli pentest --target https://example.com
+
+# full form
 $ faraday-cli faradai scan --target https://example.com --workspace my_workspace
 ```
 
@@ -812,7 +828,7 @@ $ faraday-cli faradai scan --target https://example.com -w my_workspace --advanc
 | `--advanced`         | Advanced (deeper) scan — 80 rounds + the wizard full-audit instruction, instead of the standard 20 |
 | `--agent-id`         | Explicit cloud-agent id (skips FaradAI auto-discovery)  |
 | `--watch`            | Poll the launched command(s) until they finish          |
-| `--standalone`       | Run against the FaradAI-scan SaaS using the stored `faradai_scan` credentials |
+| `--standalone`       | Force the FaradAI-scan SaaS backend (auto-used when no server is connected) |
 
 !!! note "Instructions match the web wizard"
     `faradai scan` (standard/advanced) and `faradai triage` launch with the
@@ -828,6 +844,10 @@ the separate *FaradAI Triage* cloud agent (auto-discovered); triage has no
 `--target` — it works over `--workspace` findings, not a URL.
 
 ```
+# shortcut
+$ faraday-cli triage --workspace my_workspace --severities critical,high --reproduce
+
+# full form
 $ faraday-cli faradai triage --workspace my_workspace --severities critical,high --reproduce
 ```
 
@@ -845,7 +865,7 @@ $ faraday-cli faradai triage --workspace my_workspace --severities critical,high
 | `--instruction`      | Triage instruction (default: the wizard's staged triage template) |
 | `--agent-id`         | Explicit cloud-agent id (skips auto-discovery)          |
 | `--watch`            | Poll the launched command(s) until they finish          |
-| `--standalone`       | Run against the FaradAI-scan SaaS                       |
+| `--standalone`       | Force the FaradAI-scan SaaS backend (auto-used when no server is connected) |
 | `--dry-run`          | Plan without mutating findings                          |
 
 ### FaradAI-scan SaaS (register / verify / login)

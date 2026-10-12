@@ -149,20 +149,20 @@ class FaradaiCommands(cmd2.CommandSet):
     scan_parser.add_argument(
         "--standalone",
         action="store_true",
-        help="Run against the FaradAI-scan SaaS using the stored faradai_scan credentials",
+        help="Force the FaradAI-scan SaaS backend (auto-used when no Faraday server "
+        "is connected; pass this to force it even when one is)",
     )
 
     @cmd2.as_subcommand_to("faradai", "scan", scan_parser, help="run a FaradAI pentest scan")
     def scan(self, args: argparse.Namespace):
         """Launch a FaradAI cloud-agent pentest against a target."""
-        # Pick the API client: standalone → a scan-scoped client built from the
-        # stored faradai_scan profile; otherwise the connected Faraday server.
-        if args.standalone:
-            api_client = self._standalone_scan_client()
-            if api_client is None:
-                return
-        else:
-            api_client = self._cmd.api_client
+        # Pick the backend automatically: a connected Faraday server when one is
+        # authenticated, else the FaradAI-scan SaaS. --standalone forces the SaaS
+        # path even with a server connected. `standalone` is the resolved truth
+        # used below for workspace defaults.
+        api_client, standalone = self._resolve_scan_client(args.standalone)
+        if api_client is None:
+            return
 
         # Resolve the agent id (explicit flag, else auto-discover FaradAI).
         if args.agent_id is not None:
@@ -186,9 +186,9 @@ class FaradaiCommands(cmd2.CommandSet):
         # --target. Error clearly if neither is available.
         if args.workspace:
             workspaces = args.workspace
-        elif not args.standalone and active_config.workspace:
+        elif not standalone and active_config.workspace:
             workspaces = [active_config.workspace]
-        elif args.standalone and self._standalone_default_workspace():
+        elif standalone and self._standalone_default_workspace():
             workspaces = [self._standalone_default_workspace()]
         else:
             # No explicit/active/stored workspace — auto-discover when the user
@@ -294,7 +294,8 @@ class FaradaiCommands(cmd2.CommandSet):
     triage_parser.add_argument(
         "--standalone",
         action="store_true",
-        help="Run against the FaradAI-scan SaaS using the stored faradai_scan credentials",
+        help="Force the FaradAI-scan SaaS backend (auto-used when no Faraday server "
+        "is connected; pass this to force it even when one is)",
     )
     triage_parser.add_argument(
         "--dry-run",
@@ -305,14 +306,11 @@ class FaradaiCommands(cmd2.CommandSet):
     @cmd2.as_subcommand_to("faradai", "triage", triage_parser, help="run a FaradAI triage over workspace findings")
     def triage(self, args: argparse.Namespace):
         """Launch a FaradAI triage cloud-agent run over existing workspace findings."""
-        # Pick the API client: standalone → scan-scoped (onboards / validates the
-        # stored token); else connected server.
-        if args.standalone:
-            api_client = self._standalone_scan_client()
-            if api_client is None:
-                return
-        else:
-            api_client = self._cmd.api_client
+        # Backend: auto — connected server when authenticated, else the SaaS.
+        # --standalone forces the SaaS path.
+        api_client, _standalone = self._resolve_scan_client(args.standalone)
+        if api_client is None:
+            return
 
         # Resolve the triage cloud-agent id (explicit, else auto-discover).
         if args.agent_id is not None:
@@ -620,6 +618,24 @@ class FaradaiCommands(cmd2.CommandSet):
         if ws:
             msg += f" Default workspace: {ws}"
         self._cmd.poutput(cmd2.style(msg, fg=COLORS.GREEN))
+
+    @staticmethod
+    def _server_connected():
+        """True when faraday-cli is authenticated to a Faraday server (`auth`)."""
+        return bool(active_config.faraday_url and active_config.token)
+
+    def _resolve_scan_client(self, standalone_flag):
+        """Pick the backend for scan/triage — returns ``(api_client, standalone)``.
+
+        ``--standalone`` (``standalone_flag=True``) always targets the FaradAI-scan
+        SaaS. Otherwise prefer a connected Faraday server; when none is connected,
+        fall back to the SaaS path (stored session, or guided onboarding on first
+        use) so a scan-only user never has to pass the flag. Returns
+        ``(None, True)`` when SaaS onboarding is declined (caller aborts).
+        """
+        if standalone_flag or not self._server_connected():
+            return self._standalone_scan_client(), True
+        return self._cmd.api_client, False
 
     def _clear_standalone_session(self):
         """Forget the stored FaradAI-scan token/workspace (reset to unregistered)."""
