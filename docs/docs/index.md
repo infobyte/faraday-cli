@@ -17,6 +17,16 @@ Scan assets from workspace.
 $ faraday-cli host list -ip -w other_ws | nmap -iL - -oX /tmp/nmap.xml && faraday-cli tool report -w other_ws /tmp/nmap.xml
 ```
 
+#### AI pentest with FaradAI
+
+Launch an AI-driven pentest against a target using the FaradAI cloud agent
+(scanner) and watch it to completion.
+
+```shell
+$ faraday-cli pentest --target https://example.com --watch
+```
+!!! info `pentest` is the shortcut for `faradai scan`. Use `--advanced` for the deeper 80-round audit, or `scanners run --agent <id|name>` to run any cloud agent with raw parameters. See [Commands](commands.md#faradai).
+
 ### One-Line to nmap to all the host in the workspace and import the results back to Faraday
 
 To scan all the host list inside a workspace with ```nmap``` and import the results back to faraday.
