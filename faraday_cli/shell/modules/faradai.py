@@ -1,8 +1,6 @@
-import json
 import argparse
 import secrets
 import string
-import time
 from collections import OrderedDict
 
 import cmd2
@@ -10,10 +8,10 @@ import click
 import requests
 from cmd2 import Fg as COLORS
 from tabulate import tabulate
-from simple_rest_client.exceptions import NotFoundError
 
 from faraday_cli.api_client.exceptions import InvalidCredentials
 from faraday_cli.config import active_config
+from faraday_cli.shell.modules.cloud_agent_common import launch_cloud_agent_and_report
 from faraday_cli.shell.modules.faradai_instructions import (
     SCAN_GOALS,
     SCAN_INSTRUCTIONS,
@@ -93,45 +91,9 @@ class FaradaiCommands(cmd2.CommandSet):
     def __init__(self):
         super().__init__()
 
-    # ---- faradai list ----
-    list_faradai_parser = argparse.ArgumentParser()
-    list_faradai_parser.add_argument("-j", "--json-output", action="store_true", help="Show output in json")
-    list_faradai_parser.add_argument(
-        "-p",
-        "--pretty",
-        action="store_true",
-        help="Show table in a pretty format",
-    )
-
-    @cmd2.as_subcommand_to("faradai", "list", list_faradai_parser, help="list cloud agents (FaradAI)")
-    def list_cloud_agents(self, args: argparse.Namespace):
-        """List cloud agents available on the server."""
-        agents = self._cmd.api_client.list_cloud_agents()
-        if not agents:
-            self._cmd.perror("No cloud agents in server")
-            return
-        if args.json_output:
-            self._cmd.poutput(json.dumps(agents, indent=4))
-            return
-        data = [
-            OrderedDict(
-                {
-                    "ID": x.get("id"),
-                    "NAME": x.get("name"),
-                    "SLUG": x.get("slug"),
-                    "CATEGORY": ", ".join(x.get("category") or []),
-                    "LAST_RUN": x.get("last_run"),
-                }
-            )
-            for x in agents
-        ]
-        self._cmd.poutput(
-            tabulate(
-                data,
-                headers="keys",
-                tablefmt="psql" if args.pretty else "simple",
-            )
-        )
+    # Listing cloud agents is generic (not FaradAI-specific) — it lives under
+    # the `scanners` command group: `scanners list`. `faradai` is FaradAI-only:
+    # scan / triage + the FaradAI-scan SaaS onboarding (register/verify/login).
 
     # ---- faradai scan ----
     scan_parser = argparse.ArgumentParser()
@@ -270,38 +232,7 @@ class FaradaiCommands(cmd2.CommandSet):
             )
         )
 
-        self._launch_and_report(api_client, agent_id, scan_args, workspaces, "Scan", args.watch)
-
-    def _launch_and_report(self, api_client, agent_id, run_args, workspaces, verb, watch):
-        """Run a cloud agent and render the command ids; optionally --watch.
-
-        Shared by `faradai scan` and `faradai triage`. ``verb`` is the word used
-        in the success line ("Scan" / "Triage"). CloudAgent run returns
-        ``{'command_ids': [{'id': N}], 'cam_execution': {...}, 'cam_status': 200}``.
-        """
-        try:
-            response = api_client.run_cloud_agent(agent_id, run_args, workspaces)
-        except NotFoundError:
-            self._cmd.perror("Cloud agent not found")
-            return
-        except Exception as e:
-            self._cmd.perror(str(e))
-            return
-
-        command_ids = [c.get("id") for c in (response.get("command_ids") or []) if c.get("id") is not None]
-        if command_ids:
-            self._cmd.poutput(
-                cmd2.style(
-                    f"{verb} launched. Command id(s): {', '.join(str(c) for c in command_ids)}",
-                    fg=COLORS.GREEN,
-                )
-            )
-        else:
-            self._cmd.poutput(cmd2.style(f"{verb} launched.", fg=COLORS.GREEN))
-            self._cmd.poutput(json.dumps(response, indent=2))
-
-        if watch:
-            self._watch_commands(api_client, workspaces[0], command_ids)
+        launch_cloud_agent_and_report(self._cmd, api_client, agent_id, scan_args, workspaces, "Scan", args.watch)
 
     # ---- faradai triage ----
     triage_parser = argparse.ArgumentParser()
@@ -462,56 +393,7 @@ class FaradaiCommands(cmd2.CommandSet):
             )
         )
         # Triage's own workspace is the first one listed (used by --watch).
-        self._launch_and_report(api_client, agent_id, triage_args, workspaces, "Triage", args.watch)
-
-    def _watch_commands(self, api_client, workspace_name, command_ids):
-        """Poll each command's status until it leaves the running state.
-
-        Uses the already-exposed command listing on the workspace (no new
-        server endpoint). If the API client has no command getter, print the
-        ids and a follow-up hint rather than inventing an endpoint.
-        """
-        getter = getattr(api_client, "get_workspace_commands", None) or getattr(api_client, "get_commands", None)
-        if getter is None or not command_ids:
-            self._cmd.poutput(
-                cmd2.style(
-                    "--watch: no command-status endpoint available in this CLI; " "check the run in the Faraday UI.",
-                    fg=COLORS.YELLOW,
-                )
-            )
-            return
-
-        pending = set(command_ids)
-        self._cmd.poutput(cmd2.style("Watching scan (Ctrl-C to stop watching)…", fg=COLORS.CYAN))
-        try:
-            while pending:
-                time.sleep(15)
-                try:
-                    commands = getter(workspace_name) or []
-                except Exception as e:
-                    self._cmd.perror(f"watch: {e}")
-                    return
-                by_id = {c.get("_id") or c.get("id"): c for c in commands}
-                for cid in list(pending):
-                    cmd_row = by_id.get(cid)
-                    if cmd_row is None:
-                        continue
-                    # A finished command has a duration / end_date set.
-                    if cmd_row.get("duration") not in (
-                        None,
-                        "",
-                        "In progress",
-                    ) or cmd_row.get("end_date"):
-                        self._cmd.poutput(cmd2.style(f"  command {cid} finished", fg=COLORS.GREEN))
-                        pending.discard(cid)
-            self._cmd.poutput(cmd2.style("Scan finished.", fg=COLORS.GREEN))
-        except KeyboardInterrupt:
-            self._cmd.poutput(
-                cmd2.style(
-                    "\nStopped watching (scan keeps running server-side).",
-                    fg=COLORS.YELLOW,
-                )
-            )
+        launch_cloud_agent_and_report(self._cmd, api_client, agent_id, triage_args, workspaces, "Triage", args.watch)
 
     # ---- faradai register ----
     register_parser = argparse.ArgumentParser()

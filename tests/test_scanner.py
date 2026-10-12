@@ -1,0 +1,190 @@
+"""Unit tests for the generic `scanners` (cloud-agent) command group.
+
+Offline unit tests: they mock the API client so the assertions target the CLI's
+own logic — the id-or-name agent resolution, the --param KEY=VALUE parsing, and
+the generic run body (shared launch helper) that any cloud agent goes through.
+"""
+
+from types import SimpleNamespace
+
+from faraday_cli.shell.modules.cloud_agent_common import resolve_cloud_agent
+from faraday_cli.shell.modules.scanner import ScannerCommands, _parse_params
+
+
+class _FakeCmd:
+    """Minimal stand-in for the cmd2 app."""
+
+    def __init__(self, agents=None):
+        self.api_client = SimpleNamespace(
+            list_cloud_agents=lambda: (agents or []),
+        )
+        self.errors = []
+        self.outputs = []
+
+    def perror(self, msg):
+        self.errors.append(msg)
+
+    def poutput(self, msg):
+        self.outputs.append(msg)
+
+
+# --- resolve_cloud_agent (id or name/slug) ----------------------------------
+
+
+def test_resolve_by_numeric_id_present():
+    cmd = _FakeCmd([{"id": 2, "name": "FaradAI", "slug": "faradai"}])
+    assert resolve_cloud_agent(cmd, cmd.api_client, "2") == 2
+    assert cmd.errors == []
+
+
+def test_resolve_by_numeric_id_absent_still_returns_id():
+    # A numeric id not in the list is passed through so the server 404s (we
+    # don't second-guess the operator's explicit id).
+    cmd = _FakeCmd([{"id": 2, "name": "FaradAI", "slug": "faradai"}])
+    assert resolve_cloud_agent(cmd, cmd.api_client, "99") == 99
+
+
+def test_resolve_by_name_substring():
+    cmd = _FakeCmd(
+        [
+            {"id": 2, "name": "FaradAI", "slug": "faradai"},
+            {"id": 4, "name": "Nessus", "slug": "nessus"},
+        ]
+    )
+    assert resolve_cloud_agent(cmd, cmd.api_client, "nessus") == 4
+    assert resolve_cloud_agent(cmd, cmd.api_client, "FARAD") == 2
+
+
+def test_resolve_zero_match_errors():
+    cmd = _FakeCmd([{"id": 2, "name": "FaradAI", "slug": "faradai"}])
+    assert resolve_cloud_agent(cmd, cmd.api_client, "zap") is None
+    assert any("No cloud agent matching" in e for e in cmd.errors)
+
+
+def test_resolve_ambiguous_match_errors():
+    cmd = _FakeCmd(
+        [
+            {"id": 2, "name": "FaradAI", "slug": "faradai"},
+            {"id": 3, "name": "FaradAI Triage", "slug": "faradai-triage"},
+        ]
+    )
+    assert resolve_cloud_agent(cmd, cmd.api_client, "faradai") is None
+    assert any("matches multiple" in e for e in cmd.errors)
+
+
+# --- _parse_params ----------------------------------------------------------
+
+
+def test_parse_params_coerces_types():
+    out = _parse_params(["TARGET=https://x", "ROUNDS=20", "REPRODUCE=true", "DRY=false"])
+    assert out == {
+        "TARGET": "https://x",
+        "ROUNDS": 20,
+        "REPRODUCE": True,
+        "DRY": False,
+    }
+
+
+def test_parse_params_preserves_equals_in_value():
+    out = _parse_params(["GOAL=a=b=c"])
+    assert out == {"GOAL": "a=b=c"}
+
+
+def test_parse_params_rejects_missing_equals():
+    try:
+        _parse_params(["JUSTAKEY"])
+        assert False, "expected ValueError"
+    except ValueError as e:
+        assert "KEY=VALUE" in str(e)
+
+
+def test_parse_params_rejects_empty_key():
+    try:
+        _parse_params(["=value"])
+        assert False, "expected ValueError"
+    except ValueError as e:
+        assert "empty key" in str(e)
+
+
+# --- scanners run (generic body shape) --------------------------------------
+
+
+def _bound_scanner(api_client):
+    fc = ScannerCommands()
+    mock = SimpleNamespace(errors=[], outputs=[], api_client=api_client)
+    mock.perror = lambda m: mock.errors.append(m)
+    mock.poutput = lambda m: mock.outputs.append(m)
+    fc._CommandSet__cmd_internal = mock
+    return fc
+
+
+def test_run_scanner_posts_flat_body(monkeypatch):
+    captured = {}
+
+    class _Client:
+        def list_cloud_agents(self):
+            return [{"id": 2, "name": "FaradAI", "slug": "faradai"}]
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            captured["agent_id"] = agent_id
+            captured["args"] = args
+            captured["workspaces"] = workspaces
+            return {"command_ids": [{"id": 11}]}
+
+    fc = _bound_scanner(_Client())
+    args = SimpleNamespace(
+        agent="faradai",
+        workspace=["ws1"],
+        param=["TARGET=https://x", "ROUNDS=20"],
+        params_json=None,
+        watch=False,
+    )
+    fc.run_scanner(args)
+
+    assert captured["agent_id"] == 2
+    assert captured["workspaces"] == ["ws1"]
+    assert captured["args"] == {"TARGET": "https://x", "ROUNDS": 20}
+    assert fc._cmd.errors == []
+
+
+def test_run_scanner_params_json_takes_precedence():
+    captured = {}
+
+    class _Client:
+        def list_cloud_agents(self):
+            return [{"id": 2, "name": "FaradAI", "slug": "faradai"}]
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            captured["args"] = args
+            return {"command_ids": [{"id": 1}]}
+
+    fc = _bound_scanner(_Client())
+    args = SimpleNamespace(
+        agent="2",
+        workspace=["ws1"],
+        param=["IGNORED=1"],
+        params_json='{"TARGET": "https://y", "MODE": "Dual"}',
+        watch=False,
+    )
+    fc.run_scanner(args)
+    assert captured["args"] == {"TARGET": "https://y", "MODE": "Dual"}
+
+
+def test_run_scanner_unknown_agent_aborts():
+    class _Client:
+        def list_cloud_agents(self):
+            return [{"id": 2, "name": "FaradAI", "slug": "faradai"}]
+
+        def run_cloud_agent(self, *a, **k):  # pragma: no cover - must not run
+            raise AssertionError("run must not be called when agent unresolved")
+
+    fc = _bound_scanner(_Client())
+    args = SimpleNamespace(
+        agent="doesnotexist",
+        workspace=["ws1"],
+        param=[],
+        params_json=None,
+        watch=False,
+    )
+    fc.run_scanner(args)
+    assert any("No cloud agent matching" in e for e in fc._cmd.errors)

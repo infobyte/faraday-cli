@@ -76,6 +76,11 @@ class FaradayShell(Cmd):
     def __init__(self, *args, **kwargs):
         super().__init__(persistent_history_file="~/.faraday-cli_history", *args, **kwargs)
         self.hidden_commands += ["EOF", "cd", "alias", "macro"]
+        # Back-compat synonym: local Faraday Agents were renamed "runners", so
+        # `runners <...>` resolves to the existing `agent <...>` command (both
+        # names work). Cloud agents (the new `scanners` group) keep only the new
+        # name since the CLI never shipped the old one.
+        self.aliases["runners"] = "agent"
         self.shell_mode = False
         self.TABLE_PRETTY_FORMAT = "psql"
         # hide unwanted settings
@@ -468,6 +473,20 @@ class FaradayShell(Cmd):
             handler(ns)
         else:
             self.do_help("agent")
+
+    # Scanners (cloud agents — the generic security-agent group)
+    scanners_parser = argparse.ArgumentParser()
+    scanners_subparsers = scanners_parser.add_subparsers(title="action")
+
+    @with_argparser(scanners_parser)
+    @with_category("Objects")
+    def do_scanners(self, ns: argparse.Namespace):
+        """scanners (cloud agent) actions"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            handler(ns)
+        else:
+            self.do_help("scanners")
 
     # FaradAI (cloud agent)
     faradai_parser = argparse.ArgumentParser()

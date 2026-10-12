@@ -586,6 +586,13 @@ Different stats about the vulnerabilities in Faraday.
 !!! info
     For these commands you need to have our [Faraday Agents](https://github.com/infobyte/faraday_agent_dispatcher) configured.
 
+!!! note "`runners` alias"
+    Faraday Agents (the local dispatcher runners) are also reachable as
+    **`runners`** — `runners list`, `runners get`, `runners run` are synonyms
+    for the `agent` commands below, kept for the renamed terminology. The
+    server-side scanners live under the separate [`scanners`](#scanners-cloud-agents)
+    group.
+
 ### agent list
 
 List all configured agents.
@@ -706,26 +713,80 @@ Run an executor.
 
 
 
-## FaradAI
+## Scanners (cloud agents)
 
 !!! info
-    FaradAI runs as a Faraday **cloud agent** (the `v3/cloud_agents` API), which
-    is distinct from the local Faraday Agents above. These commands discover the
-    FaradAI cloud agent on the connected server and launch an AI pentest against
-    a target.
+    **Scanners** are Faraday **cloud agents** (the `v3/cloud_agents` API) — the
+    server-side security agents, distinct from the local Faraday Agents /
+    `runners` above. This is the generic group: list any cloud agent and run it
+    with arbitrary parameters. FaradAI is one such scanner, so it can be
+    launched here (`scanners run --agent faradai ...`) **or** via its own
+    richer [`faradai`](#faradai) command.
 
-### faradai list
+### scanners list
 
-List the cloud agents available on the server.
+List the cloud agents (scanners) available on the server.
 
 ```
-$ faraday-cli faradai list
+$ faraday-cli scanners list
+  ID  NAME            SLUG             CATEGORY   LAST_RUN
+----  --------------  ---------------  ---------  ----------
+   2  FaradAI         faradai          pentest    ...
+   4  FaradAI Triage  faradai-triage   triage     ...
 ```
 
 | Parameter         | Description                   |
 |-------------------|-------------------------------|
 | `-j`, `--json-output` | Show output in json       |
 | `-p`, `--pretty`  | Show table in a pretty format |
+
+### scanners get
+
+Show a single cloud agent and the parameters it accepts (useful before
+`scanners run` so you know which `--param` keys to pass).
+
+```
+$ faraday-cli scanners get 2
+```
+
+| Parameter         | Description                   |
+|-------------------|-------------------------------|
+| `scanner_id`      | ID of the cloud agent (required) |
+| `-j`, `--json-output` | Show output in json       |
+| `-p`, `--pretty`  | Show table in a pretty format |
+
+### scanners run
+
+Launch **any** cloud agent against one or more workspaces with arbitrary
+parameters. The agent is selected by id or by a name/slug fragment.
+
+```
+$ faraday-cli scanners run --agent faradai -w my_workspace \
+    --param TARGET=https://example.com --param ROUNDS=20 --watch
+```
+
+```
+# equivalent, params as a JSON object
+$ faraday-cli scanners run -a 2 -w my_workspace \
+    --params-json '{"TARGET": "https://example.com", "MODE": "Dual", "ROUNDS": 20}'
+```
+
+| Parameter            | Description                                             |
+|----------------------|---------------------------------------------------------|
+| `-a`, `--agent`      | Cloud-agent id or name/slug fragment (required)         |
+| `-w`, `--workspace`  | Workspace name (repeatable); defaults to the active one |
+| `--param KEY=VALUE`  | Run parameter (repeatable). Bare integers and `true`/`false` are coerced. |
+| `--params-json`      | All run params as one JSON object (alternative to repeated `--param`) |
+| `--watch`            | Poll the launched command(s) until they finish          |
+
+## FaradAI
+
+!!! info
+    FaradAI is a Faraday **cloud agent** (a [scanner](#scanners-cloud-agents)),
+    with its own command for the common cases: tiered scans, triage, and the
+    FaradAI-scan SaaS onboarding. To list cloud agents use
+    [`scanners list`](#scanners-list); to run FaradAI with raw parameters use
+    [`scanners run --agent faradai`](#scanners-run).
 
 ### faradai scan
 
