@@ -36,7 +36,8 @@ Saving config
 
 ### status
 
-Show the status of your current authentication.
+Show the status of your current authentication — the connected Faraday server,
+your user, whether the token is valid, the active workspace, and versions.
 
 ```
 $ faraday-cli status
@@ -44,6 +45,18 @@ FARADAY SERVER         IGNORE SSL    VERSION    USER     VALID TOKEN    WORKSPAC
 ---------------------  ------------  ---------  -------  -------------  -----------
 http://localhost:5985  False         corp-3.14  faraday  ✔              test
 ```
+
+If you also have a [FaradAI-scan SaaS](#faradai-scan-saas-register--verify--login)
+session stored, a second table shows it (server, user, token, `ext_<domain>`
+workspace):
+
+```
+FaradAI-scan (SaaS):
+FARADAI-SCAN SERVER               USER                 VALID TOKEN    WORKSPACE
+--------------------------------  -------------------  -------------  ----------------
+https://scan.apps.faradaysec.com  you@corp.com         ✔              ext_corp_com
+```
+
 *Optional Arguments:*
 
 | Syntax      | Description |

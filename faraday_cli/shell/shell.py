@@ -411,6 +411,44 @@ class FaradayShell(Cmd):
                 fg=COLORS.GREEN,
             )
         )
+        # Second section: the FaradAI-scan SaaS session (separate from the main
+        # `auth` server connection). Only shown when a SaaS token is stored, so
+        # the common single-server case stays a one-table status.
+        if active_config.faradai_scan_token:
+            scan_api = FaradayApi(
+                active_config.faradai_scan_url,
+                ignore_ssl=active_config.ignore_ssl,
+                token=active_config.faradai_scan_token,
+            )
+            try:
+                scan_valid = scan_api.is_token_valid()
+            except Exception:
+                scan_valid = False
+            scan_user = None
+            if scan_valid:
+                try:
+                    scan_user = scan_api.get_user()
+                except Exception:
+                    scan_user = None
+            scan_data = [
+                {
+                    "FARADAI-SCAN SERVER": active_config.faradai_scan_url,
+                    "USER": scan_user if scan_user else "-",
+                    "VALID TOKEN": "\U00002714" if scan_valid else "\U0000274c",
+                    "WORKSPACE": active_config.faradai_scan_workspace or "-",
+                }
+            ]
+            self.print_output(
+                style(
+                    "\nFaradAI-scan (SaaS):\n"
+                    + tabulate(
+                        scan_data,
+                        headers="keys",
+                        tablefmt=(self.TABLE_PRETTY_FORMAT if args.pretty else "simple"),
+                    ),
+                    fg=COLORS.GREEN,
+                )
+            )
 
     # Workspace
     workspace_parser = argparse.ArgumentParser()
