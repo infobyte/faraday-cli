@@ -76,11 +76,14 @@ class FaradayShell(Cmd):
     def __init__(self, *args, **kwargs):
         super().__init__(persistent_history_file="~/.faraday-cli_history", *args, **kwargs)
         self.hidden_commands += ["EOF", "cd", "alias", "macro"]
-        # Back-compat synonym: local Faraday Agents were renamed "runners", so
-        # `runners <...>` resolves to the existing `agent <...>` command (both
-        # names work). Cloud agents (the new `scanners` group) keep only the new
-        # name since the CLI never shipped the old one.
+        # Accept the singular/plural and old/new spelling of both agent groups so
+        # users don't have to remember the canonical one. Local Faraday Agents
+        # (the dispatcher runners) canonicalise to `agent`; cloud agents (the new
+        # security scanners) canonicalise to `scanners`.
+        self.aliases["agents"] = "agent"
+        self.aliases["runner"] = "agent"
         self.aliases["runners"] = "agent"
+        self.aliases["scanner"] = "scanners"
         # Ergonomic top-level shortcuts for the two most common FaradAI actions,
         # so `faraday-cli pentest --target ...` / `faraday-cli triage -w ...`
         # work without remembering the `faradai` subcommand prefix.

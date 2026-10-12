@@ -144,8 +144,8 @@ $ faraday-cli ping -c 1 www.google.com
 
 ### List agents (runners)
 
-Local Faraday Agents (dispatcher *runners*). Reachable as either `agent` or
-`runners`.
+Local Faraday Agents (dispatcher *runners*). Reachable as `agent`, `agents`,
+`runner` or `runners` (all equivalent).
 
 ```shell script
 $ faraday-cli agent list

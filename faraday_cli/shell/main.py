@@ -15,7 +15,9 @@ Common commands:
   pentest   --target <url>     Run a FaradAI pentest (= faradai scan)
   triage    -w <workspace>     Run a FaradAI triage   (= faradai triage)
   scanners  list|get|run       Cloud agents / security scanners (v3/cloud_agents)
-  agent     list|get|run       Local Faraday agents / runners   (also: runners)
+                               (aliases: scanner)
+  agent     list|get|run       Local Faraday agents / runners   (v3/agents)
+                               (aliases: agents, runner, runners)
   vuln | host | service        Query a workspace's data
   tool run | report            Run a tool / import a report
 
