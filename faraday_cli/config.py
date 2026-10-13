@@ -106,6 +106,29 @@ class Config:
             self._sync_from_session(name)
         self.save()
 
+    def resolve_session(self, ref):
+        """Resolve a session by 1-based index (as shown in `auth list`) or name.
+
+        Accepts an int-like index ("1"), an exact session name, or — as a
+        convenience — a unique match on the session's user/email. Returns the
+        session name, or None when it doesn't resolve (or is an ambiguous
+        user match).
+        """
+        ref = str(ref).strip()
+        names = list(self.sessions)
+        if ref.isdigit():
+            idx = int(ref) - 1
+            if 0 <= idx < len(names):
+                return names[idx]
+            return None
+        if ref in self.sessions:
+            return ref
+        # Fall back to a unique user/email match.
+        by_user = [n for n in names if (self.sessions[n].get("user") or "") == ref]
+        if len(by_user) == 1:
+            return by_user[0]
+        return None
+
     def use_session(self, name) -> bool:
         """Switch the active connection to ``name``. Returns False if unknown."""
         if name not in self.sessions:

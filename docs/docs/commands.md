@@ -40,28 +40,33 @@ switchable session instead of overwriting each other.
 
 ```
 $ faraday-cli auth list
-ACTIVE    NAME                    KIND    SERVER                            USER             WORKSPACE
---------  ----------------------  ------  --------------------------------  ---------------  ----------------
-✔         alice@corp.faradaysec   server  https://corp.faradaysec.com       alice            -
-          bob@corp.faradaysec     server  https://corp.faradaysec.com       bob              ws_b
-          faradai-scan            saas    https://scan.apps.faradaysec.com  you@corp.com     ext_corp_com
+  ID  ACTIVE    NAME                    KIND    SERVER                            USER             WORKSPACE
+----  --------  ----------------------  ------  --------------------------------  ---------------  ----------------
+   1  ✔         alice@corp.faradaysec   server  https://corp.faradaysec.com       alice            -
+   2            bob@corp.faradaysec     server  https://corp.faradaysec.com       bob              ws_b
+   3            faradai-scan            saas    https://scan.apps.faradaysec.com  you@corp.com     ext_corp_com
 ```
 
 ### auth use
 
-Switch the active connection to a saved session. Every command (including
+Switch the active connection to a saved session — by its **ID number**, its
+**name**, or its **user/email**. Every command (including
 `pentest`/`triage`/`scanners`) then uses it.
 
 ```
-$ faraday-cli auth use faradai-scan
+$ faraday-cli auth use 3                 # by ID
+$ faraday-cli auth use faradai-scan      # by name
+$ faraday-cli auth use you@corp.com      # by user/email (when unique)
 Switched to 'faradai-scan' (https://scan.apps.faradaysec.com) — workspace ext_corp_com
 ```
 
 ### auth rm
 
-Remove a saved session (clears the active connection if it was the active one).
+Remove a saved session (by ID, name or user; clears the active connection if it
+was the active one).
 
 ```
+$ faraday-cli auth rm 3
 $ faraday-cli auth rm faradai-scan
 ```
 

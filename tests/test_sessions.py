@@ -122,3 +122,29 @@ def test_two_users_same_server_dont_collide(cfg):
     c.use_session("bob@corp")
     assert c.token == "tok-b" and c.workspace == "ws_b"
     assert c.sessions["bob@corp"]["user"] == "bob"
+
+
+def test_resolve_session_by_index_name_and_user(cfg):
+    c = cfg.Config()
+    c.add_session("alice@corp", "https://corp", "tok-a", user="alice")
+    c.add_session("bob@corp", "https://corp", "tok-b", user="bob")
+    # 1-based index (order of insertion)
+    assert c.resolve_session("1") == "alice@corp"
+    assert c.resolve_session("2") == "bob@corp"
+    assert c.resolve_session("3") is None  # out of range
+    # exact name
+    assert c.resolve_session("bob@corp") == "bob@corp"
+    # unique user match
+    assert c.resolve_session("alice") == "alice@corp"
+    # unknown
+    assert c.resolve_session("nobody") is None
+
+
+def test_resolve_session_ambiguous_user_is_none(cfg):
+    c = cfg.Config()
+    c.add_session("a1", "https://x", "t1", user="same")
+    c.add_session("a2", "https://y", "t2", user="same")
+    # two sessions share the same user → ambiguous, must not guess
+    assert c.resolve_session("same") is None
+    # but the exact names still work
+    assert c.resolve_session("a2") == "a2"

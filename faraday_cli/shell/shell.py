@@ -463,9 +463,10 @@ class FaradayShell(Cmd):
         others = [n for n in active_config.sessions if n != active_config.active_session]
         if others or len(active_config.sessions) > 1:
             session_rows = []
-            for name, s in active_config.sessions.items():
+            for idx, (name, s) in enumerate(active_config.sessions.items(), start=1):
                 session_rows.append(
                     {
+                        "ID": idx,
                         "ACTIVE": "\U00002714" if name == active_config.active_session else "",
                         "NAME": name,
                         "KIND": s.get("kind") or "server",
