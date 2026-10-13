@@ -108,3 +108,17 @@ def test_migrates_legacy_faradai_scan_token(cfg):
     assert saas["kind"] == "saas"
     # The legacy auth connection is the active one (migration doesn't steal it).
     assert c.active_session == "corp"
+
+
+def test_two_users_same_server_dont_collide(cfg):
+    c = cfg.Config()
+    c.add_session("alice@corp", "https://corp", "tok-a", user="alice", workspace="ws_a")
+    c.add_session("bob@corp", "https://corp", "tok-b", user="bob", workspace="ws_b")
+    # Same server URL, two distinct sessions kept side by side.
+    assert set(c.sessions) == {"alice@corp", "bob@corp"}
+    c.use_session("alice@corp")
+    assert c.token == "tok-a" and c.workspace == "ws_a"
+    assert c.sessions["alice@corp"]["user"] == "alice"
+    c.use_session("bob@corp")
+    assert c.token == "tok-b" and c.workspace == "ws_b"
+    assert c.sessions["bob@corp"]["user"] == "bob"

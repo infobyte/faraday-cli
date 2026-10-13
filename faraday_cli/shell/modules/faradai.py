@@ -572,6 +572,7 @@ class FaradaiCommands(cmd2.CommandSet):
             token=token,
             workspace=data.get("workspace"),
             kind="saas",
+            user=email,
             make_active=True,
         )
         return True
@@ -626,6 +627,7 @@ class FaradaiCommands(cmd2.CommandSet):
             token=token,
             workspace=ws,
             kind="saas",
+            user=args.email,
             make_active=True,
         )
         self._cmd.reload_api_client()

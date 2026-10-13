@@ -81,7 +81,17 @@ class Config:
             s["ignore_ssl"] = bool(self.ignore_ssl)
             s["workspace"] = self.workspace
 
-    def add_session(self, name, faraday_url, token, ignore_ssl=False, workspace=None, kind="server", make_active=True):
+    def add_session(
+        self,
+        name,
+        faraday_url,
+        token,
+        ignore_ssl=False,
+        workspace=None,
+        kind="server",
+        user=None,
+        make_active=True,
+    ):
         """Create/replace a named session; make it active by default + save."""
         self.sessions[name] = {
             "faraday_url": faraday_url,
@@ -89,6 +99,7 @@ class Config:
             "ignore_ssl": bool(ignore_ssl),
             "workspace": workspace,
             "kind": kind,
+            "user": user,
         }
         if make_active:
             self.active_session = name

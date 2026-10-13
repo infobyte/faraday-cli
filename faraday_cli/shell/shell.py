@@ -292,8 +292,10 @@ class FaradayShell(Cmd):
                     second_factor = None
                 token = api_client.get_token(second_factor)
                 # Save as a named session and make it active (single active
-                # connection). Name defaults to the server host.
-                session_name = args.name or (urlparse(faraday_url).hostname or faraday_url)
+                # connection). Name defaults to `user@host` so two users on the
+                # same server don't collide (each is its own switchable session).
+                host = urlparse(faraday_url).hostname or faraday_url
+                session_name = args.name or (f"{user}@{host}" if user else host)
                 active_config.add_session(
                     session_name,
                     faraday_url=faraday_url,
@@ -301,6 +303,7 @@ class FaradayShell(Cmd):
                     ignore_ssl=ignore_ssl,
                     workspace=None,
                     kind="server",
+                    user=user,
                     make_active=True,
                 )
                 self.api_client = FaradayApi(faraday_url, ignore_ssl=ignore_ssl, token=token)
@@ -420,6 +423,12 @@ class FaradayShell(Cmd):
             version_data = self.api_client.get_version()
             version = f"{version_data['product']}-{version_data['version']}"
             user = self.api_client.get_user()
+            # Backfill the active session's user when it wasn't stored (e.g. a
+            # migrated pre-sessions config) so `auth list` can show it offline.
+            active = active_config.sessions.get(active_config.active_session or "")
+            if active is not None and user and not active.get("user"):
+                active["user"] = user
+                active_config.save()
         data = [
             {
                 "FARADAY SERVER": active_config.faraday_url,
@@ -461,6 +470,7 @@ class FaradayShell(Cmd):
                         "NAME": name,
                         "KIND": s.get("kind") or "server",
                         "SERVER": s.get("faraday_url"),
+                        "USER": s.get("user") or "-",
                         "WORKSPACE": s.get("workspace") or "-",
                     }
                 )

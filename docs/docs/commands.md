@@ -34,14 +34,17 @@ Saving config
 
 ### auth list
 
-List the saved connection sessions (the active one is marked).
+List the saved connection sessions (the active one is marked). Session names
+default to `user@host`, so two users on the **same** server each get their own
+switchable session instead of overwriting each other.
 
 ```
 $ faraday-cli auth list
-ACTIVE    NAME                      KIND    SERVER                            WORKSPACE
---------  ------------------------  ------  --------------------------------  ----------------
-✔         corp                      server  https://corp.faradaysec.com       -
-          faradai-scan              saas    https://scan.apps.faradaysec.com  ext_corp_com
+ACTIVE    NAME                    KIND    SERVER                            USER             WORKSPACE
+--------  ----------------------  ------  --------------------------------  ---------------  ----------------
+✔         alice@corp.faradaysec   server  https://corp.faradaysec.com       alice            -
+          bob@corp.faradaysec     server  https://corp.faradaysec.com       bob              ws_b
+          faradai-scan            saas    https://scan.apps.faradaysec.com  you@corp.com     ext_corp_com
 ```
 
 ### auth use

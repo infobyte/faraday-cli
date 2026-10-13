@@ -40,6 +40,7 @@ class AuthSessionCommands(cmd2.CommandSet):
                         "NAME": name,
                         "KIND": s.get("kind") or "server",
                         "SERVER": s.get("faraday_url"),
+                        "USER": s.get("user") or "-",
                         "WORKSPACE": s.get("workspace") or "-",
                     }
                 )
@@ -59,7 +60,8 @@ class AuthSessionCommands(cmd2.CommandSet):
         # Rebuild the live API client against the newly-active session.
         self._cmd.reload_api_client()
         s = active_config.sessions.get(args.name, {})
-        msg = f"Switched to '{args.name}' ({s.get('faraday_url')})"
+        who = f" as {s['user']}" if s.get("user") else ""
+        msg = f"Switched to '{args.name}'{who} ({s.get('faraday_url')})"
         if s.get("workspace"):
             msg += f" — workspace {s['workspace']}"
         self._cmd.poutput(cmd2.style(msg, fg=COLORS.GREEN))
