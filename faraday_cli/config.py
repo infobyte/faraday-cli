@@ -1,6 +1,7 @@
 import os
 import yaml
 from pathlib import Path
+from urllib.parse import urlparse
 
 DEFAULT_CONFIG_FILE = os.environ.get("FARADAY_CLI_CONFIG", "~/.faraday-cli.yml")
 
@@ -8,44 +9,116 @@ DEFAULT_CONFIG_FILE = os.environ.get("FARADAY_CLI_CONFIG", "~/.faraday-cli.yml")
 #  * the FaradAI dashboard (`/api/register` + `/api/verify`), served under the
 #    `/_ai` prefix on the dashboard host — used by `faradai register`/`verify`.
 #  * the Faraday server (`/_api/v3/cloud_agents`, `/_api/login`) — used by
-#    `faradai scan --standalone` and `faradai login`. `verify` returns this URL
-#    as `faraday_url` and the CLI stores it.
+#    `faradai scan` and `faradai login`. `verify` returns this URL as
+#    `faraday_url` and the CLI stores it as the `faradai-scan` session.
 DEFAULT_FARADAI_DASHBOARD_URL = "https://faradai-scan.apps.faradaysec.com/_ai"
 DEFAULT_FARADAI_SCAN_URL = "https://scan.apps.faradaysec.com"
 
+# Session name used for the FaradAI-scan SaaS connection created by
+# `faradai register`/`verify`/`login`.
+FARADAI_SCAN_SESSION = "faradai-scan"
+
 
 class Config:
+    """CLI configuration with named connection sessions.
+
+    There is exactly ONE active connection at a time (``active_session``); the
+    flat ``faraday_url``/``token``/``ignore_ssl``/``workspace`` attributes mirror
+    it so every command keeps reading the active connection unchanged. Other
+    connections (e.g. your corporate Faraday plus the FaradAI-scan SaaS) are kept
+    in ``sessions`` so you can switch between them with ``auth use <name>``
+    instead of being connected to two servers at once.
+    """
+
     def __init__(self):
         self.config_file = Path(os.path.expanduser(DEFAULT_CONFIG_FILE))
+        # Flat view of the ACTIVE session (source of truth while running).
         self.faraday_url = None
         self.token = None
         self.ignore_ssl = False
         self.workspace = None
+        # Named connection registry: {name: {faraday_url, token, ignore_ssl,
+        # workspace, kind}}. kind is "server" or "saas".
+        self.sessions = {}
+        self.active_session = None
         self.custom_plugins_path = None
         self.ignore_info_severity = False
         self.hostname_resolution = False
         self.auto_command_detection = True
-        # FaradAI-scan SaaS profile (separate from the main `auth` server so a
-        # user can be registered on the public scan instance without touching
-        # their primary Faraday connection). dashboard_url serves register/verify
-        # (under /_ai); scan_url is the Faraday server for scans/login.
+        # FaradAI-scan SaaS endpoints + in-flight registration transients. The
+        # SaaS *connection* itself is stored as the `faradai-scan` session; these
+        # fields are the register/verify endpoints and the pending email/password
+        # stashed by `faradai register` (cleared on a successful verify).
         self.faradai_dashboard_url = DEFAULT_FARADAI_DASHBOARD_URL
         self.faradai_scan_url = DEFAULT_FARADAI_SCAN_URL
-        self.faradai_scan_token = None
-        # The user's own ext_<domain> workspace returned by verify — the
-        # standalone scan/triage default so the SaaS UX needs only --target.
-        self.faradai_scan_workspace = None
-        # In-flight registration: email + password stashed by `faradai register`
-        # so `faradai verify <code>` needs neither flag. Cleared on a successful
-        # verify (the token is what persists afterwards). The password is only
-        # stored here while a registration is pending — a transient like the
-        # emailed code, not a durable credential.
         self.faradai_pending_email = None
         self.faradai_pending_password = None
         self.load()
 
     def config_exists(self) -> bool:
         return self.config_file.exists()
+
+    # -- session helpers ----------------------------------------------------
+
+    def _sync_from_session(self, name):
+        """Copy a session's connection fields into the flat active view."""
+        s = self.sessions.get(name, {})
+        self.faraday_url = s.get("faraday_url")
+        self.token = s.get("token")
+        self.ignore_ssl = bool(s.get("ignore_ssl"))
+        self.workspace = s.get("workspace")
+
+    def _fold_active_into_session(self):
+        """Persist the live flat values back into the active session entry.
+
+        Lets `workspace select` (which sets the flat workspace) and a fresh login
+        update the active session without each caller touching the registry.
+        """
+        if self.active_session and self.active_session in self.sessions:
+            s = self.sessions[self.active_session]
+            s["faraday_url"] = self.faraday_url
+            s["token"] = self.token
+            s["ignore_ssl"] = bool(self.ignore_ssl)
+            s["workspace"] = self.workspace
+
+    def add_session(self, name, faraday_url, token, ignore_ssl=False, workspace=None, kind="server", make_active=True):
+        """Create/replace a named session; make it active by default + save."""
+        self.sessions[name] = {
+            "faraday_url": faraday_url,
+            "token": token,
+            "ignore_ssl": bool(ignore_ssl),
+            "workspace": workspace,
+            "kind": kind,
+        }
+        if make_active:
+            self.active_session = name
+            self._sync_from_session(name)
+        self.save()
+
+    def use_session(self, name) -> bool:
+        """Switch the active connection to ``name``. Returns False if unknown."""
+        if name not in self.sessions:
+            return False
+        self.active_session = name
+        self._sync_from_session(name)
+        self.save()
+        return True
+
+    def remove_session(self, name) -> bool:
+        """Delete a session. Clears the active connection if it was active."""
+        if name not in self.sessions:
+            return False
+        del self.sessions[name]
+        if self.active_session == name:
+            self.active_session = None
+            self.faraday_url = None
+            self.token = None
+            self.ignore_ssl = False
+            self.workspace = None
+        self.save()
+        return True
+
+    # -- persistence --------------------------------------------------------
 
     def load(self):
         try:
@@ -55,25 +128,60 @@ class Config:
                 # An empty config file parses to None — treat it as "no config".
                 if not config_data:
                     return
-                self.faraday_url = config_data.get("auth", {}).get("faraday_url")
-                self.token = config_data.get("auth", {}).get("token")
-                self.ignore_ssl = config_data.get("auth", {}).get("ignore_ssl")
-                self.workspace = config_data.get("faraday", {}).get("workspace")
                 self.custom_plugins_path = config_data.get("settings", {}).get("custom_plugins_path")
                 self.ignore_info_severity = config_data.get("settings", {}).get("ignore_info_severity", False)
                 self.auto_command_detection = config_data.get("settings", {}).get("auto_command_detection", True)
-                faradai_scan = config_data.get("faradai_scan", {}) or {}
-                self.faradai_dashboard_url = faradai_scan.get("dashboard_url") or DEFAULT_FARADAI_DASHBOARD_URL
-                self.faradai_scan_url = faradai_scan.get("url") or DEFAULT_FARADAI_SCAN_URL
-                self.faradai_scan_token = faradai_scan.get("token")
-                self.faradai_scan_workspace = faradai_scan.get("workspace")
-                self.faradai_pending_email = faradai_scan.get("pending_email")
-                self.faradai_pending_password = faradai_scan.get("pending_password")
+
+                self.sessions = config_data.get("sessions") or {}
+                self.active_session = config_data.get("active_session")
+
+                # Migrate a pre-sessions config: the legacy `auth` block becomes a
+                # session named after its host, active by default.
+                auth = config_data.get("auth", {}) or {}
+                if not self.sessions and auth.get("faraday_url") and auth.get("token"):
+                    name = urlparse(auth["faraday_url"]).hostname or "default"
+                    self.sessions[name] = {
+                        "faraday_url": auth["faraday_url"],
+                        "token": auth["token"],
+                        "ignore_ssl": bool(auth.get("ignore_ssl")),
+                        "workspace": config_data.get("faraday", {}).get("workspace"),
+                        "kind": "server",
+                    }
+                    if not self.active_session:
+                        self.active_session = name
+
+                # FaradAI-scan endpoints + registration transients.
+                fs = config_data.get("faradai_scan", {}) or {}
+                self.faradai_dashboard_url = fs.get("dashboard_url") or DEFAULT_FARADAI_DASHBOARD_URL
+                self.faradai_scan_url = fs.get("url") or DEFAULT_FARADAI_SCAN_URL
+                self.faradai_pending_email = fs.get("pending_email")
+                self.faradai_pending_password = fs.get("pending_password")
+                # Migrate a legacy stored SaaS token into a `faradai-scan`
+                # session (only when one isn't already registered).
+                if fs.get("token") and FARADAI_SCAN_SESSION not in self.sessions:
+                    self.sessions[FARADAI_SCAN_SESSION] = {
+                        "faraday_url": fs.get("url") or DEFAULT_FARADAI_SCAN_URL,
+                        "token": fs["token"],
+                        "ignore_ssl": False,
+                        "workspace": fs.get("workspace"),
+                        "kind": "saas",
+                    }
+
+                # Sync the flat active view from the active session.
+                if self.active_session and self.active_session in self.sessions:
+                    self._sync_from_session(self.active_session)
+                else:
+                    self.active_session = None
         except KeyError:
             pass
 
     def save(self):
+        # Fold the live flat values back into the active session so a workspace
+        # change or fresh login persists without the caller touching the registry.
+        self._fold_active_into_session()
+        saas = self.sessions.get(FARADAI_SCAN_SESSION, {})
         config_data = {
+            # Back-compat mirror of the active connection (older readers + humans).
             "auth": {
                 "faraday_url": self.faraday_url,
                 "token": self.token,
@@ -85,11 +193,15 @@ class Config:
                 "ignore_info_severity": self.ignore_info_severity,
                 "auto_command_detection": self.auto_command_detection,
             },
+            "sessions": self.sessions,
+            "active_session": self.active_session,
             "faradai_scan": {
                 "dashboard_url": self.faradai_dashboard_url,
                 "url": self.faradai_scan_url,
-                "token": self.faradai_scan_token,
-                "workspace": self.faradai_scan_workspace,
+                # Mirror the SaaS session (for downgrade / raw-file inspection);
+                # None when there's no faradai-scan session.
+                "token": saas.get("token"),
+                "workspace": saas.get("workspace"),
                 "pending_email": self.faradai_pending_email,
                 "pending_password": self.faradai_pending_password,
             },

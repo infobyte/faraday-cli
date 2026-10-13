@@ -29,3 +29,19 @@ def test_canonical_commands_exist(faraday_cli_app_no_config):
     assert "do_agent" in dir(app)
     assert "do_scanners" in dir(app)
     assert "do_faradai" in dir(app)
+
+
+def test_auth_session_subcommands_exist(faraday_cli_app_no_config):
+    app = faraday_cli_app_no_config
+    # bare `auth` logs in; list/use/rm manage named sessions.
+    out = app.app_cmd("help auth")
+    text = (out.stdout or "") + (out.stderr or "")
+    assert "list" in text and "use" in text and "rm" in text
+
+
+def test_reload_api_client_exists(faraday_cli_app_no_config):
+    app = faraday_cli_app_no_config
+    assert hasattr(app, "reload_api_client")
+    # No active connection in the no-config fixture → builds an anonymous client.
+    app.reload_api_client()
+    assert app.api_client is not None

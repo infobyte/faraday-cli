@@ -22,9 +22,45 @@ Saving config
 |:-----	|------:	|
 | `-f/--faraday-url FARADAY_URL`       | url of your faraday server      |
 | `-i/--ignore-ssl`   | Ignore SSL certificate validation        |
-| `-i/--ignore-ssl`   | Ignore SSL certificate validation        |
 | `-u/--user USER`  | Faraday user       |
 | `-p/--password PASSWORD`  | Faraday password       |
+| `-n/--name NAME`  | Session name to save this connection as (default: the server host) |
+
+!!! info "One active connection, multiple saved sessions"
+    faraday-cli keeps **one active connection** at a time, but remembers the
+    others as named *sessions* so you can switch instead of being logged in to
+    two servers at once. Logging in with `auth` (and `faradai register`/`login`,
+    which save a `faradai-scan` session) adds a session and makes it active.
+
+### auth list
+
+List the saved connection sessions (the active one is marked).
+
+```
+$ faraday-cli auth list
+ACTIVE    NAME                      KIND    SERVER                            WORKSPACE
+--------  ------------------------  ------  --------------------------------  ----------------
+✔         corp                      server  https://corp.faradaysec.com       -
+          faradai-scan              saas    https://scan.apps.faradaysec.com  ext_corp_com
+```
+
+### auth use
+
+Switch the active connection to a saved session. Every command (including
+`pentest`/`triage`/`scanners`) then uses it.
+
+```
+$ faraday-cli auth use faradai-scan
+Switched to 'faradai-scan' (https://scan.apps.faradaysec.com) — workspace ext_corp_com
+```
+
+### auth rm
+
+Remove a saved session (clears the active connection if it was the active one).
+
+```
+$ faraday-cli auth rm faradai-scan
+```
 
 !!! info "Faraday token expiration"
     You may want to change the faraday token expiration time, so you don't have to authenticate so often.

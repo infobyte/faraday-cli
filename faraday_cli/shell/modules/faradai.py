@@ -10,7 +10,7 @@ from cmd2 import Fg as COLORS
 from tabulate import tabulate
 
 from faraday_cli.api_client.exceptions import InvalidCredentials
-from faraday_cli.config import active_config
+from faraday_cli.config import active_config, FARADAI_SCAN_SESSION
 from faraday_cli.shell.modules.cloud_agent_common import launch_cloud_agent_and_report
 from faraday_cli.shell.modules.faradai_instructions import (
     SCAN_GOALS,
@@ -149,20 +149,21 @@ class FaradaiCommands(cmd2.CommandSet):
     scan_parser.add_argument(
         "--standalone",
         action="store_true",
-        help="Force the FaradAI-scan SaaS backend (auto-used when no Faraday server "
-        "is connected; pass this to force it even when one is)",
+        help="(deprecated) Switch the active connection to the FaradAI-scan SaaS "
+        "for this run; prefer 'auth use <name>'",
     )
 
     @cmd2.as_subcommand_to("faradai", "scan", scan_parser, help="run a FaradAI pentest scan")
     def scan(self, args: argparse.Namespace):
         """Launch a FaradAI cloud-agent pentest against a target."""
-        # Pick the backend automatically: a connected Faraday server when one is
-        # authenticated, else the FaradAI-scan SaaS. --standalone forces the SaaS
-        # path even with a server connected. `standalone` is the resolved truth
-        # used below for workspace defaults.
-        api_client, standalone = self._resolve_scan_client(args.standalone)
-        if api_client is None:
+        # Single active connection: use whatever you're connected to. --standalone
+        # (deprecated) switches the active connection to the FaradAI-scan SaaS; a
+        # first-time user with nothing configured is onboarded into the SaaS.
+        if args.standalone:
+            self._warn_standalone_deprecated()
+        if not self._ensure_connected(args.standalone):
             return
+        api_client = self._cmd.api_client
 
         # Resolve the agent id (explicit flag, else auto-discover FaradAI).
         if args.agent_id is not None:
@@ -172,28 +173,21 @@ class FaradaiCommands(cmd2.CommandSet):
                 agent = _find_faradai_agent(self._cmd, api_client)
             except InvalidCredentials:
                 self._cmd.perror(
-                    "Stored FaradAI-scan credentials are invalid or expired. "
-                    "Run 'faradai login --email <you>' (or re-register)."
+                    "Active connection's credentials are invalid or expired. "
+                    "Run 'auth' (or 'faradai login' for the SaaS)."
                 )
                 return
             if agent is None:
                 return
             agent_id = agent.get("id")
 
-        # Resolve workspace(s). Authenticated path: --workspace or the active
-        # workspace. Standalone path: --workspace or the user's stored
-        # ext_<domain> workspace (from verify) so the SaaS UX needs only
-        # --target. Error clearly if neither is available.
+        # Resolve workspace(s): --workspace, else the active connection's
+        # workspace, else auto-discover when the user can access exactly one.
         if args.workspace:
             workspaces = args.workspace
-        elif not standalone and active_config.workspace:
+        elif active_config.workspace:
             workspaces = [active_config.workspace]
-        elif standalone and self._standalone_default_workspace():
-            workspaces = [self._standalone_default_workspace()]
         else:
-            # No explicit/active/stored workspace — auto-discover when the user
-            # (a pentester) can access exactly one workspace. Works for both the
-            # authenticated and standalone paths.
             sole = self._sole_accessible_workspace(api_client)
             if sole:
                 workspaces = [sole]
@@ -294,8 +288,8 @@ class FaradaiCommands(cmd2.CommandSet):
     triage_parser.add_argument(
         "--standalone",
         action="store_true",
-        help="Force the FaradAI-scan SaaS backend (auto-used when no Faraday server "
-        "is connected; pass this to force it even when one is)",
+        help="(deprecated) Switch the active connection to the FaradAI-scan SaaS "
+        "for this run; prefer 'auth use <name>'",
     )
     triage_parser.add_argument(
         "--dry-run",
@@ -306,11 +300,13 @@ class FaradaiCommands(cmd2.CommandSet):
     @cmd2.as_subcommand_to("faradai", "triage", triage_parser, help="run a FaradAI triage over workspace findings")
     def triage(self, args: argparse.Namespace):
         """Launch a FaradAI triage cloud-agent run over existing workspace findings."""
-        # Backend: auto — connected server when authenticated, else the SaaS.
-        # --standalone forces the SaaS path.
-        api_client, _standalone = self._resolve_scan_client(args.standalone)
-        if api_client is None:
+        # Single active connection (see scan). --standalone (deprecated) switches
+        # to the SaaS.
+        if args.standalone:
+            self._warn_standalone_deprecated()
+        if not self._ensure_connected(args.standalone):
             return
+        api_client = self._cmd.api_client
 
         # Resolve the triage cloud-agent id (explicit, else auto-discover).
         if args.agent_id is not None:
@@ -320,8 +316,8 @@ class FaradaiCommands(cmd2.CommandSet):
                 agent = _find_faradai_agent(self._cmd, api_client, kind="triage")
             except InvalidCredentials:
                 self._cmd.perror(
-                    "Stored FaradAI-scan credentials are invalid or expired. "
-                    "Run 'faradai login --email <you>' (or re-register)."
+                    "Active connection's credentials are invalid or expired. "
+                    "Run 'auth' (or 'faradai login' for the SaaS)."
                 )
                 return
             if agent is None:
@@ -520,9 +516,14 @@ class FaradaiCommands(cmd2.CommandSet):
         if not password:
             password = click.prompt("Password", hide_input=True, show_default=False)
         if self._do_verify(code, email, password, dashboard_url):
+            # _do_verify made the SaaS session active — rebuild the live client so
+            # this session (and the rest of the CLI) talk to it right away.
+            self._cmd.reload_api_client()
             self._cmd.poutput(
                 cmd2.style(
-                    "FaradAI scan account ready. Try: faradai scan --target <url> --standalone",
+                    f"FaradAI scan account ready — active connection is now "
+                    f"'{FARADAI_SCAN_SESSION}' ({email}).\n"
+                    "Try: faradai scan --target <url>   (or 'auth use <name>' to switch back)",
                     fg=COLORS.GREEN,
                 )
             )
@@ -555,17 +556,24 @@ class FaradaiCommands(cmd2.CommandSet):
             return False
         # verify returns the Faraday *server* URL (faraday_url) for scans/login —
         # distinct from the dashboard URL used for register/verify. It also
-        # returns the user's own ext_<domain> workspace, stored as the
-        # standalone default so scans need only --target.
-        active_config.faradai_scan_url = (data.get("faraday_url") or active_config.faradai_scan_url).rstrip("/")
-        active_config.faradai_scan_token = token
-        if data.get("workspace"):
-            active_config.faradai_scan_workspace = data["workspace"]
+        # returns the user's own ext_<domain> workspace.
+        scan_url = (data.get("faraday_url") or active_config.faradai_scan_url).rstrip("/")
+        active_config.faradai_scan_url = scan_url
         # Registration is complete — the token is the durable credential now, so
-        # drop the transient pending email/password.
+        # drop the transient pending email/password BEFORE saving the session.
         active_config.faradai_pending_email = None
         active_config.faradai_pending_password = None
-        active_config.save()
+        # Store the SaaS connection as a session and make it active (auto-switch):
+        # a freshly-registered scan user wants to run against the SaaS now, and
+        # we don't want two servers "connected" at once.
+        active_config.add_session(
+            FARADAI_SCAN_SESSION,
+            faraday_url=scan_url,
+            token=token,
+            workspace=data.get("workspace"),
+            kind="saas",
+            make_active=True,
+        )
         return True
 
     # ---- faradai login ----
@@ -606,94 +614,94 @@ class FaradaiCommands(cmd2.CommandSet):
             self._cmd.perror("Login did not return a token.")
             return
         active_config.faradai_scan_url = scan_url
-        active_config.faradai_scan_token = token
         # Store the user's ext_<domain> workspace when they have exactly one, so
-        # a later `faradai scan --standalone` needs only --target (same default
-        # verify provides). A token-scoped client is used to query it.
+        # a later `faradai scan` needs only --target. A token-scoped client is
+        # used to query it.
         ws = self._sole_accessible_workspace(api)
+        # Save the SaaS connection as a session and make it active (auto-switch),
+        # same as verify — logging into the SaaS makes it your active connection.
+        active_config.add_session(
+            FARADAI_SCAN_SESSION,
+            faraday_url=scan_url,
+            token=token,
+            workspace=ws,
+            kind="saas",
+            make_active=True,
+        )
+        self._cmd.reload_api_client()
+        msg = f"Logged in to {scan_url} — active connection is now '{FARADAI_SCAN_SESSION}'."
         if ws:
-            active_config.faradai_scan_workspace = ws
-        active_config.save()
-        msg = f"Logged in to {scan_url}."
-        if ws:
-            msg += f" Default workspace: {ws}"
+            msg += f" Workspace: {ws}"
         self._cmd.poutput(cmd2.style(msg, fg=COLORS.GREEN))
 
-    @staticmethod
-    def _server_connected():
-        """True when faraday-cli is authenticated to a Faraday server (`auth`)."""
-        return bool(active_config.faraday_url and active_config.token)
-
-    def _resolve_scan_client(self, standalone_flag):
-        """Pick the backend for scan/triage — returns ``(api_client, standalone)``.
-
-        ``--standalone`` (``standalone_flag=True``) always targets the FaradAI-scan
-        SaaS. Otherwise prefer a connected Faraday server; when none is connected,
-        fall back to the SaaS path (stored session, or guided onboarding on first
-        use) so a scan-only user never has to pass the flag. Returns
-        ``(None, True)`` when SaaS onboarding is declined (caller aborts).
-        """
-        if standalone_flag or not self._server_connected():
-            return self._standalone_scan_client(), True
-        return self._cmd.api_client, False
-
-    def _clear_standalone_session(self):
-        """Forget the stored FaradAI-scan token/workspace (reset to unregistered)."""
-        active_config.faradai_scan_token = None
-        active_config.faradai_scan_workspace = None
-        active_config.save()
-
-    def _build_standalone_client(self):
-        from faraday_cli.api_client import FaradayApi
-
-        return FaradayApi(
-            active_config.faradai_scan_url,
-            ignore_ssl=active_config.ignore_ssl,
-            token=active_config.faradai_scan_token,
+    def _warn_standalone_deprecated(self):
+        self._cmd.poutput(
+            cmd2.style(
+                "note: --standalone is deprecated — it now switches your active "
+                "connection to the FaradAI-scan SaaS ('auth use "
+                f"{FARADAI_SCAN_SESSION}' / 'auth list').",
+                fg=COLORS.YELLOW,
+            )
         )
 
-    def _standalone_scan_client(self):
-        """Resolve a usable standalone client for `scan`/`triage --standalone`.
+    def _ensure_connected(self, force_saas):
+        """Ensure there is a usable active connection for scan/triage.
 
-        Self-healing: if there's no stored token, OR the stored one is
-        invalid/expired (e.g. the backing user was deleted), reset to the
-        unregistered state and run the guided onboarding (register + verify) so
-        the user just creates the account again — no manual re-login step.
+        New single-active-connection model:
+          * ``force_saas`` (deprecated ``--standalone``) → make the FaradAI-scan
+            SaaS session the active one (switching to it, or onboarding when
+            there's none), so the SaaS becomes your active connection.
+          * otherwise use whatever connection is active. Only when NOTHING is
+            configured at all do we fall into SaaS onboarding for a first-time
+            scan-only user.
 
-        Returns a FaradayApi or None (if the user aborts onboarding).
+        Returns True when a usable active connection exists (caller then uses
+        ``self._cmd.api_client``), or False if the user aborts onboarding.
         """
-        token = active_config.faradai_scan_token
-        if token:
-            client = self._build_standalone_client()
+        if force_saas:
+            return self._activate_saas_session()
+        if active_config.active_session:
+            return True
+        # Nothing configured → first-time scan-only user → SaaS onboarding.
+        return self._activate_saas_session()
+
+    def _activate_saas_session(self):
+        """Switch the active connection to the FaradAI-scan SaaS (onboard if none).
+
+        Self-healing: an existing SaaS session with a dead token is cleared and
+        re-created via onboarding. On success the SaaS session is active and the
+        live API client is rebuilt. Returns False if the user aborts onboarding.
+        """
+        from faraday_cli.api_client import FaradayApi
+
+        sess = active_config.sessions.get(FARADAI_SCAN_SESSION)
+        if sess and sess.get("token"):
+            client = FaradayApi(
+                sess.get("faraday_url"),
+                ignore_ssl=bool(sess.get("ignore_ssl")),
+                token=sess.get("token"),
+            )
             try:
                 valid = client.is_token_valid()
             except Exception:
-                valid = True  # can't check (transient) → don't block; let the call surface it
+                valid = True  # transient check failure → don't block
             if valid:
-                return client
-            # Stale token → drop it and fall through to onboarding.
+                active_config.use_session(FARADAI_SCAN_SESSION)
+                self._cmd.reload_api_client()
+                return True
             self._cmd.poutput(
                 cmd2.style(
                     "Stored FaradAI-scan session is invalid or expired — let's set it up again.",
                     fg=COLORS.YELLOW,
                 )
             )
-            self._clear_standalone_session()
+            active_config.remove_session(FARADAI_SCAN_SESSION)
 
         if not self._guided_onboarding():
-            return None
-        return self._build_standalone_client()
-
-    @staticmethod
-    def _standalone_default_workspace():
-        """Per-user default workspace for standalone scans.
-
-        Uses the ext_<domain> workspace that `verify` stored in the config.
-        Returns None when none is stored (the caller then errors clearly asking
-        for --workspace, rather than silently hitting a workspace the user
-        can't access).
-        """
-        return active_config.faradai_scan_workspace
+            return False
+        # _do_verify (called by onboarding) registered + activated the session.
+        self._cmd.reload_api_client()
+        return True
 
     @staticmethod
     def _sole_accessible_workspace(api_client):

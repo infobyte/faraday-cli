@@ -123,12 +123,12 @@ def _bound_cmd():
     mock = SimpleNamespace(errors=[], outputs=[], api_client=None)
     mock.perror = lambda m: mock.errors.append(m)
     mock.poutput = lambda m: mock.outputs.append(m)
+    mock.reload_api_client = lambda: None
     fc._CommandSet__cmd_internal = mock
-    # Default the tests to "a Faraday server is connected" so scan/triage with
-    # standalone=False use fc._cmd.api_client. Standalone tests pass
-    # standalone=True (which forces the SaaS path regardless), and the auto-
-    # fallback is covered explicitly by test_scan_auto_standalone_when_no_server.
-    fc._server_connected = lambda: True
+    # Single-active-connection model: scan/triage use fc._cmd.api_client after
+    # _ensure_connected. Default the tests to "already connected" so they exercise
+    # the run path; the onboarding/SaaS-switch path is covered explicitly.
+    fc._ensure_connected = lambda force_saas: True
     return fc
 
 
@@ -191,12 +191,17 @@ def test_verify_uses_positional_code_and_pending_creds(monkeypatch):
         sent["json"] = json
         return _FakeResp(200, {"token": "tok-9", "faraday_url": "https://scan.real", "workspace": "ext_corp_com"})
 
+    added = {}
+
+    def fake_add_session(name, **kw):
+        added["name"] = name
+        added["kw"] = kw
+
     monkeypatch.setattr(faradai_mod.requests, "post", fake_post)
     monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_url", "https://scan.x", raising=False)
-    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", None, raising=False)
     monkeypatch.setattr(faradai_mod.active_config, "faradai_pending_email", "me@corp.com", raising=False)
     monkeypatch.setattr(faradai_mod.active_config, "faradai_pending_password", "stashed-pw!", raising=False)
-    monkeypatch.setattr(faradai_mod.active_config, "save", lambda: None)
+    monkeypatch.setattr(faradai_mod.active_config, "add_session", fake_add_session)
 
     fc = _bound_cmd()
     # positional code, no --email/--password/--code
@@ -206,9 +211,13 @@ def test_verify_uses_positional_code_and_pending_creds(monkeypatch):
 
     # pending creds were used in the POST
     assert sent["json"] == {"email": "me@corp.com", "code": "123456", "password": "stashed-pw!"}
-    # token + workspace stored, pending cleared
-    assert faradai_mod.active_config.faradai_scan_token == "tok-9"
-    assert faradai_mod.active_config.faradai_scan_workspace == "ext_corp_com"
+    # a faradai-scan session was created (active) with the returned token + workspace
+    assert added["name"] == faradai_mod.FARADAI_SCAN_SESSION
+    assert added["kw"]["token"] == "tok-9"
+    assert added["kw"]["workspace"] == "ext_corp_com"
+    assert added["kw"]["kind"] == "saas"
+    assert added["kw"]["make_active"] is True
+    # pending cleared before the session was saved
     assert faradai_mod.active_config.faradai_pending_email is None
     assert faradai_mod.active_config.faradai_pending_password is None
 
@@ -221,71 +230,9 @@ def test_verify_errors_without_code(monkeypatch):
     assert any("Missing code" in e for e in fc._cmd.errors)
 
 
-def test_scan_standalone_without_token_triggers_onboarding(monkeypatch):
-    """A first-time `scan --standalone` (no stored token) runs the guided
-    register→verify onboarding, then proceeds to scan with the new token.
-    _standalone_scan_client encapsulates onboarding + token validation."""
-    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_workspace", "ext_corp_com", raising=False)
-
-    posted = {}
-
-    class _FakeClient:
-        def list_cloud_agents(self):
-            return [{"id": 3, "name": "FaradAI", "slug": "faradai"}]
-
-        def run_cloud_agent(self, agent_id, args, workspaces):
-            posted["workspaces"] = workspaces
-            return {"command_ids": [{"id": 77}]}
-
-    fc = _bound_cmd()
-    monkeypatch.setattr(fc, "_standalone_scan_client", lambda: _FakeClient())
-    fc.scan(
-        SimpleNamespace(
-            standalone=True,
-            agent_id=None,
-            target="http://t",
-            workspace=None,
-            instruction="x",
-            mode="Dual",
-            rounds=None,
-            advanced=False,
-            goal=None,
-            watch=False,
-        )
-    )
-    assert posted["workspaces"] == ["ext_corp_com"]
-    assert any("Command id(s): 77" in o for o in fc._cmd.outputs)
-
-
-def test_scan_standalone_aborts_if_onboarding_declined(monkeypatch):
-    """If onboarding fails/aborts (scan_client returns None), scan doesn't run."""
-    launched = {"called": False}
-
-    fc = _bound_cmd()
-    # _standalone_scan_client returns None when onboarding is declined / token bad
-    monkeypatch.setattr(fc, "_standalone_scan_client", lambda: None)
-    fc.scan(
-        SimpleNamespace(
-            standalone=True,
-            agent_id=None,
-            target="http://t",
-            workspace=None,
-            instruction="x",
-            mode="Dual",
-            rounds=None,
-            advanced=False,
-            goal=None,
-            watch=False,
-        )
-    )
-    assert launched["called"] is False
-
-
-def test_scan_standalone_with_token_posts_to_saas(monkeypatch):
-    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", "tok-9", raising=False)
-    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_url", "https://scan.real", raising=False)
-    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_workspace", "ext_corp_com", raising=False)
-
+def test_scan_posts_to_active_connection(monkeypatch):
+    """scan uses the active connection's api_client + its workspace."""
+    monkeypatch.setattr(faradai_mod.active_config, "workspace", "ext_corp_com", raising=False)
     posted = {}
 
     class _FakeClient:
@@ -299,31 +246,93 @@ def test_scan_standalone_with_token_posts_to_saas(monkeypatch):
             return {"command_ids": [{"id": 11}]}
 
     fc = _bound_cmd()
-    monkeypatch.setattr(fc, "_standalone_scan_client", lambda: _FakeClient())
-    args = SimpleNamespace(
-        standalone=True,
-        agent_id=None,
-        target="http://t",
-        workspace=None,
-        instruction="full",
-        mode="Dual",
-        rounds=None,
-        advanced=False,
-        goal=None,
-        watch=False,
+    fc._cmd.api_client = _FakeClient()
+    fc.scan(
+        SimpleNamespace(
+            standalone=False,
+            agent_id=None,
+            target="http://t",
+            workspace=None,
+            instruction="full",
+            mode="Dual",
+            rounds=None,
+            advanced=False,
+            goal=None,
+            watch=False,
+        )
     )
-    fc.scan(args)
-
     assert posted["agent_id"] == 3
     assert posted["args"]["TARGET"] == "http://t"
     assert posted["args"]["ROUNDS"] == 20  # standard default
-    assert posted["workspaces"] == ["ext_corp_com"]  # stored ext_<domain> workspace
+    assert posted["workspaces"] == ["ext_corp_com"]
     assert any("Command id(s): 11" in o for o in fc._cmd.outputs)
 
 
+def test_scan_aborts_when_not_connected(monkeypatch):
+    """When _ensure_connected returns False (onboarding declined), scan bails."""
+
+    class _FakeClient:
+        def run_cloud_agent(self, *a, **k):  # pragma: no cover - must not run
+            raise AssertionError("run must not be called when not connected")
+
+        def list_cloud_agents(self):  # pragma: no cover
+            raise AssertionError("must not reach agent discovery")
+
+    fc = _bound_cmd()
+    fc._ensure_connected = lambda force_saas: False
+    fc._cmd.api_client = _FakeClient()
+    fc.scan(
+        SimpleNamespace(
+            standalone=True,
+            agent_id=None,
+            target="http://t",
+            workspace=None,
+            instruction="x",
+            mode="Dual",
+            rounds=None,
+            advanced=False,
+            goal=None,
+            watch=False,
+        )
+    )
+    assert not any("launched" in o for o in fc._cmd.outputs)
+
+
+def test_scan_standalone_warns_deprecated(monkeypatch):
+    """--standalone still works but prints a deprecation note (switches to SaaS)."""
+    monkeypatch.setattr(faradai_mod.active_config, "workspace", "ext_corp_com", raising=False)
+    posted = {}
+
+    class _FakeClient:
+        def list_cloud_agents(self):
+            return [{"id": 3, "name": "FaradAI", "slug": "faradai"}]
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            posted["workspaces"] = workspaces
+            return {"command_ids": [{"id": 11}]}
+
+    fc = _bound_cmd()
+    fc._cmd.api_client = _FakeClient()
+    fc.scan(
+        SimpleNamespace(
+            standalone=True,
+            agent_id=None,
+            target="http://t",
+            workspace=None,
+            instruction="full",
+            mode="Dual",
+            rounds=None,
+            advanced=False,
+            goal=None,
+            watch=False,
+        )
+    )
+    assert any("deprecated" in o for o in fc._cmd.outputs)
+    assert posted["workspaces"] == ["ext_corp_com"]
+
+
 def test_scan_advanced_uses_80_rounds(monkeypatch):
-    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", "tok-9", raising=False)
-    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_workspace", "ext_corp_com", raising=False)
+    monkeypatch.setattr(faradai_mod.active_config, "workspace", "ext_corp_com", raising=False)
     posted = {}
 
     class _FakeClient:
@@ -335,7 +344,7 @@ def test_scan_advanced_uses_80_rounds(monkeypatch):
             return {"command_ids": [{"id": 12}]}
 
     fc = _bound_cmd()
-    monkeypatch.setattr(fc, "_standalone_scan_client", lambda: _FakeClient())
+    fc._cmd.api_client = _FakeClient()
     # --advanced with no explicit --rounds → 80
     fc.scan(
         SimpleNamespace(
@@ -446,8 +455,9 @@ def test_scan_authenticated_multiple_workspaces_requires_flag(monkeypatch):
 
 
 def test_login_stores_sole_workspace(monkeypatch):
-    """faradai login persists the user's sole workspace as the scan default."""
-    saved = {}
+    """faradai login creates + activates a faradai-scan session with the user's
+    token and sole ext_<domain> workspace."""
+    added = {}
 
     class _FakeApi:
         def __init__(self, *a, **k):
@@ -470,17 +480,17 @@ def test_login_stores_sole_workspace(monkeypatch):
     monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_url", "https://scan.real", raising=False)
     monkeypatch.setattr(
         faradai_mod.active_config,
-        "save",
-        lambda: saved.update(
-            token=faradai_mod.active_config.faradai_scan_token,
-            workspace=faradai_mod.active_config.faradai_scan_workspace,
-        ),
+        "add_session",
+        lambda name, **kw: added.update(name=name, **kw),
     )
     fc = _bound_cmd()
     fc.login(SimpleNamespace(email="me@mycompany.com", password="pw!", scan_url=None))
 
-    assert saved.get("token") == "tok-login"
-    assert saved.get("workspace") == "ext_mycompany_com"
+    assert added.get("name") == faradai_mod.FARADAI_SCAN_SESSION
+    assert added.get("token") == "tok-login"
+    assert added.get("workspace") == "ext_mycompany_com"
+    assert added.get("kind") == "saas"
+    assert added.get("make_active") is True
 
 
 # --- triage -----------------------------------------------------------------
@@ -757,14 +767,17 @@ def test_all_default_instructions_within_256():
         assert len(getattr(instr, name)) <= 256, name
 
 
-def test_scan_standalone_invalid_token_self_heals_via_onboarding(monkeypatch):
-    """A stored-but-invalid token (e.g. backing user deleted) must NOT bubble a
-    raw InvalidCredentials and must NOT just error: _standalone_scan_client
-    detects it (is_token_valid False), clears the stale session, and re-runs the
-    guided onboarding so the user just creates the account again."""
-    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_token", "stale-tok", raising=False)
-    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_url", "https://scan.real", raising=False)
-    monkeypatch.setattr(faradai_mod.active_config, "save", lambda: None)
+def test_activate_saas_session_self_heals_invalid_token(monkeypatch):
+    """A stored faradai-scan session with a dead token must NOT just error:
+    _activate_saas_session detects it (is_token_valid False), removes the stale
+    session, and re-runs the guided onboarding so the user re-creates the
+    account."""
+    monkeypatch.setattr(
+        faradai_mod.active_config,
+        "sessions",
+        {faradai_mod.FARADAI_SCAN_SESSION: {"faraday_url": "https://scan.real", "token": "stale", "kind": "saas"}},
+        raising=False,
+    )
 
     class _FakeApi:
         def __init__(self, *a, **k):
@@ -778,56 +791,45 @@ def test_scan_standalone_invalid_token_self_heals_via_onboarding(monkeypatch):
 
     monkeypatch.setattr(_apimod, "FaradayApi", _FakeApi, raising=False)
 
-    flow = {"onboarded": False, "cleared": False}
+    flow = {"removed": False, "onboarded": False}
+    monkeypatch.setattr(
+        faradai_mod.active_config,
+        "remove_session",
+        lambda name: flow.update(removed=True) or True,
+    )
 
     def fake_onboarding():
-        # by the time onboarding runs, the stale token must already be cleared
-        flow["cleared"] = faradai_mod.active_config.faradai_scan_token is None
-        flow["onboarded"] = True
-        faradai_mod.active_config.faradai_scan_token = "fresh-tok"
+        # stale session must already be removed before onboarding runs
+        flow["onboarded"] = flow["removed"]
         return True
 
     fc = _bound_cmd()
     monkeypatch.setattr(fc, "_guided_onboarding", fake_onboarding)
 
-    client = fc._standalone_scan_client()
-    assert flow["onboarded"] is True  # re-onboarded automatically
-    assert flow["cleared"] is True  # stale session cleared before onboarding
-    assert client is not None  # usable client built from the fresh token
+    ok = fc._activate_saas_session()
+    assert ok is True
+    assert flow["removed"] is True  # stale session removed
+    assert flow["onboarded"] is True  # re-onboarded after removal
     assert any("set it up again" in o for o in fc._cmd.outputs)
 
 
-def test_scan_auto_standalone_when_no_server(monkeypatch):
-    """With no Faraday server connected and no --standalone flag, scan should
-    auto-use the SaaS backend (no flag needed for scan-only users)."""
-    monkeypatch.setattr(faradai_mod.active_config, "faradai_scan_workspace", "ext_corp_com", raising=False)
-    posted = {}
+def test_ensure_connected_onboards_when_nothing_configured(monkeypatch):
+    """With no active session and no --standalone, scan onboards the first-time
+    scan-only user into the SaaS instead of erroring."""
+    monkeypatch.setattr(faradai_mod.active_config, "active_session", None, raising=False)
+    monkeypatch.setattr(faradai_mod.active_config, "sessions", {}, raising=False)
 
-    class _FakeClient:
-        def list_cloud_agents(self):
-            return [{"id": 3, "name": "FaradAI", "slug": "faradai"}]
+    flow = {"onboarded": False}
 
-        def run_cloud_agent(self, agent_id, args, workspaces):
-            posted["workspaces"] = workspaces
-            return {"command_ids": [{"id": 77}]}
+    def fake_onboarding():
+        flow["onboarded"] = True
+        return True
 
     fc = _bound_cmd()
-    # No server connection → auto-fallback to the standalone SaaS client.
-    fc._server_connected = lambda: False
-    monkeypatch.setattr(fc, "_standalone_scan_client", lambda: _FakeClient())
-    fc.scan(
-        SimpleNamespace(
-            standalone=False,  # not forced — auto-detected
-            agent_id=None,
-            target="http://t",
-            workspace=None,
-            instruction="full",
-            mode="Dual",
-            rounds=None,
-            advanced=False,
-            goal=None,
-            watch=False,
-        )
-    )
-    # Used the SaaS client and its stored ext_<domain> workspace default.
-    assert posted["workspaces"] == ["ext_corp_com"]
+    # Don't stub _ensure_connected here — exercise the real one.
+    del fc._ensure_connected
+    monkeypatch.setattr(fc, "_guided_onboarding", fake_onboarding)
+
+    ok = fc._ensure_connected(False)  # no --standalone, nothing configured
+    assert ok is True
+    assert flow["onboarded"] is True

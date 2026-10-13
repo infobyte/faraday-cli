@@ -241,10 +241,24 @@ class FaradayShell(Cmd):
     )
     auth_parser.add_argument("-u", "--user", type=str, help="Faraday user", required=False)
     auth_parser.add_argument("-p", "--password", type=str, help="Faraday password", required=False)
+    auth_parser.add_argument(
+        "-n",
+        "--name",
+        type=str,
+        help="Session name to save this connection as (default: the server host)",
+        required=False,
+    )
+    # Subcommands: `auth list` / `auth use <name>` / `auth rm <name>` (defined in
+    # modules/auth_sessions.py). Bare `auth` (with the flags above) still logs in.
+    auth_subparsers = auth_parser.add_subparsers(title="action")
 
     @with_argparser(auth_parser)
     def do_auth(self, args):
-        """Authenticate with a faraday server"""
+        """Authenticate with a faraday server (or manage sessions: list/use/rm)"""
+        handler = getattr(args, "cmd2_handler", None)
+        if handler is not None and handler.get() is not None:
+            handler.get()(args)
+            return
         faraday_url = args.faraday_url
         user = args.user
         password = args.password
@@ -277,13 +291,20 @@ class FaradayShell(Cmd):
                 else:
                     second_factor = None
                 token = api_client.get_token(second_factor)
-                active_config.faraday_url = faraday_url
-                active_config.ignore_ssl = args.ignore_ssl
-                active_config.token = token
-                active_config.workspace = None
-                active_config.save()
+                # Save as a named session and make it active (single active
+                # connection). Name defaults to the server host.
+                session_name = args.name or (urlparse(faraday_url).hostname or faraday_url)
+                active_config.add_session(
+                    session_name,
+                    faraday_url=faraday_url,
+                    token=token,
+                    ignore_ssl=ignore_ssl,
+                    workspace=None,
+                    kind="server",
+                    make_active=True,
+                )
                 self.api_client = FaradayApi(faraday_url, ignore_ssl=ignore_ssl, token=token)
-                self.poutput(style("Saving config", fg=COLORS.GREEN))
+                self.poutput(style(f"Saving config (session '{session_name}')", fg=COLORS.GREEN))
                 self.poutput(
                     style(
                         f"{self.emojis['check']} Authenticated with faraday: {faraday_url}",  # noqa: E501
@@ -353,6 +374,22 @@ class FaradayShell(Cmd):
                 self.poutput(style(f"\n{self.emojis['check']} Done", fg=COLORS.GREEN))
         return Cmd.postcmd(self, stop, line)
 
+    def reload_api_client(self) -> None:
+        """Rebuild the live API client from the active session (after a switch).
+
+        Used by `auth use`/`auth rm` and the FaradAI SaaS onboarding so the rest
+        of the CLI talks to the newly-active connection without a restart.
+        """
+        if active_config.faraday_url and active_config.token:
+            self.api_client = FaradayApi(
+                active_config.faraday_url,
+                ignore_ssl=active_config.ignore_ssl,
+                token=active_config.token,
+            )
+        else:
+            self.api_client = FaradayApi()
+        self.update_prompt()
+
     def update_prompt(self) -> None:
         self.prompt = self.get_prompt()
 
@@ -411,38 +448,27 @@ class FaradayShell(Cmd):
                 fg=COLORS.GREEN,
             )
         )
-        # Second section: the FaradAI-scan SaaS session (separate from the main
-        # `auth` server connection). Only shown when a SaaS token is stored, so
-        # the common single-server case stays a one-table status.
-        if active_config.faradai_scan_token:
-            scan_api = FaradayApi(
-                active_config.faradai_scan_url,
-                ignore_ssl=active_config.ignore_ssl,
-                token=active_config.faradai_scan_token,
-            )
-            try:
-                scan_valid = scan_api.is_token_valid()
-            except Exception:
-                scan_valid = False
-            scan_user = None
-            if scan_valid:
-                try:
-                    scan_user = scan_api.get_user()
-                except Exception:
-                    scan_user = None
-            scan_data = [
-                {
-                    "FARADAI-SCAN SERVER": active_config.faradai_scan_url,
-                    "USER": scan_user if scan_user else "-",
-                    "VALID TOKEN": "\U00002714" if scan_valid else "\U0000274c",
-                    "WORKSPACE": active_config.faradai_scan_workspace or "-",
-                }
-            ]
+        # Second section: the other saved connection sessions (you have exactly
+        # one active connection; these are the ones you can `auth use <name>`).
+        # Shown only when there's more than the active one.
+        others = [n for n in active_config.sessions if n != active_config.active_session]
+        if others or len(active_config.sessions) > 1:
+            session_rows = []
+            for name, s in active_config.sessions.items():
+                session_rows.append(
+                    {
+                        "ACTIVE": "\U00002714" if name == active_config.active_session else "",
+                        "NAME": name,
+                        "KIND": s.get("kind") or "server",
+                        "SERVER": s.get("faraday_url"),
+                        "WORKSPACE": s.get("workspace") or "-",
+                    }
+                )
             self.print_output(
                 style(
-                    "\nFaradAI-scan (SaaS):\n"
+                    "\nSaved sessions (switch with 'auth use <name>'):\n"
                     + tabulate(
-                        scan_data,
+                        session_rows,
                         headers="keys",
                         tablefmt=(self.TABLE_PRETTY_FORMAT if args.pretty else "simple"),
                     ),
