@@ -836,6 +836,12 @@ $ faraday-cli scanners run -a 2 -w my_workspace \
 | `--params-json`      | All run params as one JSON object (alternative to repeated `--param`) |
 | `--watch`            | Poll the launched command(s) until they finish          |
 
+!!! info "`--watch`"
+    After launching, `--watch` polls the workspace's command list every ~15s and
+    prints each command as it finishes, then `Run finished.`. Press Ctrl-C to stop
+    watching — the run keeps going server-side. (The scan itself runs on the
+    server; `--watch` only follows it.)
+
 ## FaradAI
 
 !!! info

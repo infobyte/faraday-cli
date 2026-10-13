@@ -188,3 +188,41 @@ def test_run_scanner_unknown_agent_aborts():
     )
     fc.run_scanner(args)
     assert any("No cloud agent matching" in e for e in fc._cmd.errors)
+
+
+# --- --watch polling ---------------------------------------------------------
+
+
+def test_watch_commands_detects_completion(monkeypatch):
+    """watch_commands polls get_workspace_commands and stops when the command
+    gets a duration/end_date (finished)."""
+    import faraday_cli.shell.modules.cloud_agent_common as cac
+
+    monkeypatch.setattr(cac.time, "sleep", lambda *_: None)  # no real waiting
+
+    calls = {"n": 0}
+
+    class _Client:
+        def get_workspace_commands(self, ws):
+            calls["n"] += 1
+            # first poll: still running (no duration); second: finished.
+            if calls["n"] < 2:
+                return [{"_id": 42, "duration": "In progress"}]
+            return [{"_id": 42, "duration": 12.3, "end_date": "2026-01-01T00:00:00"}]
+
+    cmd = _FakeCmd()
+    cac.watch_commands(cmd, _Client(), "my_ws", [42])
+    assert any("command 42 finished" in o for o in cmd.outputs)
+    assert any("Run finished" in o for o in cmd.outputs)
+
+
+def test_watch_commands_no_getter_falls_back(monkeypatch):
+    """Without a command getter, watch prints the UI hint instead of polling."""
+    import faraday_cli.shell.modules.cloud_agent_common as cac
+
+    class _Client:  # no get_workspace_commands / get_commands
+        pass
+
+    cmd = _FakeCmd()
+    cac.watch_commands(cmd, _Client(), "my_ws", [42])
+    assert any("no command-status endpoint" in o for o in cmd.outputs)

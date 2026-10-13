@@ -101,6 +101,10 @@ class FaradayApi:
             resource_name="cloud_agent",
             resource_class=resources.CloudAgentResource,
         )
+        self.faraday_api.add_resource(
+            resource_name="command",
+            resource_class=resources.CommandResource,
+        )
         self.faraday_api.add_resource(resource_name="vuln", resource_class=resources.VulnResource)
         self.faraday_api.add_resource(
             resource_name="vuln_evidence",
@@ -313,6 +317,27 @@ class FaradayApi:
         body = {"workspaces": workspaces, "args": args}
         response = self.faraday_api.cloud_agent.run(cloud_agent_id, body=body)
         return response.body
+
+    @handle_errors
+    def get_workspace_commands(self, workspace_name: str):
+        """List a workspace's commands (CommandView).
+
+        Each command has `duration`/`end_date` set once it finishes, which is how
+        `--watch` detects completion. The v3 paginated view wraps each row as
+        ``{"id": N, "value": {...fields...}}`` — unwrap to the flat command dicts
+        (with `_id`) so callers read `duration`/`end_date` directly.
+        """
+        response = self.faraday_api.command.list(workspace_name)
+        body = response.body
+        rows = body.get("rows") if isinstance(body, dict) else body
+        rows = rows or []
+        out = []
+        for r in rows:
+            if isinstance(r, dict) and "value" in r and isinstance(r["value"], dict):
+                out.append(r["value"])
+            else:
+                out.append(r)
+        return out
 
     @handle_errors
     def get_host(self, workspace_name: str, host_id):

@@ -99,6 +99,16 @@ class CloudAgentResource(Resource):
     }
 
 
+class CommandResource(Resource):
+    # Workspace command history (CommandView). A finished command has
+    # `duration`/`end_date` set; a still-running one doesn't — which is how the
+    # `--watch` poller (cloud_agent_common.watch_commands) detects completion.
+    actions = {
+        "list": {"method": "GET", "url": "v3/ws/{}/commands"},
+        "get": {"method": "GET", "url": "v3/ws/{}/commands/{}"},
+    }
+
+
 class ExecutiveReportResource(Resource):
     actions = {
         "list_templates": {
