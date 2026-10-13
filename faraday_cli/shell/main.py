@@ -10,14 +10,14 @@ command directly. `faraday-cli help` lists every command and
 (e.g. `faraday-cli help scanners run`).
 
 Common commands:
-  auth                         Connect to a Faraday server
-  workspace list|select|...    Manage workspaces
-  pentest   --target <url>     Run a FaradAI pentest (= faradai scan)
-  triage    -w <workspace>     Run a FaradAI triage   (= faradai triage)
-  scanners  list|get|run       Cloud agents / security scanners (v3/cloud_agents)
-                               (aliases: scanner)
-  agent     list|get|run       Local Faraday agents / runners   (v3/agents)
-                               (aliases: agents, runner, runners)
+  auth       list|use|rm       Connect to a Faraday server / manage sessions
+  workspace  list|select|...   Manage workspaces
+  pentest    --target <url>    Run a FaradAI pentest (= faradai scan)
+  triage     -w <workspace>    Run a FaradAI triage   (= faradai triage)
+  scanner    list|get|run      Security scanners / cloud agents (v3/cloud_agents)
+                               (aliases: scanners)
+  runner     list|get|run      Local Faraday agents / runners   (v3/agents)
+                               (aliases: agent, agents, runners)
   vuln | host | service        Query a workspace's data
   tool run | report            Run a tool / import a report
 
@@ -25,12 +25,12 @@ Examples:
   faraday-cli auth
   faraday-cli pentest --target https://example.com
   faraday-cli pentest --target https://example.com --advanced --watch
-  faraday-cli scanners list
-  faraday-cli scanners run --agent faradai -w my_ws --param TARGET=https://example.com
+  faraday-cli scanner list
+  faraday-cli scanner run --agent faradai -w my_ws --param TARGET=https://example.com
   faraday-cli triage -w my_ws --severities critical,high --reproduce
 
-No Faraday server? `pentest`/`triage` fall back to the FaradAI-scan SaaS and walk
-you through creating an account on first use.
+No Faraday server connected? The first `pentest`/`triage` walks you through
+creating a FaradAI-scan SaaS account and switches to it (see `auth list`).
 """
 
 

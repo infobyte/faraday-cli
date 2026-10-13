@@ -74,6 +74,11 @@ class FaradayShell(Cmd):
     delattr(Cmd, "do_py")
 
     def __init__(self, *args, **kwargs):
+        # allow_cli_args=False: don't let cmd2 parse sys.argv at construction
+        # (it would intercept `-h`/`-t` from `faraday-cli <cmd> -h` and print its
+        # own transcript-test help instead of the command's). main.py parses the
+        # CLI args itself and dispatches via onecmd_plus_hooks.
+        kwargs.setdefault("allow_cli_args", False)
         super().__init__(persistent_history_file="~/.faraday-cli_history", *args, **kwargs)
         self.hidden_commands += ["EOF", "cd", "alias", "macro"]
         # Accept the singular/plural and old/new spelling of both agent groups so
