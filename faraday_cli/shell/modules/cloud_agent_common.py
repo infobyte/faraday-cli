@@ -73,7 +73,9 @@ def launch_cloud_agent_and_report(cmd, api_client, agent_id, run_args, workspace
 
     ``verb`` is the word used in the success line ("Scan" / "Triage" / "Run").
     CloudAgent run returns ``{'command_ids': [{'id': N}], 'cam_execution':
-    {...}, 'cam_status': 200}``.
+    {...}, 'cam_status': 200}``. Returns ``True`` when the run was accepted,
+    ``False`` on any launch error — callers use it to skip follow-ups (like the
+    reproduce one-liner) that make no sense for a run that never started.
     """
     try:
         response = api_client.run_cloud_agent(agent_id, run_args, workspaces)
@@ -82,10 +84,10 @@ def launch_cloud_agent_and_report(cmd, api_client, agent_id, run_args, workspace
             "Not found — the agent id or one of the workspaces doesn't exist on "
             "this server (check 'workspace list')."
         )
-        return
+        return False
     except Exception as e:
         cmd.perror(_server_error_message(e))
-        return
+        return False
 
     command_ids = [c.get("id") for c in (response.get("command_ids") or []) if c.get("id") is not None]
     if command_ids:
@@ -101,6 +103,7 @@ def launch_cloud_agent_and_report(cmd, api_client, agent_id, run_args, workspace
 
     if watch:
         watch_commands(cmd, api_client, workspaces[0], command_ids)
+    return True
 
 
 def watch_commands(cmd, api_client, workspace_name, command_ids):
@@ -258,6 +261,34 @@ def _agent_param_specs(api_client, agent_id):
             specs.append({"name": name, "description": "", "default": _clean_default(value), "mandatory": False})
 
     return specs
+
+
+def unknown_run_args(api_client, agent_id, run_args):
+    """Keys in ``run_args`` the agent's executor input schema does not accept.
+
+    Mirrors the server's own check ("X not recognized as an executor argument")
+    so the CLI can fail fast with a useful message — naming the accepted args —
+    instead of relaying the server's one-key-at-a-time rejection. Config-only
+    fields (``parameters_data``: resolve_hostname, ignore_info, tags…) are set
+    on the agent, not per run, so they come back as unknown here.
+
+    Workspace keys are never reported (they are popped into the run body's
+    top-level ``workspaces`` before launch). Returns ``[]`` when the agent
+    exposes no input schema — validation is the server's job then.
+    """
+    try:
+        agent = api_client.get_cloud_agent(agent_id) or {}
+    except Exception:
+        return []
+    schema = agent.get("params")
+    if isinstance(schema, dict):
+        allowed = set(schema)
+    elif isinstance(schema, list):
+        allowed = set(schema)
+    else:
+        return []
+    allowed |= _WORKSPACE_KEYS
+    return sorted(k for k in (run_args or {}) if k not in allowed)
 
 
 def agent_default_workspaces(api_client, agent_id):

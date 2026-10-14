@@ -481,3 +481,116 @@ def test_run_scanner_no_agent_errors():
     )
     fc.run_scanner(args)
     assert any("Which scanner" in e for e in fc._cmd.errors)
+
+
+# --- client-side executor-arg validation (fail fast, clear message) ----------
+
+
+def test_unknown_run_args_against_schema():
+    """Keys outside the executor `params` schema are unknown; workspace keys
+    and schema keys are not. Config-only fields (parameters_data) ARE unknown —
+    they're set on the agent, not per run."""
+
+    import faraday_cli.shell.modules.cloud_agent_common as cac
+
+    class _Client:
+        def get_cloud_agent(self, aid):
+            return {
+                "id": 1,
+                "params": {"target": {"base": "string", "type": "url", "mandatory": True}},
+                "parameters_data": {"resolve_hostname": False, "ignore_info": False},
+            }
+
+    assert cac.unknown_run_args(_Client(), 1, {"target": "x.com"}) == []
+    assert cac.unknown_run_args(_Client(), 1, {"target": "x.com", "workspaces": "ws"}) == []
+    assert cac.unknown_run_args(
+        _Client(), 1, {"target": "x.com", "ignore_info": False, "resolve_hostname": False}
+    ) == ["ignore_info", "resolve_hostname"]
+
+
+def test_unknown_run_args_no_schema_is_permissive():
+    """No `params` schema → the CLI can't validate; the server is the judge."""
+
+    import faraday_cli.shell.modules.cloud_agent_common as cac
+
+    class _Client:
+        def get_cloud_agent(self, aid):
+            return {"id": 1, "parameters_data": {"ignore_info": False}}
+
+    assert cac.unknown_run_args(_Client(), 1, {"anything": 1}) == []
+
+
+def test_run_scanner_rejects_config_fields_before_launch(monkeypatch):
+    """`--param resolve_hostname=…` must fail fast client-side — naming every
+    bad key and the accepted ones — and never reach run_cloud_agent (the
+    server would reject the run naming only the first bad key)."""
+    import faraday_cli.config as cfg
+
+    monkeypatch.setattr(cfg.active_config, "workspace", None, raising=False)
+    launched = []
+
+    class _Client:
+        def list_cloud_agents(self):
+            return [{"id": 1, "name": "First Scan", "slug": "first-scan"}]
+
+        def get_cloud_agent(self, aid):
+            return {
+                "id": 1,
+                "params": {"target": {"base": "string", "type": "url", "mandatory": True}},
+                "parameters_data": {"resolve_hostname": False, "ignore_info": False},
+            }
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            launched.append(args)
+            return {"command_ids": [{"id": 5}]}
+
+    fc = _bound_scanner(_Client())
+    args = SimpleNamespace(
+        agent="first-scan",
+        agent_pos=None,
+        workspace=["WebApp"],
+        param=["target=x.com", "ignore_info=False", "resolve_hostname=False"],
+        params_json=None,
+        watch=False,
+        wizard=False,
+    )
+    fc.run_scanner(args)
+    assert launched == []  # fail fast: nothing hit the server
+    err = "\n".join(fc._cmd.errors)
+    assert "ignore_info" in err and "resolve_hostname" in err
+    assert "target" in err  # the accepted keys are named
+
+
+def test_run_scanner_no_oneliner_on_launch_failure(monkeypatch):
+    """A failed launch must not print the 'Reproduce this run' one-liner —
+    re-running the same failing command is not a reproduction recipe."""
+    import faraday_cli.config as cfg
+
+    monkeypatch.setattr(cfg.active_config, "workspace", None, raising=False)
+
+    class _Client:
+        def list_cloud_agents(self):
+            return [{"id": 1, "name": "First Scan", "slug": "first-scan"}]
+
+        def get_cloud_agent(self, aid):
+            return {
+                "id": 1,
+                "params": {"target": {"base": "string", "type": "url", "mandatory": True}},
+            }
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            raise RuntimeError("boom")
+
+    fc = _bound_scanner(_Client())
+    args = SimpleNamespace(
+        agent="first-scan",
+        agent_pos=None,
+        workspace=["WebApp"],
+        param=["target=x.com"],
+        params_json=None,
+        watch=False,
+        wizard=False,
+    )
+    fc.run_scanner(args)
+    assert fc._cmd.errors  # the launch error surfaced
+    assert not any("Reproduce" in o for o in fc._cmd.outputs)

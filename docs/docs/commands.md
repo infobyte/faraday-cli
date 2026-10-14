@@ -842,6 +842,15 @@ $ faraday-cli scanners run -a 2 -w my_workspace \
     watching — the run keeps going server-side. (The scan itself runs on the
     server; `--watch` only follows it.)
 
+!!! warning "Only executor inputs go in `--param`"
+    A cloud agent has two kinds of fields: its executor **run inputs** (e.g.
+    First Scan's `target`) and its **stored configuration** (`resolve_hostname`,
+    `ignore_info`, tags, default workspaces…). Only run inputs may be passed with
+    `--param` — configuration is set on the agent itself in the Faraday web UI.
+    The CLI validates your `--param` keys against the agent's input schema before
+    launching and lists the accepted keys on a mismatch (`scanners get <id>`
+    shows them too). Workspace always goes via `-w`, never as a param.
+
 ## FaradAI
 
 !!! info

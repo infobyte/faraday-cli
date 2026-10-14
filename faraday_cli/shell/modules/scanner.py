@@ -17,6 +17,7 @@ from faraday_cli.shell.modules.cloud_agent_common import (
     print_run_oneliner,
     prompt_params_wizard,
     resolve_cloud_agent,
+    unknown_run_args,
 )
 
 
@@ -241,6 +242,22 @@ class ScannerCommands(cmd2.CommandSet):
         else:
             run_args = {}
 
+        # Fail fast on keys the executor schema doesn't accept — the server
+        # would reject the whole run naming only the first bad key. Config
+        # fields (resolve_hostname, ignore_info, tags…) live on the agent, not
+        # the run.
+        unknown = unknown_run_args(api_client, agent_id, run_args)
+        if unknown:
+            specs = _agent_param_specs(api_client, agent_id)
+            accepted = ", ".join(s["name"] for s in specs) or "(none)"
+            self._cmd.perror(
+                f"Not executor argument(s) for this scanner: {', '.join(unknown)}.\n"
+                f"  Accepted --param keys: {accepted}\n"
+                "  Other fields are agent configuration — set them on the agent "
+                "(Faraday web UI), not per run."
+            )
+            return
+
         workspaces = self._resolve_run_workspaces(args, run_args, api_client, agent_id)
         if workspaces is None:
             return
@@ -253,8 +270,11 @@ class ScannerCommands(cmd2.CommandSet):
                 fg=COLORS.GREEN,
             )
         )
-        launch_cloud_agent_and_report(self._cmd, api_client, agent_id, run_args, workspaces, "Run", args.watch)
-        print_run_oneliner(self._cmd, agent_ref, workspaces, run_args)
+        launched = launch_cloud_agent_and_report(
+            self._cmd, api_client, agent_id, run_args, workspaces, "Run", args.watch
+        )
+        if launched:
+            print_run_oneliner(self._cmd, agent_ref, workspaces, run_args)
 
     # Workspace goes in the run body's top-level ``workspaces`` list — NOT in
     # ``args`` (the server rejects it as an executor argument). It is resolved
