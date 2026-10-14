@@ -319,3 +319,115 @@ def test_wizard_prompts_and_runs(monkeypatch):
     # The reproducible one-liner is printed after launch.
     assert any("Reproduce this run with" in o for o in fc._cmd.outputs)
     assert any("--param" in o and "TARGET=https://dvwa.local" in o for o in fc._cmd.outputs)
+
+
+# --- simplification: positional agent + workspace reconciliation -------------
+
+
+def test_run_scanner_positional_agent(monkeypatch):
+    captured = {}
+
+    class _Client:
+        def list_cloud_agents(self):
+            return [{"id": 1, "name": "First Scan", "slug": "first-scan"}]
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            captured["agent_id"] = agent_id
+            captured["workspaces"] = workspaces
+            return {"command_ids": [{"id": 5}]}
+
+    fc = _bound_scanner(_Client())
+    # agent given positionally (no -a), workspace from --workspace
+    args = SimpleNamespace(
+        agent=None,
+        agent_pos="first-scan",
+        workspace=["WebApp"],
+        param=["ignore_info=true"],
+        params_json=None,
+        watch=False,
+        wizard=False,
+    )
+    fc.run_scanner(args)
+    assert captured["agent_id"] == 1
+    assert captured["workspaces"] == ["WebApp"]
+
+
+def test_workspace_derived_from_param_no_dash_w(monkeypatch):
+    """The First Scan dead-end: wizard/param filled `workspaces` but no -w and
+    no active workspace — the body workspace must come from that param."""
+    import faraday_cli.config as cfg
+
+    monkeypatch.setattr(cfg.active_config, "workspace", None, raising=False)
+    captured = {}
+
+    class _Client:
+        def list_cloud_agents(self):
+            return [{"id": 1, "name": "First Scan", "slug": "first-scan"}]
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            captured["workspaces"] = workspaces
+            captured["args"] = args
+            return {"command_ids": [{"id": 5}]}
+
+    fc = _bound_scanner(_Client())
+    args = SimpleNamespace(
+        agent=None,
+        agent_pos="first-scan",
+        workspace=None,
+        param=["workspaces=WebApp"],
+        params_json=None,
+        watch=False,
+        wizard=False,
+    )
+    fc.run_scanner(args)
+    # Body workspace derived from the `workspaces` param — no "No workspace" error.
+    assert captured["workspaces"] == ["WebApp"]
+    assert captured["args"]["workspaces"] == "WebApp"
+    assert fc._cmd.errors == []
+
+
+def test_dash_w_backfills_empty_workspace_param(monkeypatch):
+    """-w given but the agent's `workspaces` param left blank → back-fill it so
+    First Scan gets its param without the user typing the workspace twice."""
+    import faraday_cli.config as cfg
+
+    monkeypatch.setattr(cfg.active_config, "workspace", None, raising=False)
+    captured = {}
+
+    class _Client:
+        def list_cloud_agents(self):
+            return [{"id": 1, "name": "First Scan", "slug": "first-scan"}]
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            captured["args"] = args
+            captured["workspaces"] = workspaces
+            return {"command_ids": [{"id": 5}]}
+
+    fc = _bound_scanner(_Client())
+    args = SimpleNamespace(
+        agent="first-scan",
+        agent_pos=None,
+        workspace=["WebApp"],
+        param=["workspaces="],  # explicit-but-empty
+        params_json=None,
+        watch=False,
+        wizard=False,
+    )
+    fc.run_scanner(args)
+    assert captured["workspaces"] == ["WebApp"]
+    assert captured["args"]["workspaces"] == "WebApp"
+
+
+def test_run_scanner_no_agent_errors():
+    fc = _bound_scanner(_FakeCmd().api_client)
+    args = SimpleNamespace(
+        agent=None,
+        agent_pos=None,
+        workspace=["ws1"],
+        param=[],
+        params_json=None,
+        watch=False,
+        wizard=False,
+    )
+    fc.run_scanner(args)
+    assert any("Which scanner" in e for e in fc._cmd.errors)

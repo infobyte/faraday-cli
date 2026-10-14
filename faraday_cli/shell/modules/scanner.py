@@ -2,6 +2,7 @@ import json
 import argparse
 from collections import OrderedDict
 
+import click
 import cmd2
 from cmd2 import Fg as COLORS
 from tabulate import tabulate
@@ -123,11 +124,20 @@ class ScannerCommands(cmd2.CommandSet):
 
     # ---- scanners run ----
     run_scanner_parser = argparse.ArgumentParser()
+    # Agent can be given positionally (`scanners run first-scan`) or via -a; the
+    # positional form is the simple default. One of the two must be present.
+    run_scanner_parser.add_argument(
+        "agent_pos",
+        nargs="?",
+        default=None,
+        metavar="AGENT",
+        help="Cloud-agent id or name/slug (e.g. first-scan). Same as -a.",
+    )
     run_scanner_parser.add_argument(
         "-a",
         "--agent",
         type=str,
-        required=True,
+        default=None,
         help="Cloud-agent id or name/slug fragment (e.g. 2 or 'faradai')",
     )
     run_scanner_parser.add_argument(
@@ -172,7 +182,15 @@ class ScannerCommands(cmd2.CommandSet):
         """
         api_client = self._cmd.api_client
 
-        agent_id = resolve_cloud_agent(self._cmd, api_client, args.agent)
+        agent_ref = args.agent or getattr(args, "agent_pos", None)
+        if not agent_ref:
+            self._cmd.perror(
+                "Which scanner? Pass it positionally or with -a, e.g. "
+                "'scanners run first-scan'. See 'scanners list'."
+            )
+            return
+
+        agent_id = resolve_cloud_agent(self._cmd, api_client, agent_ref)
         if agent_id is None:
             return
 
@@ -197,7 +215,7 @@ class ScannerCommands(cmd2.CommandSet):
                 self._cmd.perror(str(e))
                 return
         elif args.wizard or is_interactive():
-            run_args = prompt_params_wizard(self._cmd, api_client, agent_id, args.agent)
+            run_args = prompt_params_wizard(self._cmd, api_client, agent_id, agent_ref)
             if run_args is None:
                 # No param metadata to drive the wizard — fall back to --param.
                 try:
@@ -208,22 +226,59 @@ class ScannerCommands(cmd2.CommandSet):
         else:
             run_args = {}
 
-        # Workspace(s): explicit --workspace, else the active workspace.
-        if args.workspace:
-            workspaces = args.workspace
-        elif active_config.workspace:
-            workspaces = [active_config.workspace]
-        else:
-            self._cmd.perror("No workspace — pass --workspace <name> or select an active workspace")
+        workspaces = self._resolve_run_workspaces(args, run_args)
+        if workspaces is None:
             return
 
         self._cmd.poutput(
             cmd2.style(
-                f"Launching cloud agent {args.agent}\n"
+                f"Launching cloud agent {agent_ref}\n"
                 f"  Workspaces: {', '.join(workspaces)}\n"
                 f"  Params:     {run_args or '(none)'}",
                 fg=COLORS.GREEN,
             )
         )
         launch_cloud_agent_and_report(self._cmd, api_client, agent_id, run_args, workspaces, "Run", args.watch)
-        print_run_oneliner(self._cmd, args.agent, workspaces, run_args)
+        print_run_oneliner(self._cmd, agent_ref, workspaces, run_args)
+
+    # Cloud agents whose run reads the workspace from an arg (e.g. First Scan's
+    # ``workspaces``) rather than needing a separate --workspace. The run body
+    # ALWAYS carries a workspace list though, so we reconcile the two: whichever
+    # the user gave populates both, and they never have to enter it twice.
+    _WORKSPACE_PARAM_KEYS = ("workspaces", "workspace", "WORKSPACES", "WORKSPACE_NAME")
+
+    def _resolve_run_workspaces(self, args, run_args):
+        """Return the workspace list for the run body, or None after erroring.
+
+        Priority: ``--workspace`` → active connection workspace → a
+        workspace-ish param the user already filled (so the wizard's
+        ``workspaces`` answer counts) → interactive prompt. Also back-fills the
+        agent's own workspace param from the resolved value so First Scan & co
+        get it without the user typing it twice.
+        """
+        if args.workspace:
+            workspaces = list(args.workspace)
+        elif active_config.workspace:
+            workspaces = [active_config.workspace]
+        else:
+            from_param = next((run_args[k] for k in self._WORKSPACE_PARAM_KEYS if run_args.get(k)), None)
+            if from_param:
+                workspaces = [w.strip() for w in str(from_param).split(",") if w.strip()]
+            elif is_interactive():
+                ans = (click.prompt("Workspace", default="", show_default=False) or "").strip()
+                workspaces = [w.strip() for w in ans.split(",") if w.strip()]
+            else:
+                workspaces = []
+
+        if not workspaces:
+            self._cmd.perror(
+                "No workspace — pass --workspace <name>, select an active workspace, "
+                "or set the agent's workspace parameter."
+            )
+            return None
+
+        # Back-fill the agent's own workspace param so it isn't asked twice.
+        for k in self._WORKSPACE_PARAM_KEYS:
+            if k in run_args and not run_args.get(k):
+                run_args[k] = ",".join(workspaces)
+        return workspaces
