@@ -8,9 +8,12 @@ module.
 """
 
 import json
+import shlex
+import sys
 import time
 from collections import OrderedDict
 
+import click
 import cmd2
 from cmd2 import Fg as COLORS
 from tabulate import tabulate
@@ -130,3 +133,126 @@ def watch_commands(cmd, api_client, workspace_name, command_ids):
                 fg=COLORS.YELLOW,
             )
         )
+
+
+# ---------------------------------------------------------------------------
+# Interactive param wizard + reproducible one-liner
+# ---------------------------------------------------------------------------
+
+
+def _coerce_value(v):
+    """Light type coercion matching scanner._parse_params (int / bool / str)."""
+    s = str(v).strip()
+    if s.isdigit():
+        return int(s)
+    if s.lower() in ("true", "false"):
+        return s.lower() == "true"
+    return v
+
+
+def _agent_param_specs(api_client, agent_id):
+    """Return an ordered list of ``{name, description, default, mandatory}`` for
+    a cloud agent's accepted run parameters.
+
+    Reads the richer ``parameters_data`` metadata when present (dict keyed by
+    param name), falling back to the flat ``params`` name list. Returns an
+    empty list when the agent exposes no parameter metadata (the caller then
+    skips the wizard rather than guessing field names).
+    """
+    try:
+        agent = api_client.get_cloud_agent(agent_id) or {}
+    except Exception:
+        return []
+    pdata = agent.get("parameters_data")
+    specs = []
+    if isinstance(pdata, dict) and pdata:
+        for name, meta in pdata.items():
+            meta = meta if isinstance(meta, dict) else {}
+            specs.append(
+                {
+                    "name": name,
+                    "description": meta.get("description") or meta.get("help") or "",
+                    "default": meta.get("base", meta.get("default")),
+                    "mandatory": bool(meta.get("mandatory") or meta.get("required")),
+                }
+            )
+    else:
+        for name in agent.get("params") or []:
+            specs.append({"name": name, "description": "", "default": None, "mandatory": False})
+    return specs
+
+
+def prompt_params_wizard(cmd, api_client, agent_id, agent_label):
+    """Interactively collect run params for a cloud agent.
+
+    Lists the agent's accepted parameters (name, description, default, whether
+    it's required) and prompts for each. Empty input keeps the default (or
+    skips an optional param). Returns a ``{KEY: value}`` dict, or ``None`` if
+    the agent exposes no parameter metadata to drive the wizard.
+
+    Only meant for an interactive TTY — callers guard on ``is_interactive()``.
+    """
+    specs = _agent_param_specs(api_client, agent_id)
+    if not specs:
+        cmd.poutput(
+            cmd2.style(
+                f"'{agent_label}' exposes no parameter metadata — " "pass --param KEY=VALUE explicitly.",
+                fg=COLORS.YELLOW,
+            )
+        )
+        return None
+
+    cmd.poutput(cmd2.style(f"\nParameters for {agent_label} (Enter = keep default/skip):", fg=COLORS.CYAN))
+    out = {}
+    for spec in specs:
+        name = spec["name"]
+        req = " [required]" if spec["mandatory"] else ""
+        desc = f" — {spec['description']}" if spec["description"] else ""
+        cmd.poutput(cmd2.style(f"  {name}{req}{desc}", fg=COLORS.BLUE))
+        default = spec["default"]
+        while True:
+            raw = click.prompt(
+                f"    {name}",
+                default="" if default in (None, "") else str(default),
+                show_default=default not in (None, ""),
+            )
+            raw = (raw or "").strip()
+            if not raw:
+                if spec["mandatory"] and default in (None, ""):
+                    cmd.poutput(cmd2.style("    (required — please enter a value)", fg=COLORS.YELLOW))
+                    continue
+                if default not in (None, ""):
+                    out[name] = _coerce_value(default)
+                break
+            out[name] = _coerce_value(raw)
+            break
+    return out
+
+
+def is_interactive():
+    """True when stdin+stdout are a real terminal (so prompting makes sense)."""
+    try:
+        return sys.stdin.isatty() and sys.stdout.isatty()
+    except (AttributeError, ValueError):
+        return False
+
+
+def build_run_oneliner(agent_ref, workspaces, params):
+    """Build the copy-pasteable ``scanners run`` command that reproduces a run.
+
+    ``agent_ref`` is whatever the user passed (id or name); workspaces and
+    params are rendered as ``-w`` / ``--param KEY=VALUE`` tokens, shell-quoted
+    so values with spaces/specials paste back cleanly.
+    """
+    parts = ["faraday-cli", "scanners", "run", "--agent", shlex.quote(str(agent_ref))]
+    for ws in workspaces or []:
+        parts += ["-w", shlex.quote(str(ws))]
+    for key, value in (params or {}).items():
+        parts += ["--param", shlex.quote(f"{key}={value}")]
+    return " ".join(parts)
+
+
+def print_run_oneliner(cmd, agent_ref, workspaces, params):
+    """Print the reproducible one-liner after a launch."""
+    cmd.poutput(cmd2.style("\nReproduce this run with:", fg=COLORS.CYAN))
+    cmd.poutput("  " + build_run_oneliner(agent_ref, workspaces, params))

@@ -23,12 +23,28 @@ def test_faradai_shortcuts(faraday_cli_app_no_config):
     assert app.aliases.get("triage") == "faradai triage"
 
 
+def test_resource_plural_aliases_point_to_singular(faraday_cli_app_no_config):
+    app = faraday_cli_app_no_config
+    expected = {
+        "tools": "tool",
+        "workspaces": "workspace",
+        "hosts": "host",
+        "services": "service",
+        "vulns": "vuln",
+    }
+    for plural, singular in expected.items():
+        assert app.aliases.get(plural) == singular, plural
+
+
 def test_canonical_commands_exist(faraday_cli_app_no_config):
     app = faraday_cli_app_no_config
     # The alias targets must be real commands.
     assert "do_agent" in dir(app)
     assert "do_scanners" in dir(app)
     assert "do_faradai" in dir(app)
+    # The resource-group alias targets must be real commands too.
+    for singular in ("tool", "workspace", "host", "service", "vuln"):
+        assert f"do_{singular}" in dir(app), singular
 
 
 def test_auth_session_subcommands_exist(faraday_cli_app_no_config):

@@ -138,6 +138,7 @@ def test_run_scanner_posts_flat_body(monkeypatch):
         param=["TARGET=https://x", "ROUNDS=20"],
         params_json=None,
         watch=False,
+        wizard=False,
     )
     fc.run_scanner(args)
 
@@ -165,6 +166,7 @@ def test_run_scanner_params_json_takes_precedence():
         param=["IGNORED=1"],
         params_json='{"TARGET": "https://y", "MODE": "Dual"}',
         watch=False,
+        wizard=False,
     )
     fc.run_scanner(args)
     assert captured["args"] == {"TARGET": "https://y", "MODE": "Dual"}
@@ -185,6 +187,7 @@ def test_run_scanner_unknown_agent_aborts():
         param=[],
         params_json=None,
         watch=False,
+        wizard=False,
     )
     fc.run_scanner(args)
     assert any("No cloud agent matching" in e for e in fc._cmd.errors)
@@ -226,3 +229,93 @@ def test_watch_commands_no_getter_falls_back(monkeypatch):
     cmd = _FakeCmd()
     cac.watch_commands(cmd, _Client(), "my_ws", [42])
     assert any("no command-status endpoint" in o for o in cmd.outputs)
+
+
+# --- interactive param wizard + one-liner -----------------------------------
+
+
+def test_param_specs_from_parameters_data():
+    import faraday_cli.shell.modules.cloud_agent_common as cac
+
+    class _Client:
+        def get_cloud_agent(self, aid):
+            return {
+                "id": 2,
+                "parameters_data": {
+                    "TARGET": {"description": "URL to scan", "mandatory": True, "base": ""},
+                    "ROUNDS": {"description": "rounds", "base": 20},
+                },
+            }
+
+    specs = cac._agent_param_specs(_Client(), 2)
+    names = [s["name"] for s in specs]
+    assert names == ["TARGET", "ROUNDS"]
+    assert specs[0]["mandatory"] is True and specs[0]["description"] == "URL to scan"
+    assert specs[1]["default"] == 20
+
+
+def test_param_specs_fallback_to_flat_params():
+    import faraday_cli.shell.modules.cloud_agent_common as cac
+
+    class _Client:
+        def get_cloud_agent(self, aid):
+            return {"id": 2, "params": ["TARGET", "MODE"]}
+
+    specs = cac._agent_param_specs(_Client(), 2)
+    assert [s["name"] for s in specs] == ["TARGET", "MODE"]
+    assert all(s["mandatory"] is False for s in specs)
+
+
+def test_build_run_oneliner_quotes_values():
+    import faraday_cli.shell.modules.cloud_agent_common as cac
+
+    line = cac.build_run_oneliner("faradai", ["ext_foo_com"], {"TARGET": "https://x y", "ROUNDS": 20})
+    assert line.startswith("faraday-cli scanners run --agent faradai")
+    assert "-w ext_foo_com" in line
+    assert "--param 'TARGET=https://x y'" in line
+    assert "--param ROUNDS=20" in line
+
+
+def test_wizard_prompts_and_runs(monkeypatch):
+    """--wizard collects params from parameters_data and launches with them."""
+    import faraday_cli.shell.modules.cloud_agent_common as cac
+
+    captured = {}
+
+    class _Client:
+        def list_cloud_agents(self):
+            return [{"id": 2, "name": "FaradAI", "slug": "faradai"}]
+
+        def get_cloud_agent(self, aid):
+            return {
+                "id": 2,
+                "parameters_data": {
+                    "TARGET": {"description": "URL", "mandatory": True, "base": ""},
+                    "ROUNDS": {"description": "rounds", "base": 20},
+                },
+            }
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            captured["args"] = args
+            captured["workspaces"] = workspaces
+            return {"command_ids": [{"id": 7}]}
+
+    # Simulate the operator typing a TARGET and accepting the ROUNDS default.
+    answers = iter(["https://dvwa.local", ""])
+    monkeypatch.setattr(cac.click, "prompt", lambda *a, **k: next(answers))
+
+    fc = _bound_scanner(_Client())
+    args = SimpleNamespace(
+        agent="faradai",
+        workspace=["ext_foo_com"],
+        param=[],
+        params_json=None,
+        watch=False,
+        wizard=True,
+    )
+    fc.run_scanner(args)
+
+    assert captured["args"] == {"TARGET": "https://dvwa.local", "ROUNDS": 20}
+    # The reproducible one-liner is printed after launch.
+    assert any("Reproduce this run with" in o for o in fc._cmd.outputs)
+    assert any("--param" in o and "TARGET=https://dvwa.local" in o for o in fc._cmd.outputs)

@@ -9,7 +9,10 @@ from simple_rest_client.exceptions import NotFoundError
 
 from faraday_cli.config import active_config
 from faraday_cli.shell.modules.cloud_agent_common import (
+    is_interactive,
     launch_cloud_agent_and_report,
+    print_run_oneliner,
+    prompt_params_wizard,
     resolve_cloud_agent,
 )
 
@@ -150,18 +153,35 @@ class ScannerCommands(cmd2.CommandSet):
     run_scanner_parser.add_argument(
         "--watch", action="store_true", help="Poll the launched command(s) until they finish"
     )
+    run_scanner_parser.add_argument(
+        "--wizard",
+        action="store_true",
+        help="Force the interactive parameter wizard even if --param was given",
+    )
 
     @cmd2.as_subcommand_to("scanners", "run", run_scanner_parser, help="run any cloud agent (scanner)")
     def run_scanner(self, args: argparse.Namespace):
-        """Launch any cloud agent against the given workspace(s) with arbitrary params."""
+        """Launch any cloud agent against the given workspace(s) with arbitrary params.
+
+        If no ``--param`` / ``--params-json`` is given on an interactive
+        terminal, an interactive wizard lists the agent's accepted parameters
+        (name, description, default, required) and prompts for each — so the
+        user never has to guess the field names. ``--wizard`` forces it. After
+        launching, a copy-pasteable one-liner is printed to reproduce the run
+        non-interactively next time.
+        """
         api_client = self._cmd.api_client
 
         agent_id = resolve_cloud_agent(self._cmd, api_client, args.agent)
         if agent_id is None:
             return
 
-        # Params: --params-json takes precedence; else collect repeated --param.
-        if args.params_json:
+        # Params. Precedence: --params-json > --param > interactive wizard.
+        # The wizard runs when nothing was passed and we're on a real terminal
+        # (or when --wizard is explicit); otherwise an empty param set is kept
+        # (back-compat for scripted/non-interactive callers).
+        run_args = None
+        if args.params_json and not args.wizard:
             try:
                 run_args = json.loads(args.params_json)
             except ValueError as e:
@@ -170,12 +190,23 @@ class ScannerCommands(cmd2.CommandSet):
             if not isinstance(run_args, dict):
                 self._cmd.perror("--params-json must be a JSON object")
                 return
-        else:
+        elif args.param and not args.wizard:
             try:
                 run_args = _parse_params(args.param)
             except ValueError as e:
                 self._cmd.perror(str(e))
                 return
+        elif args.wizard or is_interactive():
+            run_args = prompt_params_wizard(self._cmd, api_client, agent_id, args.agent)
+            if run_args is None:
+                # No param metadata to drive the wizard — fall back to --param.
+                try:
+                    run_args = _parse_params(args.param)
+                except ValueError as e:
+                    self._cmd.perror(str(e))
+                    return
+        else:
+            run_args = {}
 
         # Workspace(s): explicit --workspace, else the active workspace.
         if args.workspace:
@@ -195,3 +226,4 @@ class ScannerCommands(cmd2.CommandSet):
             )
         )
         launch_cloud_agent_and_report(self._cmd, api_client, agent_id, run_args, workspaces, "Run", args.watch)
+        print_run_oneliner(self._cmd, args.agent, workspaces, run_args)

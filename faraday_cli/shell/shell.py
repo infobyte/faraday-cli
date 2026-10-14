@@ -89,6 +89,14 @@ class FaradayShell(Cmd):
         self.aliases["runner"] = "agent"
         self.aliases["runners"] = "agent"
         self.aliases["scanner"] = "scanners"
+        # Accept the plural spelling of the resource command groups too, so
+        # `tools`/`workspaces`/`hosts`/`services`/`vulns` all work alongside the
+        # canonical singular command name of each group.
+        self.aliases["tools"] = "tool"
+        self.aliases["workspaces"] = "workspace"
+        self.aliases["hosts"] = "host"
+        self.aliases["services"] = "service"
+        self.aliases["vulns"] = "vuln"
         # Ergonomic top-level shortcuts for the two most common FaradAI actions,
         # so `faraday-cli pentest --target ...` / `faraday-cli triage -w ...`
         # work without remembering the `faradai` subcommand prefix.
