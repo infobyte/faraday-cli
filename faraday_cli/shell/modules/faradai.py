@@ -2,6 +2,7 @@ import argparse
 import secrets
 import string
 from collections import OrderedDict
+from urllib.parse import urlsplit
 
 import cmd2
 import click
@@ -41,6 +42,33 @@ def _generate_password(length: int = 16) -> str:
             and any(c in specials for c in pw)
         ):
             return pw
+
+
+def _target_host(target: str) -> str:
+    """Host of a scan target (``https://app.example.com:8443/x`` → ``app.example.com``)."""
+    t = (target or "").strip()
+    if not t:
+        return ""
+    if "://" not in t:
+        t = "//" + t  # let urlsplit find the netloc when there's no scheme
+    return (urlsplit(t).hostname or "").lower().strip(".")
+
+
+def _email_domain_covers_target(email: str, target_host: str) -> bool:
+    """True when a self-registered account for ``email`` could scan ``target_host``.
+
+    A SaaS self-registration is scoped to the ``ext_<email-domain>`` workspace,
+    which the CAM lets scan only that domain and its subdomains (scope guard,
+    4.0.51). So the email domain must equal the target host or be a parent of
+    it. A public provider (gmail.com) gets no scan scope at all, so it never
+    covers a real target. Unknown email/target → True (nothing to warn about;
+    the server stays the final judge, e.g. operator-exempted accounts).
+    """
+    dom = email.partition("@")[2].strip().lower().strip(".")
+    host = (target_host or "").strip().lower().strip(".")
+    if not dom or not host:
+        return True
+    return host == dom or host.endswith("." + dom)
 
 
 def _find_faradai_agent(cmd, api_client=None, kind="pentest"):
@@ -161,7 +189,7 @@ class FaradaiCommands(cmd2.CommandSet):
         # first-time user with nothing configured is onboarded into the SaaS.
         if args.standalone:
             self._warn_standalone_deprecated()
-        if not self._ensure_connected(args.standalone):
+        if not self._ensure_connected(args.standalone, target=args.target):
             return
         api_client = self._cmd.api_client
 
@@ -446,16 +474,40 @@ class FaradaiCommands(cmd2.CommandSet):
         self._cmd.poutput(cmd2.style("\n".join(lines), fg=COLORS.GREEN))
         return True
 
-    def _guided_onboarding(self):
+    def _guided_onboarding(self, target=None):
         """First-time standalone onboarding: register → prompt code → verify.
 
         Runs when `faradai scan --standalone` finds no stored token. Prompts for
         an email, registers (auto-generating a password), prompts for the
         emailed code, and verifies — leaving a usable token + workspace so the
         caller can proceed with the scan. Returns True on success.
+
+        When ``target`` is known, the email domain is checked against it BEFORE
+        sending the OTP: a self-registration is scoped to ``ext_<email-domain>``
+        and can only scan that domain (and subdomains), so an email that can't
+        cover the target (a public provider, or a different company's domain)
+        would create an account that gets the OTP, a password… and then fails
+        at scan time. We warn and let the user pick a matching email instead.
         """
         self._cmd.poutput(cmd2.style("No FaradAI-scan account yet — let's create one.", fg=COLORS.CYAN))
+        target_host = _target_host(target)
         email = click.prompt("Email")
+        if not _email_domain_covers_target(email, target_host):
+            dom = email.partition("@")[2].strip().lower() or "that provider"
+            self._cmd.poutput(
+                cmd2.style(
+                    f"Heads up: an account on '{dom}' can only scan '{dom}' and its "
+                    f"subdomains, not '{target_host}'. A self-registered account is "
+                    f"scoped to its email domain (public providers like gmail.com get "
+                    f"no scan scope at all), so this scan would be rejected after "
+                    f"registering.\nUse an email at '{target_host}' (a domain you "
+                    f"control), or have an operator authorize your account.",
+                    fg=COLORS.YELLOW,
+                )
+            )
+            if not click.confirm("Register anyway?", default=False):
+                self._cmd.poutput("Onboarding cancelled — no code sent.")
+                return False
         dashboard_url = active_config.faradai_dashboard_url.rstrip("/")
         if not self._do_register(email, None, dashboard_url):
             return False
@@ -646,7 +698,7 @@ class FaradaiCommands(cmd2.CommandSet):
             )
         )
 
-    def _ensure_connected(self, force_saas):
+    def _ensure_connected(self, force_saas, target=None):
         """Ensure there is a usable active connection for scan/triage.
 
         New single-active-connection model:
@@ -657,17 +709,20 @@ class FaradaiCommands(cmd2.CommandSet):
             configured at all do we fall into SaaS onboarding for a first-time
             scan-only user.
 
+        ``target`` (the scan target, when known) is passed to onboarding so it
+        can warn before sending the OTP if the chosen email can't scan it.
+
         Returns True when a usable active connection exists (caller then uses
         ``self._cmd.api_client``), or False if the user aborts onboarding.
         """
         if force_saas:
-            return self._activate_saas_session()
+            return self._activate_saas_session(target=target)
         if active_config.active_session:
             return True
         # Nothing configured → first-time scan-only user → SaaS onboarding.
-        return self._activate_saas_session()
+        return self._activate_saas_session(target=target)
 
-    def _activate_saas_session(self):
+    def _activate_saas_session(self, target=None):
         """Switch the active connection to the FaradAI-scan SaaS (onboard if none).
 
         Self-healing: an existing SaaS session with a dead token is cleared and
@@ -699,7 +754,7 @@ class FaradaiCommands(cmd2.CommandSet):
             )
             active_config.remove_session(FARADAI_SCAN_SESSION)
 
-        if not self._guided_onboarding():
+        if not self._guided_onboarding(target=target):
             return False
         # _do_verify (called by onboarding) registered + activated the session.
         self._cmd.reload_api_client()

@@ -128,7 +128,7 @@ def _bound_cmd():
     # Single-active-connection model: scan/triage use fc._cmd.api_client after
     # _ensure_connected. Default the tests to "already connected" so they exercise
     # the run path; the onboarding/SaaS-switch path is covered explicitly.
-    fc._ensure_connected = lambda force_saas: True
+    fc._ensure_connected = lambda force_saas, target=None: True
     return fc
 
 
@@ -279,7 +279,7 @@ def test_scan_aborts_when_not_connected(monkeypatch):
             raise AssertionError("must not reach agent discovery")
 
     fc = _bound_cmd()
-    fc._ensure_connected = lambda force_saas: False
+    fc._ensure_connected = lambda force_saas, target=None: False
     fc._cmd.api_client = _FakeClient()
     fc.scan(
         SimpleNamespace(
@@ -798,7 +798,7 @@ def test_activate_saas_session_self_heals_invalid_token(monkeypatch):
         lambda name: flow.update(removed=True) or True,
     )
 
-    def fake_onboarding():
+    def fake_onboarding(target=None):
         # stale session must already be removed before onboarding runs
         flow["onboarded"] = flow["removed"]
         return True
@@ -821,7 +821,7 @@ def test_ensure_connected_onboards_when_nothing_configured(monkeypatch):
 
     flow = {"onboarded": False}
 
-    def fake_onboarding():
+    def fake_onboarding(target=None):
         flow["onboarded"] = True
         return True
 
@@ -833,3 +833,73 @@ def test_ensure_connected_onboards_when_nothing_configured(monkeypatch):
     ok = fc._ensure_connected(False)  # no --standalone, nothing configured
     assert ok is True
     assert flow["onboarded"] is True
+
+
+# --- onboarding: email-domain vs target pre-check (fail before the OTP) ------
+
+
+def test_target_host_parsing():
+    from faraday_cli.shell.modules.faradai import _target_host
+
+    assert _target_host("https://faradaysec.com") == "faradaysec.com"
+    assert _target_host("https://app.example.com:8443/x") == "app.example.com"
+    assert _target_host("example.com") == "example.com"
+    assert _target_host("") == ""
+
+
+def test_email_domain_covers_target():
+    from faraday_cli.shell.modules.faradai import _email_domain_covers_target
+
+    # public provider / wrong company → does NOT cover a real target
+    assert _email_domain_covers_target("famato@gmail.com", "faradaysec.com") is False
+    assert _email_domain_covers_target("me@other.com", "faradaysec.com") is False
+    # same domain or a subdomain of it → covered
+    assert _email_domain_covers_target("me@faradaysec.com", "faradaysec.com") is True
+    assert _email_domain_covers_target("me@faradaysec.com", "app.faradaysec.com") is True
+    # unknown target or email → permissive (server is the final judge)
+    assert _email_domain_covers_target("me@corp.com", "") is True
+
+
+def test_onboarding_warns_and_aborts_on_domain_mismatch(monkeypatch):
+    """`pentest --target faradaysec.com` with a gmail email must warn and, on
+    decline, abort WITHOUT sending the OTP (no /api/register call)."""
+    posted = []
+    monkeypatch.setattr(
+        faradai_mod.requests, "post", lambda *a, **k: posted.append(a) or _FakeResp(200, {})
+    )
+    monkeypatch.setattr(faradai_mod.click, "prompt", lambda *a, **k: "famato@gmail.com")
+    monkeypatch.setattr(faradai_mod.click, "confirm", lambda *a, **k: False)  # decline
+
+    fc = _bound_cmd()
+    ok = fc._guided_onboarding(target="https://faradaysec.com")
+    assert ok is False
+    assert posted == []  # OTP never sent
+    joined = " ".join(fc._cmd.outputs)
+    assert "faradaysec.com" in joined and "gmail.com" in joined
+
+
+def test_onboarding_matching_domain_proceeds(monkeypatch):
+    """A matching email domain skips the warning and proceeds to register."""
+    calls = {"register": False, "verify": False}
+
+    def fake_register(email, password, url):
+        calls["register"] = True
+        return True
+
+    def fake_verify(code, email, password, url):
+        calls["verify"] = True
+        return True
+
+    confirmed = {"asked": False}
+    monkeypatch.setattr(
+        faradai_mod.click, "confirm", lambda *a, **k: confirmed.update(asked=True) or True
+    )
+    monkeypatch.setattr(faradai_mod.click, "prompt", lambda *a, **k: "me@faradaysec.com")
+
+    fc = _bound_cmd()
+    fc._do_register = fake_register
+    fc._do_verify = fake_verify
+    ok = fc._guided_onboarding(target="https://faradaysec.com")
+    assert ok is True
+    assert calls["register"] and calls["verify"]
+    assert confirmed["asked"] is False  # no mismatch → never asked to confirm

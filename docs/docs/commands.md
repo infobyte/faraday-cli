@@ -872,6 +872,15 @@ $ faraday-cli scanners run -a 2 -w my_workspace \
     *force* the SaaS path when a server is also connected. A first-time SaaS
     user with no account is walked through register + verify inline.
 
+!!! warning "Register with an email on the domain you're scanning"
+    A self-registered SaaS account is scoped to `ext_<your-email-domain>` and can
+    only scan that domain and its subdomains. Registering `you@gmail.com` (or any
+    public provider, or another company's domain) to scan `faradaysec.com` will
+    be rejected — public providers get no scan scope at all. During inline
+    onboarding the CLI checks your email against the `--target` before sending the
+    code and warns if they don't match. Use an email at the target's domain, or
+    have an operator authorize your account.
+
 ### faradai scan
 
 Launch a FaradAI pentest against a target. The FaradAI cloud agent is
