@@ -234,10 +234,12 @@ def test_watch_commands_no_getter_falls_back(monkeypatch):
 # --- interactive param wizard + one-liner -----------------------------------
 
 
-def test_param_specs_union_schema_and_values():
-    """First Scan shape: `params` holds the input schema (target, mandatory),
-    `parameters_data` holds configured values (workspaces, flags). The wizard
-    must prompt the UNION — target was previously missed (the reported bug)."""
+def test_param_specs_only_executor_args():
+    """First Scan shape: `params` holds the executor input schema (just target,
+    mandatory), `parameters_data` holds agent CONFIG (workspaces, flags, tags).
+    Only the `params` keys are real run args — config-only fields like
+    resolve_hostname must NOT be prompted/sent (the server rejects them), and
+    workspace is excluded (it goes top-level)."""
     import faraday_cli.shell.modules.cloud_agent_common as cac
 
     class _Client:
@@ -248,23 +250,32 @@ def test_param_specs_union_schema_and_values():
                 "parameters_data": {
                     "workspaces": ["suc-firstscan"],
                     "ignore_info": False,
+                    "resolve_hostname": False,
                     "vuln_tag": [],
                 },
             }
 
     specs = cac._agent_param_specs(_Client(), 1)
     by = {s["name"]: s for s in specs}
-    # target comes from the input schema, required, type carried as description.
-    assert "target" in by and by["target"]["mandatory"] is True
+    # ONLY the executor input schema is returned.
+    assert list(by) == ["target"]
+    assert by["target"]["mandatory"] is True
     assert by["target"]["description"] == "url"
-    # its `base` is a type placeholder, NOT a default → no pre-fill.
-    assert by["target"]["default"] is None
-    # schema params are listed BEFORE the configured-only ones.
-    assert specs[0]["name"] == "target"
-    # configured values become optional fields, defaults normalized.
-    assert by["workspaces"]["default"] == "suc-firstscan"  # list → comma string
-    assert by["ignore_info"]["default"] == "false"  # bool → lowercase string
-    assert by["vuln_tag"]["default"] is None  # empty list → None
+    assert by["target"]["default"] is None  # `base` is a type placeholder
+    # config-only fields are NOT run args.
+    assert "resolve_hostname" not in by and "ignore_info" not in by
+    # workspace is never an arg.
+    assert "workspaces" not in by
+
+
+def test_agent_default_workspaces():
+    import faraday_cli.shell.modules.cloud_agent_common as cac
+
+    class _Client:
+        def get_cloud_agent(self, aid):
+            return {"id": 1, "parameters_data": {"workspaces": ["suc-firstscan", "other"]}}
+
+    assert cac.agent_default_workspaces(_Client(), 1) == ["suc-firstscan", "other"]
 
 
 def test_param_specs_real_default_beats_placeholder():
@@ -418,15 +429,16 @@ def test_workspace_derived_from_param_no_dash_w(monkeypatch):
         wizard=False,
     )
     fc.run_scanner(args)
-    # Body workspace derived from the `workspaces` param — no "No workspace" error.
+    # Workspace comes from the --param workspaces value for the top-level list,
+    # and is popped OUT of args (the server rejects it as an executor arg).
     assert captured["workspaces"] == ["WebApp"]
-    assert captured["args"]["workspaces"] == "WebApp"
+    assert "workspaces" not in captured["args"]
     assert fc._cmd.errors == []
 
 
-def test_dash_w_backfills_empty_workspace_param(monkeypatch):
-    """-w given but the agent's `workspaces` param left blank → back-fill it so
-    First Scan gets its param without the user typing the workspace twice."""
+def test_workspace_param_never_lands_in_args(monkeypatch):
+    """--param workspaces=… resolves the top-level workspace but must be popped
+    out of args so the executor never sees a workspace argument."""
     import faraday_cli.config as cfg
 
     monkeypatch.setattr(cfg.active_config, "workspace", None, raising=False)
@@ -446,14 +458,14 @@ def test_dash_w_backfills_empty_workspace_param(monkeypatch):
         agent="first-scan",
         agent_pos=None,
         workspace=["WebApp"],
-        param=["workspaces="],  # explicit-but-empty
+        param=["target=x.com", "workspaces=ignored"],
         params_json=None,
         watch=False,
         wizard=False,
     )
     fc.run_scanner(args)
-    assert captured["workspaces"] == ["WebApp"]
-    assert captured["args"]["workspaces"] == "WebApp"
+    assert captured["workspaces"] == ["WebApp"]  # -w wins
+    assert captured["args"] == {"target": "x.com"}  # workspaces popped out
 
 
 def test_run_scanner_no_agent_errors():

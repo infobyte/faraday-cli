@@ -189,21 +189,30 @@ def _clean_default(value):
     return value
 
 
+# Workspace isn't an executor run-arg — it's the run body's top-level
+# ``workspaces`` list. Never prompt for it as a param or send it inside ``args``
+# (handled separately by the workspace resolution).
+_WORKSPACE_KEYS = {"workspaces", "workspace", "WORKSPACES", "WORKSPACE_NAME"}
+
+
 def _agent_param_specs(api_client, agent_id):
-    """Return an ordered list of ``{name, description, default, mandatory}`` for
-    a cloud agent's accepted run parameters — the UNION of the two schemas a
-    Faraday cloud agent exposes:
+    """Return the executor **run-argument** specs for a cloud agent.
 
-    * ``params`` — the run INPUT schema: ``{name: {base, type, mandatory}}``
-      (or a flat name list). This is where mandatory inputs like First Scan's
-      ``target`` live, so it is read FIRST and drives the required/type hints.
-    * ``parameters_data`` — the CONFIGURED values (workspaces, tags, flags…),
-      used both as defaults for schema params and as extra optional fields not
-      present in the input schema.
+    A Faraday cloud agent exposes two different things:
 
-    Mirrors how the Faraday web UI renders the run form (Target from ``params``
-    + Workspace/tags from ``parameters_data``). Returns [] when the agent
-    exposes no parameters at all.
+    * ``params`` — the executor's run INPUT schema: ``{name: {base, type,
+      mandatory}}`` (or a flat name list). These are the ONLY keys the run
+      ``args`` may contain — the server rejects anything else ("X not
+      recognized as an executor argument"). Mandatory inputs like First Scan's
+      ``target`` live here.
+    * ``parameters_data`` — the agent's CONFIGURED values (resolve_hostname,
+      tags, the default workspace…). These are agent config applied
+      server-side, NOT run args, so they are used only to seed defaults for
+      matching schema params — never prompted or sent on their own.
+
+    Workspace keys are excluded (they go in the run body's top-level
+    ``workspaces`` list, not ``args``). Returns [] when the agent exposes no
+    input schema (the caller then falls back to explicit ``--param``).
     """
     try:
         agent = api_client.get_cloud_agent(agent_id) or {}
@@ -214,11 +223,10 @@ def _agent_param_specs(api_client, agent_id):
     stored = stored if isinstance(stored, dict) else {}
 
     specs = []
-    seen = set()
-
-    # 1) Input-schema params first (carry mandatory/type; e.g. target).
     if isinstance(schema, dict):
         for name, meta in schema.items():
+            if name in _WORKSPACE_KEYS:
+                continue
             meta = meta if isinstance(meta, dict) else {}
             specs.append(
                 {
@@ -229,21 +237,46 @@ def _agent_param_specs(api_client, agent_id):
                     "mandatory": bool(meta.get("mandatory") or meta.get("required")),
                 }
             )
-            seen.add(name)
     elif isinstance(schema, list):
         for name in schema:
+            if name in _WORKSPACE_KEYS:
+                continue
             specs.append(
-                {"name": name, "description": "", "default": _clean_default(stored.get(name)), "mandatory": False}
+                {
+                    "name": name,
+                    "description": "",
+                    "default": _clean_default(stored.get(name)),
+                    "mandatory": False,
+                }
             )
-            seen.add(name)
-
-    # 2) Configured fields not already declared in the input schema.
-    for name, value in stored.items():
-        if name in seen:
-            continue
-        specs.append({"name": name, "description": "", "default": _clean_default(value), "mandatory": False})
+    else:
+        # No input schema at all — best-effort fall back to configured values
+        # (minus workspace) so the wizard still has something to drive on.
+        for name, value in stored.items():
+            if name in _WORKSPACE_KEYS:
+                continue
+            specs.append({"name": name, "description": "", "default": _clean_default(value), "mandatory": False})
 
     return specs
+
+
+def agent_default_workspaces(api_client, agent_id):
+    """The agent's configured default workspace(s) from ``parameters_data`` —
+    used to pre-fill the workspace prompt. Returns a list (possibly empty)."""
+    try:
+        agent = api_client.get_cloud_agent(agent_id) or {}
+    except Exception:
+        return []
+    stored = agent.get("parameters_data") or {}
+    for key in _WORKSPACE_KEYS:
+        val = stored.get(key)
+        if isinstance(val, (list, tuple)):
+            out = [str(v).strip() for v in val if str(v).strip()]
+            if out:
+                return out
+        elif isinstance(val, str) and val.strip():
+            return [w.strip() for w in val.split(",") if w.strip()]
+    return []
 
 
 def prompt_params_wizard(cmd, api_client, agent_id, agent_label):

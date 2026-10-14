@@ -11,6 +11,7 @@ from simple_rest_client.exceptions import NotFoundError
 from faraday_cli.config import active_config
 from faraday_cli.shell.modules.cloud_agent_common import (
     _agent_param_specs,
+    agent_default_workspaces,
     is_interactive,
     launch_cloud_agent_and_report,
     print_run_oneliner,
@@ -116,9 +117,10 @@ class ScannerCommands(cmd2.CommandSet):
             )
         ]
         self._cmd.poutput(tabulate(head, headers="keys", tablefmt="psql" if args.pretty else "simple"))
-        # Params: the union of the input schema (`params`, where mandatory
-        # inputs like `target` live) and the configured values
-        # (`parameters_data`). Same list the run wizard prompts for.
+        # Params: the executor's run-input schema (`params`) — the only keys a
+        # run's `args` may carry. Config-only fields in `parameters_data`
+        # (resolve_hostname, tags) and the workspace are excluded. Same list
+        # the run wizard prompts for.
         specs = _agent_param_specs(self._cmd.api_client, args.scanner_id)
         if specs:
             self._cmd.poutput("\nParameters (pass with --param KEY=VALUE):")
@@ -239,7 +241,7 @@ class ScannerCommands(cmd2.CommandSet):
         else:
             run_args = {}
 
-        workspaces = self._resolve_run_workspaces(args, run_args)
+        workspaces = self._resolve_run_workspaces(args, run_args, api_client, agent_id)
         if workspaces is None:
             return
 
@@ -254,44 +256,46 @@ class ScannerCommands(cmd2.CommandSet):
         launch_cloud_agent_and_report(self._cmd, api_client, agent_id, run_args, workspaces, "Run", args.watch)
         print_run_oneliner(self._cmd, agent_ref, workspaces, run_args)
 
-    # Cloud agents whose run reads the workspace from an arg (e.g. First Scan's
-    # ``workspaces``) rather than needing a separate --workspace. The run body
-    # ALWAYS carries a workspace list though, so we reconcile the two: whichever
-    # the user gave populates both, and they never have to enter it twice.
+    # Workspace goes in the run body's top-level ``workspaces`` list — NOT in
+    # ``args`` (the server rejects it as an executor argument). It is resolved
+    # on its own and never mixed into the param dict.
     _WORKSPACE_PARAM_KEYS = ("workspaces", "workspace", "WORKSPACES", "WORKSPACE_NAME")
 
-    def _resolve_run_workspaces(self, args, run_args):
+    def _resolve_run_workspaces(self, args, run_args, api_client=None, agent_id=None):
         """Return the workspace list for the run body, or None after erroring.
 
         Priority: ``--workspace`` → active connection workspace → a
-        workspace-ish param the user already filled (so the wizard's
-        ``workspaces`` answer counts) → interactive prompt. Also back-fills the
-        agent's own workspace param from the resolved value so First Scan & co
-        get it without the user typing it twice.
+        workspace-ish param the user explicitly passed via ``--param`` → an
+        interactive prompt pre-filled with the agent's configured default
+        workspace. Any workspace key that leaked into ``run_args`` (e.g. an
+        explicit ``--param workspaces=…``) is popped out so it never ships
+        inside ``args``.
         """
+        # Pull any workspace value out of run_args (and remove it — not an arg).
+        from_param = None
+        for k in self._WORKSPACE_PARAM_KEYS:
+            if k in run_args:
+                val = run_args.pop(k)
+                if val and from_param is None:
+                    from_param = val
+
         if args.workspace:
             workspaces = list(args.workspace)
         elif active_config.workspace:
             workspaces = [active_config.workspace]
+        elif from_param:
+            workspaces = [w.strip() for w in str(from_param).split(",") if w.strip()]
+        elif is_interactive():
+            default_ws = ""
+            if api_client is not None and agent_id is not None:
+                configured = agent_default_workspaces(api_client, agent_id)
+                default_ws = configured[0] if configured else ""
+            ans = (click.prompt("Workspace", default=default_ws, show_default=bool(default_ws)) or "").strip()
+            workspaces = [w.strip() for w in ans.split(",") if w.strip()]
         else:
-            from_param = next((run_args[k] for k in self._WORKSPACE_PARAM_KEYS if run_args.get(k)), None)
-            if from_param:
-                workspaces = [w.strip() for w in str(from_param).split(",") if w.strip()]
-            elif is_interactive():
-                ans = (click.prompt("Workspace", default="", show_default=False) or "").strip()
-                workspaces = [w.strip() for w in ans.split(",") if w.strip()]
-            else:
-                workspaces = []
+            workspaces = []
 
         if not workspaces:
-            self._cmd.perror(
-                "No workspace — pass --workspace <name>, select an active workspace, "
-                "or set the agent's workspace parameter."
-            )
+            self._cmd.perror("No workspace — pass --workspace <name> or select an active workspace.")
             return None
-
-        # Back-fill the agent's own workspace param so it isn't asked twice.
-        for k in self._WORKSPACE_PARAM_KEYS:
-            if k in run_args and not run_args.get(k):
-                run_args[k] = ",".join(workspaces)
         return workspaces
