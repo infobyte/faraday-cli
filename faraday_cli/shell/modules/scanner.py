@@ -10,6 +10,7 @@ from simple_rest_client.exceptions import NotFoundError
 
 from faraday_cli.config import active_config
 from faraday_cli.shell.modules.cloud_agent_common import (
+    _agent_param_specs,
     is_interactive,
     launch_cloud_agent_and_report,
     print_run_oneliner,
@@ -115,12 +116,24 @@ class ScannerCommands(cmd2.CommandSet):
             )
         ]
         self._cmd.poutput(tabulate(head, headers="keys", tablefmt="psql" if args.pretty else "simple"))
-        # Params: cloud-agent dicts expose the accepted param names under
-        # `params` (list) and/or `parameters_data` (richer per-param metadata).
-        params = agent.get("params") or list((agent.get("parameters_data") or {}).keys())
-        if params:
+        # Params: the union of the input schema (`params`, where mandatory
+        # inputs like `target` live) and the configured values
+        # (`parameters_data`). Same list the run wizard prompts for.
+        specs = _agent_param_specs(self._cmd.api_client, args.scanner_id)
+        if specs:
             self._cmd.poutput("\nParameters (pass with --param KEY=VALUE):")
-            self._cmd.poutput("  " + ", ".join(str(p) for p in params))
+            rows = [
+                OrderedDict(
+                    {
+                        "PARAM": s["name"],
+                        "REQUIRED": "yes" if s["mandatory"] else "",
+                        "TYPE/DESC": s["description"],
+                        "DEFAULT": "" if s["default"] in (None, "") else str(s["default"]),
+                    }
+                )
+                for s in specs
+            ]
+            self._cmd.poutput(tabulate(rows, headers="keys", tablefmt="simple"))
 
     # ---- scanners run ----
     run_scanner_parser = argparse.ArgumentParser()

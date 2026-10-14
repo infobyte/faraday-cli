@@ -234,27 +234,61 @@ def test_watch_commands_no_getter_falls_back(monkeypatch):
 # --- interactive param wizard + one-liner -----------------------------------
 
 
-def test_param_specs_from_parameters_data():
+def test_param_specs_union_schema_and_values():
+    """First Scan shape: `params` holds the input schema (target, mandatory),
+    `parameters_data` holds configured values (workspaces, flags). The wizard
+    must prompt the UNION — target was previously missed (the reported bug)."""
+    import faraday_cli.shell.modules.cloud_agent_common as cac
+
+    class _Client:
+        def get_cloud_agent(self, aid):
+            return {
+                "id": 1,
+                "params": {"target": {"base": "string", "type": "url", "mandatory": True}},
+                "parameters_data": {
+                    "workspaces": ["suc-firstscan"],
+                    "ignore_info": False,
+                    "vuln_tag": [],
+                },
+            }
+
+    specs = cac._agent_param_specs(_Client(), 1)
+    by = {s["name"]: s for s in specs}
+    # target comes from the input schema, required, type carried as description.
+    assert "target" in by and by["target"]["mandatory"] is True
+    assert by["target"]["description"] == "url"
+    # its `base` is a type placeholder, NOT a default → no pre-fill.
+    assert by["target"]["default"] is None
+    # schema params are listed BEFORE the configured-only ones.
+    assert specs[0]["name"] == "target"
+    # configured values become optional fields, defaults normalized.
+    assert by["workspaces"]["default"] == "suc-firstscan"  # list → comma string
+    assert by["ignore_info"]["default"] == "false"  # bool → lowercase string
+    assert by["vuln_tag"]["default"] is None  # empty list → None
+
+
+def test_param_specs_real_default_beats_placeholder():
+    """When parameters_data carries a real value for a schema param, that value
+    is the default (not the `base` type placeholder)."""
     import faraday_cli.shell.modules.cloud_agent_common as cac
 
     class _Client:
         def get_cloud_agent(self, aid):
             return {
                 "id": 2,
-                "parameters_data": {
-                    "TARGET": {"description": "URL to scan", "mandatory": True, "base": ""},
-                    "ROUNDS": {"description": "rounds", "base": 20},
+                "params": {
+                    "TARGET": {"base": "string", "mandatory": True},
+                    "ROUNDS": {"base": "integer", "mandatory": False},
                 },
+                "parameters_data": {"ROUNDS": 20, "TARGET": ""},
             }
 
-    specs = cac._agent_param_specs(_Client(), 2)
-    names = [s["name"] for s in specs]
-    assert names == ["TARGET", "ROUNDS"]
-    assert specs[0]["mandatory"] is True and specs[0]["description"] == "URL to scan"
-    assert specs[1]["default"] == 20
+    by = {s["name"]: s for s in cac._agent_param_specs(_Client(), 2)}
+    assert by["ROUNDS"]["default"] == 20
+    assert by["TARGET"]["default"] is None
 
 
-def test_param_specs_fallback_to_flat_params():
+def test_param_specs_flat_params_list():
     import faraday_cli.shell.modules.cloud_agent_common as cac
 
     class _Client:
@@ -277,7 +311,9 @@ def test_build_run_oneliner_quotes_values():
 
 
 def test_wizard_prompts_and_runs(monkeypatch):
-    """--wizard collects params from parameters_data and launches with them."""
+    """--wizard collects the UNION of schema params + configured values and
+    launches with them. Pins the reported bug: the mandatory `target` from the
+    `params` input schema is prompted (not just `parameters_data` fields)."""
     import faraday_cli.shell.modules.cloud_agent_common as cac
 
     captured = {}
@@ -289,10 +325,11 @@ def test_wizard_prompts_and_runs(monkeypatch):
         def get_cloud_agent(self, aid):
             return {
                 "id": 2,
-                "parameters_data": {
-                    "TARGET": {"description": "URL", "mandatory": True, "base": ""},
-                    "ROUNDS": {"description": "rounds", "base": 20},
+                "params": {
+                    "TARGET": {"base": "string", "type": "url", "mandatory": True},
+                    "ROUNDS": {"base": "integer", "mandatory": False},
                 },
+                "parameters_data": {"ROUNDS": 20},
             }
 
         def run_cloud_agent(self, agent_id, args, workspaces):
@@ -300,13 +337,14 @@ def test_wizard_prompts_and_runs(monkeypatch):
             captured["workspaces"] = workspaces
             return {"command_ids": [{"id": 7}]}
 
-    # Simulate the operator typing a TARGET and accepting the ROUNDS default.
+    # Type a TARGET (schema-mandatory, no default) and accept the ROUNDS default.
     answers = iter(["https://dvwa.local", ""])
     monkeypatch.setattr(cac.click, "prompt", lambda *a, **k: next(answers))
 
     fc = _bound_scanner(_Client())
     args = SimpleNamespace(
         agent="faradai",
+        agent_pos=None,
         workspace=["ext_foo_com"],
         param=[],
         params_json=None,

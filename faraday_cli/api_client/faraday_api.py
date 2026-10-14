@@ -19,6 +19,7 @@ from simple_rest_client.exceptions import (
     AuthError,
     NotFoundError,
     ClientError,
+    ServerError,
     ClientConnectionError,
 )
 
@@ -72,6 +73,14 @@ class FaradayApi:
                         raise RequestError(e.response.body.get("message", e.response.body))
                     else:
                         raise RequestError(e)
+            except ServerError as e:
+                # 5xx — surface the server's own JSON `message` (e.g. "Cloud
+                # Agent Manager server is not available.") instead of dumping
+                # the whole Response repr under "Unknown error".
+                body = getattr(e.response, "body", None)
+                if isinstance(body, dict) and body.get("message"):
+                    raise RequestError(f"Server error ({e.response.status_code}): {body['message']}")
+                raise RequestError(f"Server error ({getattr(e.response, 'status_code', '5xx')})")
             except Exception as e:
                 raise Exception(f"Unknown error: {type(e)} - {e}")
             else:

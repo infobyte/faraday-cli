@@ -53,6 +53,21 @@ def resolve_cloud_agent(cmd, api_client, ident):
     return matches[0].get("id")
 
 
+def _server_error_message(exc):
+    """Pull the server's JSON ``message`` out of a simple_rest_client error.
+
+    These exceptions stringify to a huge Response dump; the operator only cares
+    about the server's own message (e.g. "Cloud Agent Manager server is not
+    available."). Falls back to the exception's own text when unavailable.
+    """
+    resp = getattr(exc, "response", None)
+    body = getattr(resp, "body", None)
+    if isinstance(body, dict) and body.get("message"):
+        status = getattr(resp, "status_code", None)
+        return f"Server error{f' ({status})' if status else ''}: {body['message']}"
+    return str(exc).split(",")[0] or str(exc)
+
+
 def launch_cloud_agent_and_report(cmd, api_client, agent_id, run_args, workspaces, verb, watch):
     """Run a cloud agent, print the resulting command ids, optionally watch.
 
@@ -63,10 +78,13 @@ def launch_cloud_agent_and_report(cmd, api_client, agent_id, run_args, workspace
     try:
         response = api_client.run_cloud_agent(agent_id, run_args, workspaces)
     except NotFoundError:
-        cmd.perror("Cloud agent not found")
+        cmd.perror(
+            "Not found — the agent id or one of the workspaces doesn't exist on "
+            "this server (check 'workspace list')."
+        )
         return
     except Exception as e:
-        cmd.perror(str(e))
+        cmd.perror(_server_error_message(e))
         return
 
     command_ids = [c.get("id") for c in (response.get("command_ids") or []) if c.get("id") is not None]
@@ -150,35 +168,81 @@ def _coerce_value(v):
     return v
 
 
+# ``base`` in a cloud-agent param schema is a TYPE placeholder ("string" /
+# "url" / "integer" / "boolean"), not a real default value — never pre-fill a
+# prompt with it.
+_TYPE_PLACEHOLDERS = {"string", "url", "integer", "boolean", "list"}
+
+
+def _clean_default(value):
+    """Normalize a stored default for display/prompting: lists → comma string,
+    bools → 'true'/'false', type placeholders / empties → None."""
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (list, tuple)):
+        joined = ",".join(str(v).strip() for v in value if str(v).strip())
+        return joined or None
+    if isinstance(value, str) and value.strip().lower() in _TYPE_PLACEHOLDERS:
+        return None
+    return value
+
+
 def _agent_param_specs(api_client, agent_id):
     """Return an ordered list of ``{name, description, default, mandatory}`` for
-    a cloud agent's accepted run parameters.
+    a cloud agent's accepted run parameters — the UNION of the two schemas a
+    Faraday cloud agent exposes:
 
-    Reads the richer ``parameters_data`` metadata when present (dict keyed by
-    param name), falling back to the flat ``params`` name list. Returns an
-    empty list when the agent exposes no parameter metadata (the caller then
-    skips the wizard rather than guessing field names).
+    * ``params`` — the run INPUT schema: ``{name: {base, type, mandatory}}``
+      (or a flat name list). This is where mandatory inputs like First Scan's
+      ``target`` live, so it is read FIRST and drives the required/type hints.
+    * ``parameters_data`` — the CONFIGURED values (workspaces, tags, flags…),
+      used both as defaults for schema params and as extra optional fields not
+      present in the input schema.
+
+    Mirrors how the Faraday web UI renders the run form (Target from ``params``
+    + Workspace/tags from ``parameters_data``). Returns [] when the agent
+    exposes no parameters at all.
     """
     try:
         agent = api_client.get_cloud_agent(agent_id) or {}
     except Exception:
         return []
-    pdata = agent.get("parameters_data")
+    schema = agent.get("params")
+    stored = agent.get("parameters_data")
+    stored = stored if isinstance(stored, dict) else {}
+
     specs = []
-    if isinstance(pdata, dict) and pdata:
-        for name, meta in pdata.items():
+    seen = set()
+
+    # 1) Input-schema params first (carry mandatory/type; e.g. target).
+    if isinstance(schema, dict):
+        for name, meta in schema.items():
             meta = meta if isinstance(meta, dict) else {}
             specs.append(
                 {
                     "name": name,
-                    "description": meta.get("description") or meta.get("help") or "",
-                    "default": meta.get("base", meta.get("default")),
+                    "description": meta.get("description") or meta.get("type") or "",
+                    # A real stored value beats the type placeholder in ``base``.
+                    "default": _clean_default(stored.get(name, meta.get("base"))),
                     "mandatory": bool(meta.get("mandatory") or meta.get("required")),
                 }
             )
-    else:
-        for name in agent.get("params") or []:
-            specs.append({"name": name, "description": "", "default": None, "mandatory": False})
+            seen.add(name)
+    elif isinstance(schema, list):
+        for name in schema:
+            specs.append(
+                {"name": name, "description": "", "default": _clean_default(stored.get(name)), "mandatory": False}
+            )
+            seen.add(name)
+
+    # 2) Configured fields not already declared in the input schema.
+    for name, value in stored.items():
+        if name in seen:
+            continue
+        specs.append({"name": name, "description": "", "default": _clean_default(value), "mandatory": False})
+
     return specs
 
 
