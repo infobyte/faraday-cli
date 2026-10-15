@@ -899,3 +899,28 @@ def test_onboarding_matching_domain_proceeds(monkeypatch):
     assert ok is True
     assert calls["register"] and calls["verify"]
     assert confirmed["asked"] is False  # no mismatch → never asked to confirm
+
+
+def test_verify_uses_pending_dashboard_url(monkeypatch):
+    """`register --dashboard-url <custom>` then `verify <code>` (no URL) must
+    finish on the SAME custom dashboard, not fall back to the default SaaS."""
+    urls = []
+
+    def fake_post(url, json=None, timeout=None):
+        urls.append(url)
+        if url.endswith("/api/register"):
+            return _FakeResp(200, {"status": "code_sent"})
+        return _FakeResp(200, {"token": "tok-1", "faraday_url": "https://custom.x", "workspace": "ext_corp_com"})
+
+    monkeypatch.setattr(faradai_mod.requests, "post", fake_post)
+    monkeypatch.setattr(faradai_mod.active_config, "save", lambda: None)
+    monkeypatch.setattr(faradai_mod.active_config, "add_session", lambda *a, **k: None)
+
+    fc = _bound_cmd()
+    fc.register(SimpleNamespace(email="me@corp.com", password="hunter2pass!", dashboard_url="https://custom.x/_ai"))
+    assert faradai_mod.active_config.faradai_pending_dashboard_url == "https://custom.x/_ai"
+
+    fc.verify(SimpleNamespace(code="123456", code_flag=None, email=None, password=None, dashboard_url=None))
+    assert urls[-1] == "https://custom.x/_ai/api/verify"  # pending URL won
+    # cleared after a successful verify
+    assert faradai_mod.active_config.faradai_pending_dashboard_url is None

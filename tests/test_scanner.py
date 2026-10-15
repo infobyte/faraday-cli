@@ -61,14 +61,29 @@ def test_resolve_zero_match_errors():
     assert any("No cloud agent matching" in e for e in cmd.errors)
 
 
-def test_resolve_ambiguous_match_errors():
+def test_resolve_exact_match_beats_substring():
+    """`--agent faradai` must pick the agent whose slug IS `faradai` even though
+    the substring also hits `faradai-triage` — the advertised example command
+    has to keep working once the triage agent is installed."""
     cmd = _FakeCmd(
         [
             {"id": 2, "name": "FaradAI", "slug": "faradai"},
             {"id": 3, "name": "FaradAI Triage", "slug": "faradai-triage"},
         ]
     )
-    assert resolve_cloud_agent(cmd, cmd.api_client, "faradai") is None
+    assert resolve_cloud_agent(cmd, cmd.api_client, "faradai") == 2
+    assert cmd.errors == []
+
+
+def test_resolve_ambiguous_fragment_errors():
+    """A fragment with no exact match that hits several agents still errors."""
+    cmd = _FakeCmd(
+        [
+            {"id": 2, "name": "FaradAI", "slug": "faradai"},
+            {"id": 3, "name": "FaradAI Triage", "slug": "faradai-triage"},
+        ]
+    )
+    assert resolve_cloud_agent(cmd, cmd.api_client, "farad") is None
     assert any("matches multiple" in e for e in cmd.errors)
 
 
@@ -595,3 +610,69 @@ def test_run_scanner_no_oneliner_on_launch_failure(monkeypatch):
     fc.run_scanner(args)
     assert fc._cmd.errors  # the launch error surfaced
     assert not any("Reproduce" in o for o in fc._cmd.outputs)
+
+
+# --- Greptile review fixes (MR !96) ------------------------------------------
+
+
+def test_schema_declared_workspaces_stays_in_args(monkeypatch):
+    """FaradAI triage declares WORKSPACES as a REQUIRED executor input — a
+    `--param WORKSPACES=ws` must reach the server inside `args` (and still
+    resolve the top-level workspace), not be popped as a leak."""
+    import faraday_cli.config as cfg
+
+    monkeypatch.setattr(cfg.active_config, "workspace", None, raising=False)
+    captured = {}
+
+    class _Client:
+        def list_cloud_agents(self):
+            return [{"id": 3, "name": "FaradAI Triage", "slug": "faradai-triage"}]
+
+        def get_cloud_agent(self, aid):
+            return {
+                "id": 3,
+                "params": {"WORKSPACES": {"base": "string", "mandatory": True}},
+                "parameters_data": {},
+            }
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            captured["args"] = args
+            captured["workspaces"] = workspaces
+            return {"command_ids": [{"id": 9}]}
+
+    fc = _bound_scanner(_Client())
+    args = SimpleNamespace(
+        agent="faradai-triage",
+        agent_pos=None,
+        workspace=None,
+        param=["WORKSPACES=ws_demo"],
+        params_json=None,
+        watch=False,
+        wizard=False,
+    )
+    fc.run_scanner(args)
+    assert captured["workspaces"] == ["ws_demo"]  # resolved top-level
+    assert captured["args"] == {"WORKSPACES": "ws_demo"}  # AND kept as run arg
+
+
+def test_watch_polls_every_workspace(monkeypatch):
+    """--watch must poll ALL the run's workspaces — commands living outside
+    workspaces[0] would otherwise stay pending forever."""
+    import faraday_cli.shell.modules.cloud_agent_common as cac
+
+    monkeypatch.setattr(cac.time, "sleep", lambda *_: None)
+    polled = []
+
+    class _Client:
+        def get_workspace_commands(self, ws):
+            polled.append(ws)
+            # command 1 lives in ws_a, command 2 in ws_b
+            return {
+                "ws_a": [{"id": 1, "duration": 12.5}],
+                "ws_b": [{"id": 2, "duration": 3.2}],
+            }[ws]
+
+    cmd = _FakeCmd()
+    cac.watch_commands(cmd, _Client(), ["ws_a", "ws_b"], [1, 2])
+    assert set(polled) == {"ws_a", "ws_b"}
+    assert any("Run finished" in o for o in cmd.outputs)

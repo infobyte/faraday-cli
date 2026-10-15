@@ -995,10 +995,12 @@ token is what persists).
 account is scoped to a single one), so later scans need only `--target`.
 
 !!! tip "Workspace auto-discovery"
-    You rarely need `--workspace`. When you have access to exactly one
-    workspace (the usual case for a scan user), `faradai scan` / `faradai
-    triage` resolve it automatically — on both the authenticated (`auth`) and
-    `--standalone` paths. Pass `--workspace` only when you can access several.
+    You rarely need `--workspace` for a scan. When you have access to exactly
+    one workspace (the usual case for a scan user), `faradai scan` resolves it
+    automatically — on both the authenticated (`auth`) and `--standalone`
+    paths. Pass `--workspace` only when you can access several.
+    `faradai triage` always requires `--workspace` (the workspace IS the
+    triage target).
 
 | Command           | Parameters                                                      |
 |-------------------|-----------------------------------------------------------------|

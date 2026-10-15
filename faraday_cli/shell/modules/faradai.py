@@ -467,6 +467,10 @@ class FaradaiCommands(cmd2.CommandSet):
             return False
         active_config.faradai_pending_email = email
         active_config.faradai_pending_password = password
+        # Remember WHICH dashboard this registration is pending on, so a later
+        # `faradai verify <code>` (no --dashboard-url) completes on the same
+        # instance instead of silently falling back to the default SaaS.
+        active_config.faradai_pending_dashboard_url = dashboard_url
         active_config.save()
         lines = [f"Verification code sent to {email}."]
         if generated:
@@ -554,7 +558,11 @@ class FaradaiCommands(cmd2.CommandSet):
         with --email / --password when verifying a registration started
         elsewhere.
         """
-        dashboard_url = (args.dashboard_url or active_config.faradai_dashboard_url).rstrip("/")
+        dashboard_url = (
+            args.dashboard_url
+            or getattr(active_config, "faradai_pending_dashboard_url", None)
+            or active_config.faradai_dashboard_url
+        ).rstrip("/")
         code = args.code or args.code_flag
         if not code:
             self._cmd.perror("Missing code. Usage: faradai verify <code>")
@@ -615,6 +623,7 @@ class FaradaiCommands(cmd2.CommandSet):
         # drop the transient pending email/password BEFORE saving the session.
         active_config.faradai_pending_email = None
         active_config.faradai_pending_password = None
+        active_config.faradai_pending_dashboard_url = None
         # Store the SaaS connection as a session and make it active (auto-switch):
         # a freshly-registered scan user wants to run against the SaaS now, and
         # we don't want two servers "connected" at once.

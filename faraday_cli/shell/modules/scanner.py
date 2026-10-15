@@ -287,15 +287,22 @@ class ScannerCommands(cmd2.CommandSet):
         Priority: ``--workspace`` → active connection workspace → a
         workspace-ish param the user explicitly passed via ``--param`` → an
         interactive prompt pre-filled with the agent's configured default
-        workspace. Any workspace key that leaked into ``run_args`` (e.g. an
+        workspace. A workspace key that leaked into ``run_args`` (e.g. an
         explicit ``--param workspaces=…``) is popped out so it never ships
-        inside ``args``.
+        inside ``args`` — UNLESS the agent's executor input schema declares
+        that key as a real run arg (FaradAI triage's ``WORKSPACES`` is a
+        required input): then the value is read for the top-level workspace
+        resolution but kept in ``args`` too.
         """
-        # Pull any workspace value out of run_args (and remove it — not an arg).
+        # Keys the executor's own schema declares are real run args, not leaks.
+        declared: set = set()
+        if api_client is not None and agent_id is not None:
+            declared = {s["name"] for s in _agent_param_specs(api_client, agent_id)}
+        # Pull any workspace value out of run_args (removing it unless declared).
         from_param = None
         for k in self._WORKSPACE_PARAM_KEYS:
             if k in run_args:
-                val = run_args.pop(k)
+                val = run_args[k] if k in declared else run_args.pop(k)
                 if val and from_param is None:
                     from_param = val
 

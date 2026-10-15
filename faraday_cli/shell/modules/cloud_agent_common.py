@@ -41,7 +41,12 @@ def resolve_cloud_agent(cmd, api_client, ident):
         return wanted
 
     needle = ident.lower()
-    matches = [a for a in agents if needle in f"{a.get('name') or ''} {a.get('slug') or ''}".lower()]
+    # Exact name/slug match wins before substring matching — otherwise the
+    # advertised `scanners run --agent faradai` is ambiguous the moment a
+    # second agent named `faradai-triage` exists (substring hits both).
+    matches = [a for a in agents if needle in ((a.get("name") or "").lower(), (a.get("slug") or "").lower())]
+    if not matches:
+        matches = [a for a in agents if needle in f"{a.get('name') or ''} {a.get('slug') or ''}".lower()]
     if not matches:
         cmd.perror(f"No cloud agent matching '{ident}' — run 'scanners list' to see them")
         return None
@@ -102,17 +107,24 @@ def launch_cloud_agent_and_report(cmd, api_client, agent_id, run_args, workspace
         cmd.poutput(json.dumps(response, indent=2))
 
     if watch:
-        watch_commands(cmd, api_client, workspaces[0], command_ids)
+        watch_commands(cmd, api_client, workspaces, command_ids)
     return True
 
 
-def watch_commands(cmd, api_client, workspace_name, command_ids):
+def watch_commands(cmd, api_client, workspace_names, command_ids):
     """Poll each command's status until it leaves the running state.
+
+    ``workspace_names`` is the run's workspace list (a bare string is accepted
+    for back-compat). EVERY workspace is polled each cycle — a multi-workspace
+    run creates commands across them, so polling only the first would leave the
+    other workspaces' commands pending forever.
 
     Uses the already-exposed command listing on the workspace (no new server
     endpoint). If the API client has no command getter, print the ids and a
     follow-up hint rather than inventing an endpoint.
     """
+    if isinstance(workspace_names, str):
+        workspace_names = [workspace_names]
     getter = getattr(api_client, "get_workspace_commands", None) or getattr(api_client, "get_commands", None)
     if getter is None or not command_ids:
         cmd.poutput(
@@ -128,11 +140,13 @@ def watch_commands(cmd, api_client, workspace_name, command_ids):
     try:
         while pending:
             time.sleep(15)
-            try:
-                commands = getter(workspace_name) or []
-            except Exception as e:
-                cmd.perror(f"watch: {e}")
-                return
+            commands = []
+            for ws in workspace_names:
+                try:
+                    commands.extend(getter(ws) or [])
+                except Exception as e:
+                    cmd.perror(f"watch: {e}")
+                    return
             by_id = {c.get("_id") or c.get("id"): c for c in commands}
             for cid in list(pending):
                 cmd_row = by_id.get(cid)
@@ -225,11 +239,14 @@ def _agent_param_specs(api_client, agent_id):
     stored = agent.get("parameters_data")
     stored = stored if isinstance(stored, dict) else {}
 
+    # Workspace-named keys are excluded ONLY from the parameters_data fallback
+    # (agent config — workspace goes top-level there). When the executor's own
+    # input schema declares one (FaradAI triage's WORKSPACES is a REQUIRED run
+    # arg), it is a real input: dropping it would strip a mandatory param, so
+    # schema-declared workspace keys stay visible and sendable.
     specs = []
     if isinstance(schema, dict):
         for name, meta in schema.items():
-            if name in _WORKSPACE_KEYS:
-                continue
             meta = meta if isinstance(meta, dict) else {}
             specs.append(
                 {
@@ -242,8 +259,6 @@ def _agent_param_specs(api_client, agent_id):
             )
     elif isinstance(schema, list):
         for name in schema:
-            if name in _WORKSPACE_KEYS:
-                continue
             specs.append(
                 {
                     "name": name,

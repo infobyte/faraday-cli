@@ -53,6 +53,9 @@ class Config:
         self.faradai_scan_url = DEFAULT_FARADAI_SCAN_URL
         self.faradai_pending_email = None
         self.faradai_pending_password = None
+        # Dashboard the pending registration was started against — so `verify`
+        # finishes on the same instance `register --dashboard-url` used.
+        self.faradai_pending_dashboard_url = None
         self.load()
 
     def config_exists(self) -> bool:
@@ -190,6 +193,7 @@ class Config:
                 self.faradai_scan_url = fs.get("url") or DEFAULT_FARADAI_SCAN_URL
                 self.faradai_pending_email = fs.get("pending_email")
                 self.faradai_pending_password = fs.get("pending_password")
+                self.faradai_pending_dashboard_url = fs.get("pending_dashboard_url")
                 # Migrate a legacy stored SaaS token into a `faradai-scan`
                 # session (only when one isn't already registered).
                 if fs.get("token") and FARADAI_SCAN_SESSION not in self.sessions:
@@ -238,6 +242,7 @@ class Config:
                 "workspace": saas.get("workspace"),
                 "pending_email": self.faradai_pending_email,
                 "pending_password": self.faradai_pending_password,
+                "pending_dashboard_url": self.faradai_pending_dashboard_url,
             },
         }
         with open(self.config_file, "w") as f:
