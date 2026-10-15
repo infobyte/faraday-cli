@@ -864,9 +864,7 @@ def test_onboarding_warns_and_aborts_on_domain_mismatch(monkeypatch):
     """`pentest --target faradaysec.com` with a gmail email must warn and, on
     decline, abort WITHOUT sending the OTP (no /api/register call)."""
     posted = []
-    monkeypatch.setattr(
-        faradai_mod.requests, "post", lambda *a, **k: posted.append(a) or _FakeResp(200, {})
-    )
+    monkeypatch.setattr(faradai_mod.requests, "post", lambda *a, **k: posted.append(a) or _FakeResp(200, {}))
     monkeypatch.setattr(faradai_mod.click, "prompt", lambda *a, **k: "famato@gmail.com")
     monkeypatch.setattr(faradai_mod.click, "confirm", lambda *a, **k: False)  # decline
 
@@ -891,9 +889,7 @@ def test_onboarding_matching_domain_proceeds(monkeypatch):
         return True
 
     confirmed = {"asked": False}
-    monkeypatch.setattr(
-        faradai_mod.click, "confirm", lambda *a, **k: confirmed.update(asked=True) or True
-    )
+    monkeypatch.setattr(faradai_mod.click, "confirm", lambda *a, **k: confirmed.update(asked=True) or True)
     monkeypatch.setattr(faradai_mod.click, "prompt", lambda *a, **k: "me@faradaysec.com")
 
     fc = _bound_cmd()

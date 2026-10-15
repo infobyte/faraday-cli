@@ -503,9 +503,10 @@ def test_unknown_run_args_against_schema():
 
     assert cac.unknown_run_args(_Client(), 1, {"target": "x.com"}) == []
     assert cac.unknown_run_args(_Client(), 1, {"target": "x.com", "workspaces": "ws"}) == []
-    assert cac.unknown_run_args(
-        _Client(), 1, {"target": "x.com", "ignore_info": False, "resolve_hostname": False}
-    ) == ["ignore_info", "resolve_hostname"]
+    assert cac.unknown_run_args(_Client(), 1, {"target": "x.com", "ignore_info": False, "resolve_hostname": False}) == [
+        "ignore_info",
+        "resolve_hostname",
+    ]
 
 
 def test_unknown_run_args_no_schema_is_permissive():
