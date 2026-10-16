@@ -442,7 +442,9 @@ class FaradayShell(Cmd):
     def do_status(self, args):
         """Show Cli status"""
         valid_token = False
-        if active_config.token:
+        if not active_config.token:
+            self.perror("Missing Config, run 'faraday-cli auth'")
+        else:
             try:
                 valid_token = self.api_client.is_token_valid()
             except Exception as e:
