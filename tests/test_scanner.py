@@ -366,6 +366,8 @@ def test_wizard_prompts_and_runs(monkeypatch):
     # Type a TARGET (schema-mandatory, no default) and accept the ROUNDS default.
     answers = iter(["https://dvwa.local", ""])
     monkeypatch.setattr(cac.click, "prompt", lambda *a, **k: next(answers))
+    # Accept the "Launch this run?" confirmation the wizard path now asks.
+    monkeypatch.setattr(cac.click, "confirm", lambda *a, **k: True)
 
     fc = _bound_scanner(_Client())
     args = SimpleNamespace(
@@ -676,3 +678,98 @@ def test_watch_polls_every_workspace(monkeypatch):
     cac.watch_commands(cmd, _Client(), ["ws_a", "ws_b"], [1, 2])
     assert set(polled) == {"ws_a", "ws_b"}
     assert any("Run finished" in o for o in cmd.outputs)
+
+
+# --- review fixes (#112) -------------------------------------------------------
+
+
+def test_wizard_declined_confirmation_does_not_launch(monkeypatch):
+    """The wizard pre-fills the agent's stored target: Enter on every prompt
+    must not launch a scan without an explicit confirmation."""
+    import faraday_cli.shell.modules.cloud_agent_common as cac
+
+    launched = []
+
+    class _Client:
+        def list_cloud_agents(self):
+            return [{"id": 2, "name": "FaradAI", "slug": "faradai"}]
+
+        def get_cloud_agent(self, aid):
+            return {
+                "id": 2,
+                "params": {"TARGET": {"base": "string", "mandatory": True}},
+                "parameters_data": {"TARGET": "stored-default.example"},
+            }
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            launched.append(args)
+            return {"command_ids": [{"id": 7}]}
+
+    monkeypatch.setattr(cac.click, "prompt", lambda *a, **k: "")  # Enter = keep default
+    monkeypatch.setattr(cac.click, "confirm", lambda *a, **k: False)
+
+    fc = _bound_scanner(_Client())
+    fc.run_scanner(
+        SimpleNamespace(
+            agent="faradai", agent_pos=None, workspace=["ws"], param=[], params_json=None, watch=False, wizard=True
+        )
+    )
+    assert launched == []
+    assert any("nothing launched" in o for o in fc._cmd.outputs)
+
+
+def test_workspace_param_beats_active_workspace(monkeypatch):
+    """An explicit --param workspace wins over the active workspace, so the run
+    body and a schema-declared WORKSPACES arg never point at different ones."""
+    import faraday_cli.config as cfg
+
+    monkeypatch.setattr(cfg.active_config, "workspace", "A", raising=False)
+    captured = {}
+
+    class _Client:
+        def list_cloud_agents(self):
+            return [{"id": 3, "name": "FaradAI Triage", "slug": "faradai-triage"}]
+
+        def get_cloud_agent(self, aid):
+            return {"id": 3, "params": {"WORKSPACES": {"base": "string", "mandatory": True}}}
+
+        def run_cloud_agent(self, agent_id, args, workspaces):
+            captured.update(args=args, workspaces=workspaces)
+            return {"command_ids": [{"id": 9}]}
+
+    fc = _bound_scanner(_Client())
+    fc.run_scanner(
+        SimpleNamespace(
+            agent="faradai-triage",
+            agent_pos=None,
+            workspace=None,
+            param=["WORKSPACES=B"],
+            params_json=None,
+            watch=False,
+            wizard=False,
+        )
+    )
+    assert captured["workspaces"] == ["B"]
+    assert captured["args"]["WORKSPACES"] == "B"
+
+
+def test_get_workspace_commands_reads_commands_key(monkeypatch):
+    """The server returns {"commands": [{"id", "key", "value"}]} — not "rows"."""
+    from faraday_cli.api_client import FaradayApi
+
+    api = FaradayApi(url="http://faraday.local", token="tok-test")
+    body = {"commands": [{"id": 155, "key": 155, "value": {"_id": 155, "duration": "In progress"}}]}
+    monkeypatch.setattr(api.faraday_api.command, "list", lambda ws: SimpleNamespace(body=body))
+    assert api.get_workspace_commands("ws") == [{"_id": 155, "duration": "In progress"}]
+
+
+def test_get_scanner_unknown_id_clean_error():
+    from faraday_cli.api_client.exceptions import NotFound
+
+    class _Client:
+        def get_cloud_agent(self, aid):
+            raise NotFound("Element not found")
+
+    fc = _bound_scanner(_Client())
+    fc.get_scanner(SimpleNamespace(scanner_id=99999, json_output=False, pretty=False))
+    assert fc._cmd.errors == ["Cloud agent 99999 not found. See 'scanners list'."]

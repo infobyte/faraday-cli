@@ -805,6 +805,7 @@ def test_activate_saas_session_self_heals_invalid_token(monkeypatch):
 
     fc = _bound_cmd()
     monkeypatch.setattr(fc, "_guided_onboarding", fake_onboarding)
+    monkeypatch.setattr(faradai_mod, "is_interactive", lambda: True)
 
     ok = fc._activate_saas_session()
     assert ok is True
@@ -829,6 +830,7 @@ def test_ensure_connected_onboards_when_nothing_configured(monkeypatch):
     # Don't stub _ensure_connected here — exercise the real one.
     del fc._ensure_connected
     monkeypatch.setattr(fc, "_guided_onboarding", fake_onboarding)
+    monkeypatch.setattr(faradai_mod, "is_interactive", lambda: True)
 
     ok = fc._ensure_connected(False)  # no --standalone, nothing configured
     assert ok is True
@@ -924,3 +926,121 @@ def test_verify_uses_pending_dashboard_url(monkeypatch):
     assert urls[-1] == "https://custom.x/_ai/api/verify"  # pending URL won
     # cleared after a successful verify
     assert faradai_mod.active_config.faradai_pending_dashboard_url is None
+
+
+# --- review fixes (#113) -------------------------------------------------------
+
+
+def test_activate_saas_session_keeps_session_on_connection_error(monkeypatch):
+    """A SaaS that can't be reached is not an expired token: the stored
+    faradai-scan session must be kept (no removal, no re-onboarding)."""
+    from faraday_cli.api_client.exceptions import RequestError
+
+    monkeypatch.setattr(
+        faradai_mod.active_config,
+        "sessions",
+        {faradai_mod.FARADAI_SCAN_SESSION: {"faraday_url": "https://scan.real", "token": "good", "kind": "saas"}},
+        raising=False,
+    )
+
+    class _FakeApi:
+        def __init__(self, *a, **k):
+            pass
+
+        def is_token_valid(self):
+            raise RequestError("Connection error")
+
+    import faraday_cli.api_client as _apimod
+
+    monkeypatch.setattr(_apimod, "FaradayApi", _FakeApi, raising=False)
+    flow = {"removed": False, "onboarded": False}
+    monkeypatch.setattr(faradai_mod.active_config, "remove_session", lambda name: flow.update(removed=True) or True)
+    monkeypatch.setattr(faradai_mod.active_config, "use_session", lambda name: True)
+
+    fc = _bound_cmd()
+    monkeypatch.setattr(fc, "_guided_onboarding", lambda target=None: flow.update(onboarded=True) or True)
+
+    assert fc._activate_saas_session() is True
+    assert flow == {"removed": False, "onboarded": False}
+
+
+def test_is_token_valid_raises_on_connection_error(monkeypatch):
+    """is_token_valid() must not report a connection error as an invalid token."""
+    from simple_rest_client.exceptions import ClientConnectionError
+
+    api = _api()
+
+    def boom():
+        raise ClientConnectionError("refused")
+
+    monkeypatch.setattr(api.faraday_api.login, "validate", boom)
+    try:
+        api.is_token_valid()
+    except Exception as e:
+        assert "Connection error" in str(e)
+    else:
+        raise AssertionError("expected a connection error, got a token verdict")
+
+
+def test_ensure_connected_points_to_saved_sessions(monkeypatch):
+    """Saved server sessions but none active → tell the user to `auth use`,
+    don't push them into the public SaaS signup."""
+    monkeypatch.setattr(faradai_mod.active_config, "active_session", None, raising=False)
+    monkeypatch.setattr(
+        faradai_mod.active_config,
+        "sessions",
+        {"corp": {"faraday_url": "https://corp", "token": "t", "kind": "server"}},
+        raising=False,
+    )
+    fc = _bound_cmd()
+    del fc._ensure_connected
+    onboarded = []
+    monkeypatch.setattr(fc, "_guided_onboarding", lambda target=None: onboarded.append(1) or True)
+
+    assert fc._ensure_connected(False) is False
+    assert onboarded == []
+    assert any("auth use" in e and "corp" in e for e in fc._cmd.errors)
+
+
+def test_onboarding_not_started_without_tty(monkeypatch):
+    """Nothing configured in a script/CI → clear error, no prompts."""
+    monkeypatch.setattr(faradai_mod.active_config, "active_session", None, raising=False)
+    monkeypatch.setattr(faradai_mod.active_config, "sessions", {}, raising=False)
+    monkeypatch.setattr(faradai_mod, "is_interactive", lambda: False)
+    fc = _bound_cmd()
+    del fc._ensure_connected
+    onboarded = []
+    monkeypatch.setattr(fc, "_guided_onboarding", lambda target=None: onboarded.append(1) or True)
+
+    assert fc._ensure_connected(False) is False
+    assert onboarded == []
+    assert any("faraday-cli auth" in e for e in fc._cmd.errors)
+
+
+def test_error_message_handles_non_object_json():
+    assert FaradaiCommands._error_message(_FakeResp(500, ["boom"])) == "Error (500): ['boom']"
+    assert FaradaiCommands._error_message(_FakeResp(400, {"error": "invalid_email"})) == "Error (400): invalid_email"
+    assert FaradaiCommands._error_message(_FakeResp(502)) == "Error (502)"
+
+
+def test_verify_404_clears_pending_credentials(monkeypatch):
+    """No (or expired) pending registration server-side → drop the local stash."""
+    monkeypatch.setattr(faradai_mod.requests, "post", lambda url, json=None, timeout=None: _FakeResp(404))
+    monkeypatch.setattr(faradai_mod.active_config, "save", lambda: None)
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_pending_email", "me@corp.com", raising=False)
+    monkeypatch.setattr(faradai_mod.active_config, "faradai_pending_password", "secret!Pass1", raising=False)
+
+    fc = _bound_cmd()
+    fc.verify(SimpleNamespace(code="123456", code_flag=None, email=None, password=None, dashboard_url=None))
+    assert faradai_mod.active_config.faradai_pending_email is None
+    assert faradai_mod.active_config.faradai_pending_password is None
+
+
+def test_onboarding_ip_target_does_not_suggest_email_at_ip(monkeypatch):
+    fc = _bound_cmd()
+    monkeypatch.setattr(faradai_mod.click, "prompt", lambda *a, **k: "user@foo.com")
+    monkeypatch.setattr(faradai_mod.click, "confirm", lambda *a, **k: False)
+    assert fc._guided_onboarding(target="10.0.0.5") is False
+    warning = " ".join(fc._cmd.outputs)
+    assert "IP targets" in warning
+    assert "email at '10.0.0.5'" not in warning
