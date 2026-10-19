@@ -4,6 +4,33 @@ Use [Faraday](https://faradaysec.com/) directly from your favorite terminal. far
 
 <script src="https://asciinema.org/a/384132.js" id="asciicast-384132" async data-autoplay="false" data-size="small"></script>
 
+## Features
+
+- **Two ways to use it** — an interactive shell or single commands for scripts and pipelines
+- **Import tool output** — process reports from 100+ security tools ([Faraday Plugins](https://github.com/infobyte/faraday_plugins)), or run a supported tool and upload its results automatically
+- **Workspaces, hosts, services and vulnerabilities** — list, create, update and delete them, with stats and a workspaces dashboard
+- **AI pentests with FaradAI** — launch FaradAI scans and triage from the terminal, including self-registration on the FaradAI-scan SaaS
+- **Agents and scanners** — run local Faraday Agents (runners) and server-side cloud agents (scanners)
+- **Several servers** — saved connection sessions to switch between servers or users
+- **Executive reports** — generate them from your templates (commercial versions of Faraday)
+
+## Command overview
+
+| Command | What it does |
+|---------|--------------|
+| `auth`, `status` | Connect to a Faraday server and manage saved sessions |
+| `workspace` | List, create, select, enable/disable workspaces and show a dashboard |
+| `host`, `service`, `vuln` | Query and manage a workspace's data |
+| `tool report`, `tool run` | Import a tool report, or run a tool and import its output |
+| `stats` | Vulnerability statistics |
+| `pentest`, `triage`, `faradai` | FaradAI scans, triage and FaradAI-scan SaaS registration |
+| `scanners` | List and run server-side cloud agents |
+| `agent` (`runners`) | List and run local Faraday Agents |
+| `executive_report` | Generate executive reports |
+| `set`, `help`, `version` | Settings, help and version |
+
+See [Commands](commands.md) for every option.
+
 
 # Examples
 
@@ -74,6 +101,11 @@ $ doctl compute droplet list --format PublicIPv4,Name --no-header | awk 'BEGIN {
 separator = ", "}END { print "] " }' | faraday-cli host create --stdin
 ```
 
+
+## Support
+
+- [Documentation](https://docs.faraday-cli.faradaysec.com)
+- [Issue tracker](https://github.com/infobyte/faraday-cli/issues)
 
 ??? question "Too many secrets?"
     ```

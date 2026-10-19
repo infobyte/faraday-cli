@@ -5,6 +5,16 @@ Use faraday directly from your favorite terminal
 
 faraday-cli is the official client that makes automating your security workflows easier.
 
+## Features
+
+- **Two ways to use it** — an interactive shell or single commands for scripts and pipelines
+- **Import tool output** — process reports from 100+ security tools ([Faraday Plugins](https://github.com/infobyte/faraday_plugins)), or run a supported tool and upload its results automatically
+- **Workspaces, hosts, services and vulnerabilities** — list, create, update and delete them, with stats and a workspaces dashboard
+- **AI pentests with FaradAI** — launch FaradAI scans and triage from the terminal, including self-registration on the FaradAI-scan SaaS
+- **Agents and scanners** — run local Faraday Agents (runners) and server-side cloud agents (scanners)
+- **Several servers** — saved connection sessions to switch between servers or users
+- **Executive reports** — generate them from your templates (commercial versions of Faraday)
+
 Before installing, we recommend creating and activating a Python virtual environment to avoid affecting your system Python packages. For example:
 
 ```shell
@@ -235,5 +245,9 @@ $ assetfinder -subs-only example.com| sort | uniq |awk 'BEGIN { ORS = ""; print 
 separator = ","}END { print "\"}" }' | faraday-cli  agent run  -a 1 -e nmap --stdin
 ```
 
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 — see the [LICENSE](LICENSE) file for details.
 
 [doc]: https://docs.faraday-cli.faradaysec.com

@@ -53,6 +53,13 @@ Saving config (session 'faraday@localhost')
 Faraday>
 ```
 
+In scripts, pass everything as arguments (add `-i` to skip SSL verification,
+e.g. for a self-signed certificate):
+
+```
+$ faraday-cli auth -f https://faraday.example.com -u faraday -p "$FARADAY_PASSWORD" -i
+```
+
 !!! tip "More than one server"
     Each login is saved as a named session (`user@host`). If you work with more
     than one Faraday server (or user), run `auth` for each one and switch with
@@ -111,6 +118,22 @@ Server: http://localhost:5985
 📄 Processing Openvas report
 ⬆ Sending data to workspace: test
 ✔ Done
+```
+
+### Filter and tag what you import
+
+`tool report` and `tool run` can skip vulnerabilities by severity and tag what
+they import:
+
+```
+# skip informational findings
+$ faraday-cli tool report scan.xml --min-severity low
+
+# only critical and high
+$ faraday-cli tool report scan.xml --min-severity high
+
+# tag vulnerabilities, hosts and services (repeat a flag to add more tags)
+$ faraday-cli tool report scan.xml --vuln-tag q4-scan --host-tag production --service-tag external
 ```
 
 ### Or let FaradAI find it

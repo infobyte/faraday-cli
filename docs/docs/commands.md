@@ -1210,6 +1210,50 @@ Report created: /tmp/test.pdf
 | `-d/--destination DESTINATION`   | Report destination      |
 
 
+## Interactive shell features
+
+When you run `faraday-cli` with no arguments you get an interactive shell
+(`Faraday>`, or `[ws:<workspace>]>` once a workspace is selected) with command
+history, tab completion and these extras:
+
+### Auto-command detection
+
+Anything you type that isn't a faraday-cli command is run as an OS command. If
+`auto_command_detection` is enabled (the default) and the command belongs to a
+tool supported by [Faraday Plugins](https://github.com/infobyte/faraday_plugins)
+(e.g. `nmap`, `ping`), its output is also processed and uploaded to the active
+workspace:
+
+```
+[ws:test]> nmap 10.0.0.1
+💻 Processing Nmap command
+...
+⬆ Sending data to workspace: test
+✔ Done
+```
+
+If there is no active workspace the command just runs. Turn it off with
+`set auto_command_detection false` to run OS commands without processing them.
+The same detection applies in command mode (`faraday-cli nmap 10.0.0.1`); use
+[`tool run`](#tool-run) to choose the workspace, tags or plugin explicitly.
+
+### cd
+
+Change the current working directory of the shell (`cd` alone goes to your home).
+
+```
+[ws:test]> cd /tmp
+```
+
+### Update notifications
+
+On startup, faraday-cli checks PyPI and shows a message when a newer version is
+available; `status` shows it too in the `CLI VERSION` column.
+
+```
+A new version of faraday-cli (2.3.1) is available!!
+```
+
 ## Core commands
 
 ### help
