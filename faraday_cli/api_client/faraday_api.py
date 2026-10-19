@@ -19,6 +19,7 @@ from simple_rest_client.exceptions import (
     AuthError,
     NotFoundError,
     ClientError,
+    ServerError,
     ClientConnectionError,
 )
 
@@ -72,6 +73,14 @@ class FaradayApi:
                         raise RequestError(e.response.body.get("message", e.response.body))
                     else:
                         raise RequestError(e)
+            except ServerError as e:
+                # 5xx — surface the server's own JSON `message` (e.g. "Cloud
+                # Agent Manager server is not available.") instead of dumping
+                # the whole Response repr under "Unknown error".
+                body = getattr(e.response, "body", None)
+                if isinstance(body, dict) and body.get("message"):
+                    raise RequestError(f"Server error ({e.response.status_code}): {body['message']}")
+                raise RequestError(f"Server error ({getattr(e.response, 'status_code', '5xx')})")
             except Exception as e:
                 raise Exception(f"Unknown error: {type(e)} - {e}")
             else:
@@ -97,6 +106,14 @@ class FaradayApi:
             resource_class=resources.CredentialResource,
         )
         self.faraday_api.add_resource(resource_name="agent", resource_class=resources.AgentResource)
+        self.faraday_api.add_resource(
+            resource_name="cloud_agent",
+            resource_class=resources.CloudAgentResource,
+        )
+        self.faraday_api.add_resource(
+            resource_name="command",
+            resource_class=resources.CommandResource,
+        )
         self.faraday_api.add_resource(resource_name="vuln", resource_class=resources.VulnResource)
         self.faraday_api.add_resource(
             resource_name="vuln_evidence",
@@ -149,10 +166,11 @@ class FaradayApi:
 
     @handle_errors
     def is_token_valid(self):
+        # Only an auth failure means the token is invalid. A connection error
+        # (server down / network blip) is raised so callers don't mistake it for
+        # an expired token (e.g. and drop a still-valid stored session).
         try:
             self.faraday_api.login.validate()
-        except ClientConnectionError:
-            return False
         except AuthError:
             return False
         else:
@@ -291,6 +309,46 @@ class FaradayApi:
         }
         response = self.faraday_api.agent.run(agent_id, body=body)
         return response.body
+
+    @handle_errors
+    def list_cloud_agents(self):
+        response = self.faraday_api.cloud_agent.list()
+        return response.body
+
+    @handle_errors
+    def get_cloud_agent(self, cloud_agent_id):
+        response = self.faraday_api.cloud_agent.get(cloud_agent_id)
+        return response.body
+
+    @handle_errors
+    def run_cloud_agent(self, cloud_agent_id, args: dict, workspaces: list):
+        # CloudAgentRunSchema: flat {"workspaces", "args"} — NOT run_executor's
+        # executor_data/workspaces_names shape.
+        body = {"workspaces": workspaces, "args": args}
+        response = self.faraday_api.cloud_agent.run(cloud_agent_id, body=body)
+        return response.body
+
+    @handle_errors
+    def get_workspace_commands(self, workspace_name: str):
+        """List a workspace's commands (CommandView).
+
+        Each command has `duration`/`end_date` set once it finishes, which is how
+        `--watch` detects completion. The v3 paginated view wraps each row as
+        ``{"id": N, "value": {...fields...}}`` — unwrap to the flat command dicts
+        (with `_id`) so callers read `duration`/`end_date` directly. The server
+        returns the rows under ``commands`` (``rows`` is accepted too).
+        """
+        response = self.faraday_api.command.list(workspace_name)
+        body = response.body
+        rows = (body.get("commands") or body.get("rows")) if isinstance(body, dict) else body
+        rows = rows or []
+        out = []
+        for r in rows:
+            if isinstance(r, dict) and "value" in r and isinstance(r["value"], dict):
+                out.append(r["value"])
+            else:
+                out.append(r)
+        return out
 
     @handle_errors
     def get_host(self, workspace_name: str, host_id):

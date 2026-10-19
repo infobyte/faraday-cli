@@ -87,6 +87,28 @@ class AgentResource(Resource):
     }
 
 
+class CloudAgentResource(Resource):
+    # Cloud agents (e.g. FaradAI) live in a separate server table + blueprint
+    # from local Agents — different endpoint, different run body. The run body
+    # is flat {"workspaces": [...], "args": {...}} (CloudAgentRunSchema), NOT
+    # the AgentResource executor_data/workspaces_names shape.
+    actions = {
+        "list": {"method": "GET", "url": "v3/cloud_agents"},
+        "get": {"method": "GET", "url": "v3/cloud_agents/{}"},
+        "run": {"method": "POST", "url": "v3/cloud_agents/{}/run"},
+    }
+
+
+class CommandResource(Resource):
+    # Workspace command history (CommandView). A finished command has
+    # `duration`/`end_date` set; a still-running one doesn't — which is how the
+    # `--watch` poller (cloud_agent_common.watch_commands) detects completion.
+    actions = {
+        "list": {"method": "GET", "url": "v3/ws/{}/commands"},
+        "get": {"method": "GET", "url": "v3/ws/{}/commands/{}"},
+    }
+
+
 class ExecutiveReportResource(Resource):
     actions = {
         "list_templates": {

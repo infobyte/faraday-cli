@@ -142,7 +142,10 @@ $ faraday-cli ping -c 1 www.google.com
 ```
 ![Example](./docs/docs/images/command.gif)
 
-### List agents
+### List agents (runners)
+
+Local Faraday Agents (dispatcher *runners*). Reachable as `agent`, `agents`,
+`runner` or `runners` (all equivalent).
 
 ```shell script
 $ faraday-cli agent list
@@ -158,7 +161,39 @@ $ faraday-cli agent run -a 1 -e nmap -p \''{"target": "www.google.com"}'\'
 Run executor: internal/nmap [{'successful': True}]
 ```
 
+### Run a FaradAI scan (cloud agents / scanners)
 
+Cloud agents are server-side security *scanners* (the `v3/cloud_agents` API),
+distinct from the local runners above. FaradAI is one such scanner, with its own
+command and top-level shortcuts.
+
+```shell script
+# Quick FaradAI pentest (standard tier — 20 rounds)
+$ faraday-cli pentest --target https://example.com
+
+# Deeper audit (80 rounds), and watch it until it finishes
+$ faraday-cli pentest --target https://example.com --advanced --watch
+
+# Triage the existing findings of a workspace
+$ faraday-cli triage -w my_workspace --severities critical,high --reproduce
+```
+
+List and run any cloud agent generically:
+
+```shell script
+$ faraday-cli scanners list
+  ID  NAME            SLUG            CATEGORY   LAST_RUN
+----  --------------  --------------  ---------  ----------
+   2  FaradAI         faradai         pentest    -
+   4  FaradAI Triage  faradai-triage  triage     -
+
+$ faraday-cli scanners run --agent faradai -w my_workspace \
+    --param TARGET=https://example.com --param ROUNDS=20
+```
+
+> No Faraday server connected? `pentest` / `triage` fall back to the
+> FaradAI-scan SaaS and walk you through creating an account on first use.
+> See the [FaradAI docs][doc] for registration and `--standalone` details.
 
 ## Use it like a shell
 

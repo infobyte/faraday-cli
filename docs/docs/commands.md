@@ -22,9 +22,53 @@ Saving config
 |:-----	|------:	|
 | `-f/--faraday-url FARADAY_URL`       | url of your faraday server      |
 | `-i/--ignore-ssl`   | Ignore SSL certificate validation        |
-| `-i/--ignore-ssl`   | Ignore SSL certificate validation        |
 | `-u/--user USER`  | Faraday user       |
 | `-p/--password PASSWORD`  | Faraday password       |
+| `-n/--name NAME`  | Session name to save this connection as (default: the server host) |
+
+!!! info "One active connection, multiple saved sessions"
+    faraday-cli keeps **one active connection** at a time, but remembers the
+    others as named *sessions* so you can switch instead of being logged in to
+    two servers at once. Logging in with `auth` (and `faradai register`/`login`,
+    which save a `faradai-scan` session) adds a session and makes it active.
+
+### auth list
+
+List the saved connection sessions (the active one is marked). Session names
+default to `user@host`, so two users on the **same** server each get their own
+switchable session instead of overwriting each other.
+
+```
+$ faraday-cli auth list
+  ID  ACTIVE    NAME                    KIND    SERVER                            USER             WORKSPACE
+----  --------  ----------------------  ------  --------------------------------  ---------------  ----------------
+   1  ✔         alice@corp.faradaysec   server  https://corp.faradaysec.com       alice            -
+   2            bob@corp.faradaysec     server  https://corp.faradaysec.com       bob              ws_b
+   3            faradai-scan            saas    https://scan.apps.faradaysec.com  you@corp.com     ext_corp_com
+```
+
+### auth use
+
+Switch the active connection to a saved session — by its **ID number**, its
+**name**, or its **user/email**. Every command (including
+`pentest`/`triage`/`scanners`) then uses it.
+
+```
+$ faraday-cli auth use 3                 # by ID
+$ faraday-cli auth use faradai-scan      # by name
+$ faraday-cli auth use you@corp.com      # by user/email (when unique)
+Switched to 'faradai-scan' (https://scan.apps.faradaysec.com) — workspace ext_corp_com
+```
+
+### auth rm
+
+Remove a saved session (by ID, name or user; clears the active connection if it
+was the active one).
+
+```
+$ faraday-cli auth rm 3
+$ faraday-cli auth rm faradai-scan
+```
 
 !!! info "Faraday token expiration"
     You may want to change the faraday token expiration time, so you don't have to authenticate so often.
@@ -36,7 +80,8 @@ Saving config
 
 ### status
 
-Show the status of your current authentication.
+Show the status of your current authentication — the connected Faraday server,
+your user, whether the token is valid, the active workspace, and versions.
 
 ```
 $ faraday-cli status
@@ -44,6 +89,18 @@ FARADAY SERVER         IGNORE SSL    VERSION    USER     VALID TOKEN    WORKSPAC
 ---------------------  ------------  ---------  -------  -------------  -----------
 http://localhost:5985  False         corp-3.14  faraday  ✔              test
 ```
+
+If you also have a [FaradAI-scan SaaS](#faradai-scan-saas-register--verify--login)
+session stored, a second table shows it (server, user, token, `ext_<domain>`
+workspace):
+
+```
+FaradAI-scan (SaaS):
+FARADAI-SCAN SERVER               USER                 VALID TOKEN    WORKSPACE
+--------------------------------  -------------------  -------------  ----------------
+https://scan.apps.faradaysec.com  you@corp.com         ✔              ext_corp_com
+```
+
 *Optional Arguments:*
 
 | Syntax      | Description |
@@ -586,6 +643,13 @@ Different stats about the vulnerabilities in Faraday.
 !!! info
     For these commands you need to have our [Faraday Agents](https://github.com/infobyte/faraday_agent_dispatcher) configured.
 
+!!! note "`runners` alias"
+    Faraday Agents (the local dispatcher runners) are also reachable as
+    **`runners`** — `runners list`, `runners get`, `runners run` are synonyms
+    for the `agent` commands below, kept for the renamed terminology. The
+    server-side scanners live under the separate [`scanners`](#scanners-cloud-agents)
+    group.
+
 ### agent list
 
 List all configured agents.
@@ -703,6 +767,246 @@ Run an executor.
 | Syntax      | Description |
 |:-----	|------:	|
 | `--stdin`   | Read executor-params from stdin       |
+
+
+
+## Scanners (cloud agents)
+
+!!! info
+    **Scanners** are Faraday **cloud agents** (the `v3/cloud_agents` API) — the
+    server-side security agents, distinct from the local Faraday Agents /
+    `runners` above. This is the generic group: list any cloud agent and run it
+    with arbitrary parameters. FaradAI is one such scanner, so it can be
+    launched here (`scanners run --agent faradai ...`) **or** via its own
+    richer [`faradai`](#faradai) command.
+
+### scanners list
+
+List the cloud agents (scanners) available on the server.
+
+```
+$ faraday-cli scanners list
+  ID  NAME            SLUG             CATEGORY   LAST_RUN
+----  --------------  ---------------  ---------  ----------
+   2  FaradAI         faradai          pentest    ...
+   4  FaradAI Triage  faradai-triage   triage     ...
+```
+
+| Parameter         | Description                   |
+|-------------------|-------------------------------|
+| `-j`, `--json-output` | Show output in json       |
+| `-p`, `--pretty`  | Show table in a pretty format |
+
+### scanners get
+
+Show a single cloud agent and the parameters it accepts (useful before
+`scanners run` so you know which `--param` keys to pass).
+
+```
+$ faraday-cli scanners get 2
+```
+
+| Parameter         | Description                   |
+|-------------------|-------------------------------|
+| `scanner_id`      | ID of the cloud agent (required) |
+| `-j`, `--json-output` | Show output in json       |
+| `-p`, `--pretty`  | Show table in a pretty format |
+
+### scanners run
+
+Launch **any** cloud agent against one or more workspaces with arbitrary
+parameters. The agent is selected by id or by a name/slug fragment.
+
+```
+$ faraday-cli scanners run --agent faradai -w my_workspace \
+    --param TARGET=https://example.com --param ROUNDS=20 --watch
+```
+
+```
+# equivalent, params as a JSON object
+$ faraday-cli scanners run -a 2 -w my_workspace \
+    --params-json '{"TARGET": "https://example.com", "MODE": "Dual", "ROUNDS": 20}'
+```
+
+| Parameter            | Description                                             |
+|----------------------|---------------------------------------------------------|
+| `-a`, `--agent`      | Cloud-agent id or name/slug fragment (required)         |
+| `-w`, `--workspace`  | Workspace name (repeatable); defaults to the active one |
+| `--param KEY=VALUE`  | Run parameter (repeatable). Bare integers and `true`/`false` are coerced. |
+| `--params-json`      | All run params as one JSON object (alternative to repeated `--param`) |
+| `--watch`            | Poll the launched command(s) until they finish          |
+
+!!! info "`--watch`"
+    After launching, `--watch` polls the workspace's command list every ~15s and
+    prints each command as it finishes, then `Run finished.`. Press Ctrl-C to stop
+    watching — the run keeps going server-side. (The scan itself runs on the
+    server; `--watch` only follows it.)
+
+!!! warning "Only executor inputs go in `--param`"
+    A cloud agent has two kinds of fields: its executor **run inputs** (e.g.
+    First Scan's `target`) and its **stored configuration** (`resolve_hostname`,
+    `ignore_info`, tags, default workspaces…). Only run inputs may be passed with
+    `--param` — configuration is set on the agent itself in the Faraday web UI.
+    The CLI validates your `--param` keys against the agent's input schema before
+    launching and lists the accepted keys on a mismatch (`scanners get <id>`
+    shows them too). Workspace always goes via `-w`, never as a param.
+
+## FaradAI
+
+!!! info
+    FaradAI is a Faraday **cloud agent** (a [scanner](#scanners-cloud-agents)),
+    with its own command for the common cases: tiered scans, triage, and the
+    FaradAI-scan SaaS onboarding. To list cloud agents use
+    [`scanners list`](#scanners-list); to run FaradAI with raw parameters use
+    [`scanners run --agent faradai`](#scanners-run).
+
+!!! tip "Shortcuts"
+    The two common actions have top-level shortcuts: **`faraday-cli pentest`**
+    (= `faradai scan`) and **`faraday-cli triage`** (= `faradai triage`). All
+    the flags below apply to the shortcut too.
+
+!!! note "Backend is auto-selected"
+    `faradai scan` / `faradai triage` run against your **connected Faraday
+    server** when you're authenticated (`faraday-cli auth`), and against the
+    **FaradAI-scan SaaS** when you're not. You only need `--standalone` to
+    *force* the SaaS path when a server is also connected. A first-time SaaS
+    user with no account is walked through register + verify inline.
+
+!!! warning "Register with an email on the domain you're scanning"
+    A self-registered SaaS account is scoped to `ext_<your-email-domain>` and can
+    only scan that domain and its subdomains. Registering `you@gmail.com` (or any
+    public provider, or another company's domain) to scan `faradaysec.com` will
+    be rejected — public providers get no scan scope at all. During inline
+    onboarding the CLI checks your email against the `--target` before sending the
+    code and warns if they don't match. Use an email at the target's domain, or
+    have an operator authorize your account.
+
+### faradai scan
+
+Launch a FaradAI pentest against a target. The FaradAI cloud agent is
+auto-discovered by name/slug; pass `--agent-id` to select it explicitly.
+
+```
+# shortcut — against the connected server, or the SaaS when not authenticated
+$ faraday-cli pentest --target https://example.com
+
+# full form
+$ faraday-cli faradai scan --target https://example.com --workspace my_workspace
+```
+
+```
+$ faraday-cli faradai scan --target https://example.com -w my_workspace --advanced --watch
+```
+
+| Parameter            | Description                                             |
+|----------------------|---------------------------------------------------------|
+| `--target`           | URL/host to scan (required)                             |
+| `-w`, `--workspace`  | Workspace name (repeatable); defaults to the active one |
+| `--instruction`      | Pentest instruction (default: the FaradAI wizard's staged template for the tier — standard or advanced) |
+| `--goal`             | Free-text goal/focus for the run (wizard GOAL; empty by default) |
+| `--mode`             | `Dual` (default), `Claude`, or `Codex`                  |
+| `--rounds`           | Max agent rounds (default: **20** standard; **80** with `--advanced`). Explicit `--rounds` overrides the tier. |
+| `--advanced`         | Advanced (deeper) scan — 80 rounds + the wizard full-audit instruction, instead of the standard 20 |
+| `--agent-id`         | Explicit cloud-agent id (skips FaradAI auto-discovery)  |
+| `--watch`            | Poll the launched command(s) until they finish          |
+| `--standalone`       | Force the FaradAI-scan SaaS backend (auto-used when no server is connected) |
+
+!!! note "Instructions match the web wizard"
+    `faradai scan` (standard/advanced) and `faradai triage` launch with the
+    same staged instruction templates the FaradAI web wizard sends — standard →
+    *standard*, `--advanced` → *full-audit*, triage → *triage*. Override with
+    `--instruction` for a custom run.
+
+### faradai triage
+
+Run a FaradAI **triage** over the existing findings of one or more workspaces
+(re-test/reproduce, enrich, optionally auto-close false positives). This targets
+the separate *FaradAI Triage* cloud agent (auto-discovered); triage has no
+`--target` — it works over `--workspace` findings, not a URL.
+
+```
+# shortcut
+$ faraday-cli triage --workspace my_workspace --severities critical,high --reproduce
+
+# full form
+$ faraday-cli faradai triage --workspace my_workspace --severities critical,high --reproduce
+```
+
+| Parameter            | Description                                             |
+|----------------------|---------------------------------------------------------|
+| `-w`, `--workspace`  | Workspace to triage (repeatable, at least one required) |
+| `--severities`       | Comma-separated severities (e.g. `critical,high,medium`) |
+| `--confirmed-only`   | Only triage findings already marked confirmed           |
+| `--auto-close-fp`    | Auto-close findings determined to be false positives    |
+| `--target-filter`    | Only triage findings matching this target/host filter   |
+| `--reproduce`        | Actively re-test (reproduce) each finding               |
+| `--batch-size`       | Findings per triage batch                               |
+| `--rounds`           | Max agent rounds                                        |
+| `--goal`             | Free-text goal for the triage run                       |
+| `--instruction`      | Triage instruction (default: the wizard's staged triage template) |
+| `--agent-id`         | Explicit cloud-agent id (skips auto-discovery)          |
+| `--watch`            | Poll the launched command(s) until they finish          |
+| `--standalone`       | Force the FaradAI-scan SaaS backend (auto-used when no server is connected) |
+| `--dry-run`          | Plan without mutating findings                          |
+
+### FaradAI-scan SaaS (register / verify / login)
+
+!!! info
+    The FaradAI-scan SaaS (`https://faradai-scan.apps.faradaysec.com`) lets you
+    self-register from the CLI — no Faraday web UI. New accounts get one free
+    scan per tier; further scans need purchased credits.
+
+Zero-to-scan flow:
+
+```
+$ faraday-cli faradai register --email you@corp.com
+# → a strong password is generated and shown; a 6-digit code is emailed
+$ faraday-cli faradai verify 123456
+$ faraday-cli faradai scan --target https://example.com --standalone
+```
+
+Or skip straight to scanning — a first-time `--standalone` scan with no account
+yet walks you through register + verify inline, then runs:
+
+```
+$ faraday-cli faradai scan --target https://example.com --standalone
+No FaradAI-scan account yet — let's create one.
+Email: you@corp.com
+# → password generated + shown, code emailed
+Verification code (check your email): 123456
+Launching FaradAI scan ...
+```
+
+`register` stashes the email + password, so `verify` needs only the code.
+Pass `--password` to choose your own; omit it and one is generated for you and
+printed once (save it — it's what you log in with later). Returning users
+re-authenticate without a new code:
+
+```
+$ faraday-cli faradai login --email you@corp.com
+```
+
+The credentials are stored under the `faradai_scan` section of
+`~/.faraday-cli.yml`, separate from your main `auth` server connection. The
+pending email/password are cleared from the config once `verify` succeeds (the
+token is what persists).
+
+`verify` and `login` also store your `ext_<domain>` workspace (when your
+account is scoped to a single one), so later scans need only `--target`.
+
+!!! tip "Workspace auto-discovery"
+    You rarely need `--workspace` for a scan. When you have access to exactly
+    one workspace (the usual case for a scan user), `faradai scan` resolves it
+    automatically — on both the authenticated (`auth`) and `--standalone`
+    paths. Pass `--workspace` only when you can access several.
+    `faradai triage` always requires `--workspace` (the workspace IS the
+    triage target).
+
+| Command           | Parameters                                                      |
+|-------------------|-----------------------------------------------------------------|
+| `faradai register`| `--email` (required), `--password`, `--dashboard-url`           |
+| `faradai verify`  | `--email` (required), `--code` (required), `--password`, `--dashboard-url` |
+| `faradai login`   | `--email` (required), `--password`, `--scan-url`                |
 
 
 

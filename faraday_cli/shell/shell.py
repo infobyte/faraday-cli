@@ -74,8 +74,34 @@ class FaradayShell(Cmd):
     delattr(Cmd, "do_py")
 
     def __init__(self, *args, **kwargs):
+        # allow_cli_args=False: don't let cmd2 parse sys.argv at construction
+        # (it would intercept `-h`/`-t` from `faraday-cli <cmd> -h` and print its
+        # own transcript-test help instead of the command's). main.py parses the
+        # CLI args itself and dispatches via onecmd_plus_hooks.
+        kwargs.setdefault("allow_cli_args", False)
         super().__init__(persistent_history_file="~/.faraday-cli_history", *args, **kwargs)
         self.hidden_commands += ["EOF", "cd", "alias", "macro"]
+        # Accept the singular/plural and old/new spelling of both agent groups so
+        # users don't have to remember the canonical one. Local Faraday Agents
+        # (the dispatcher runners) canonicalise to `agent`; cloud agents (the new
+        # security scanners) canonicalise to `scanners`.
+        self.aliases["agents"] = "agent"
+        self.aliases["runner"] = "agent"
+        self.aliases["runners"] = "agent"
+        self.aliases["scanner"] = "scanners"
+        # Accept the plural spelling of the resource command groups too, so
+        # `tools`/`workspaces`/`hosts`/`services`/`vulns` all work alongside the
+        # canonical singular command name of each group.
+        self.aliases["tools"] = "tool"
+        self.aliases["workspaces"] = "workspace"
+        self.aliases["hosts"] = "host"
+        self.aliases["services"] = "service"
+        self.aliases["vulns"] = "vuln"
+        # Ergonomic top-level shortcuts for the two most common FaradAI actions,
+        # so `faraday-cli pentest --target ...` / `faraday-cli triage -w ...`
+        # work without remembering the `faradai` subcommand prefix.
+        self.aliases["pentest"] = "faradai scan"
+        self.aliases["triage"] = "faradai triage"
         self.shell_mode = False
         self.TABLE_PRETTY_FORMAT = "psql"
         # hide unwanted settings
@@ -101,13 +127,25 @@ class FaradayShell(Cmd):
                 ignore_ssl=active_config.ignore_ssl,
                 token=active_config.token,
             )
-            if not self.api_client.is_token_valid():
+            # A server error (e.g. 502 from the proxy while the backend is down)
+            # must not abort startup — warn and let the user run `auth`/`help`.
+            try:
+                token_valid = self.api_client.is_token_valid()
+            except Exception as e:
                 intro.append(
                     style(
-                        f"{self.emojis['cross']} Authentication invalid, run 'auth'",
+                        f"{self.emojis['cross']} Could not validate authentication: {e}. Check your Faraday server",
                         fg=COLORS.RED,
                     )
                 )
+            else:
+                if not token_valid:
+                    intro.append(
+                        style(
+                            f"{self.emojis['cross']} Authentication invalid, run 'auth'",
+                            fg=COLORS.RED,
+                        )
+                    )
         else:
             self.api_client = FaradayApi()
             intro.append(
@@ -228,10 +266,24 @@ class FaradayShell(Cmd):
     )
     auth_parser.add_argument("-u", "--user", type=str, help="Faraday user", required=False)
     auth_parser.add_argument("-p", "--password", type=str, help="Faraday password", required=False)
+    auth_parser.add_argument(
+        "-n",
+        "--name",
+        type=str,
+        help="Session name to save this connection as (default: the server host)",
+        required=False,
+    )
+    # Subcommands: `auth list` / `auth use <name>` / `auth rm <name>` (defined in
+    # modules/auth_sessions.py). Bare `auth` (with the flags above) still logs in.
+    auth_subparsers = auth_parser.add_subparsers(title="action")
 
     @with_argparser(auth_parser)
     def do_auth(self, args):
-        """Authenticate with a faraday server"""
+        """Authenticate with a faraday server (or manage sessions: list/use/rm)"""
+        handler = getattr(args, "cmd2_handler", None)
+        if handler is not None and handler.get() is not None:
+            handler.get()(args)
+            return
         faraday_url = args.faraday_url
         user = args.user
         password = args.password
@@ -264,13 +316,23 @@ class FaradayShell(Cmd):
                 else:
                     second_factor = None
                 token = api_client.get_token(second_factor)
-                active_config.faraday_url = faraday_url
-                active_config.ignore_ssl = ignore_ssl
-                active_config.token = token
-                active_config.workspace = None
-                active_config.save()
+                # Save as a named session and make it active (single active
+                # connection). Name defaults to `user@host` so two users on the
+                # same server don't collide (each is its own switchable session).
+                host = urlparse(faraday_url).hostname or faraday_url
+                session_name = args.name or (f"{user}@{host}" if user else host)
+                active_config.add_session(
+                    session_name,
+                    faraday_url=faraday_url,
+                    token=token,
+                    ignore_ssl=ignore_ssl,
+                    workspace=None,
+                    kind="server",
+                    user=user,
+                    make_active=True,
+                )
                 self.api_client = FaradayApi(faraday_url, ignore_ssl=ignore_ssl, token=token)
-                self.poutput(style("Saving config", fg=COLORS.GREEN))
+                self.poutput(style(f"Saving config (session '{session_name}')", fg=COLORS.GREEN))
                 self.poutput(
                     style(
                         f"{self.emojis['check']} Authenticated with faraday: {faraday_url}",  # noqa: E501
@@ -340,6 +402,22 @@ class FaradayShell(Cmd):
                 self.poutput(style(f"\n{self.emojis['check']} Done", fg=COLORS.GREEN))
         return Cmd.postcmd(self, stop, line)
 
+    def reload_api_client(self) -> None:
+        """Rebuild the live API client from the active session (after a switch).
+
+        Used by `auth use`/`auth rm` and the FaradAI SaaS onboarding so the rest
+        of the CLI talks to the newly-active connection without a restart.
+        """
+        if active_config.faraday_url and active_config.token:
+            self.api_client = FaradayApi(
+                active_config.faraday_url,
+                ignore_ssl=active_config.ignore_ssl,
+                token=active_config.token,
+            )
+        else:
+            self.api_client = FaradayApi()
+        self.update_prompt()
+
     def update_prompt(self) -> None:
         self.prompt = self.get_prompt()
 
@@ -363,13 +441,26 @@ class FaradayShell(Cmd):
     @with_argparser(status_parser)
     def do_status(self, args):
         """Show Cli status"""
-        valid_token = self.api_client.is_token_valid()
+        valid_token = False
+        if not active_config.token:
+            self.perror("Missing Config, run 'faraday-cli auth'")
+        else:
+            try:
+                valid_token = self.api_client.is_token_valid()
+            except Exception as e:
+                self.perror(f"Could not validate authentication: {e}. Check your Faraday server")
         user = None
         version = "-"
         if valid_token:
             version_data = self.api_client.get_version()
             version = f"{version_data['product']}-{version_data['version']}"
             user = self.api_client.get_user()
+            # Backfill the active session's user when it wasn't stored (e.g. a
+            # migrated pre-sessions config) so `auth list` can show it offline.
+            active = active_config.sessions.get(active_config.active_session or "")
+            if active is not None and user and not active.get("user"):
+                active["user"] = user
+                active_config.save()
         data = [
             {
                 "FARADAY SERVER": active_config.faraday_url,
@@ -398,6 +489,35 @@ class FaradayShell(Cmd):
                 fg=COLORS.GREEN,
             )
         )
+        # Second section: the other saved connection sessions (you have exactly
+        # one active connection; these are the ones you can `auth use <name>`).
+        # Shown only when there's more than the active one.
+        others = [n for n in active_config.sessions if n != active_config.active_session]
+        if others or len(active_config.sessions) > 1:
+            session_rows = []
+            for idx, (name, s) in enumerate(active_config.sessions.items(), start=1):
+                session_rows.append(
+                    {
+                        "ID": idx,
+                        "ACTIVE": "\U00002714" if name == active_config.active_session else "",
+                        "NAME": name,
+                        "KIND": s.get("kind") or "server",
+                        "SERVER": s.get("faraday_url"),
+                        "USER": s.get("user") or "-",
+                        "WORKSPACE": s.get("workspace") or "-",
+                    }
+                )
+            self.print_output(
+                style(
+                    "\nSaved sessions (switch with 'auth use <name>'):\n"
+                    + tabulate(
+                        session_rows,
+                        headers="keys",
+                        tablefmt=(self.TABLE_PRETTY_FORMAT if args.pretty else "simple"),
+                    ),
+                    fg=COLORS.GREEN,
+                )
+            )
 
     # Workspace
     workspace_parser = argparse.ArgumentParser()
@@ -468,6 +588,34 @@ class FaradayShell(Cmd):
             handler(ns)
         else:
             self.do_help("agent")
+
+    # Scanners (cloud agents — the generic security-agent group)
+    scanners_parser = argparse.ArgumentParser()
+    scanners_subparsers = scanners_parser.add_subparsers(title="action")
+
+    @with_argparser(scanners_parser)
+    @with_category("Objects")
+    def do_scanners(self, ns: argparse.Namespace):
+        """scanners (cloud agent) actions"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            handler(ns)
+        else:
+            self.do_help("scanners")
+
+    # FaradAI (cloud agent)
+    faradai_parser = argparse.ArgumentParser()
+    faradai_subparsers = faradai_parser.add_subparsers(title="action")
+
+    @with_argparser(faradai_parser)
+    @with_category("Objects")
+    def do_faradai(self, ns: argparse.Namespace):
+        """faradai actions"""
+        handler = ns.cmd2_handler.get()
+        if handler is not None:
+            handler(ns)
+        else:
+            self.do_help("faradai")
 
     # Executive Report
     executive_report_parser = argparse.ArgumentParser()
