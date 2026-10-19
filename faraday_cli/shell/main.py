@@ -4,6 +4,41 @@ import sys
 
 from faraday_cli.shell.shell import FaradayShell
 
+_QUOTES = ("'", '"')
+
+
+def _unwrap_legacy_quotes(args):
+    """Undo the escaped quoting older docs taught for command mode.
+
+    Command-mode arguments used to be joined with spaces, so the docs said to
+    wrap values in literal quotes to keep them together: `tool run \\"nmap -sV
+    host\\"` (the shell hands over `"nmap`, `-sV`, `host"`) or
+    `host create -d \\''[...]'\\'` (one token wrapped in `'...'`). Strip that one
+    layer of literal quotes, so those commands keep working now that each
+    argument is quoted on its own. A token that doesn't start with a quote, or
+    whose quote is never closed, is left as is.
+    """
+    out = []
+    i = 0
+    while i < len(args):
+        token = args[i]
+        quote = token[:1]
+        end = None
+        if quote in _QUOTES:
+            if len(token) > 1 and token.endswith(quote):
+                end = i
+            else:
+                end = next((j for j in range(i + 1, len(args)) if args[j].endswith(quote)), None)
+        if end is None:
+            out.append(token)
+            i += 1
+        else:
+            stop = end + 1
+            out.append(" ".join(args[i:stop])[1:-1])
+            i = stop
+    return out
+
+
 _EPILOG = """\
 Run `faraday-cli` with no command to open the interactive shell, or pass a
 command directly. `faraday-cli help` lists every command and
@@ -64,8 +99,11 @@ def main(argv=None):
         # A single argument is the whole command line in one string (e.g.
         # `faraday-cli "workspace list"`): pass it as-is, quoting it would turn
         # it into one unknown token that gets run in the system shell.
+        # The older escaped syntax (`\"nmap host\"`, `\''{...}'\'`) is unwrapped
+        # first so documented commands and existing scripts keep working (#115).
         if args.command_args:
-            command_string = " ".join(shlex.quote(a) for a in [args.command, *args.command_args])
+            command_args = _unwrap_legacy_quotes(args.command_args)
+            command_string = " ".join(shlex.quote(a) for a in [args.command, *command_args])
         else:
             command_string = args.command
         app.onecmd_plus_hooks(command_string)
