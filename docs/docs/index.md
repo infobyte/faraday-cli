@@ -1,6 +1,6 @@
 # Faraday Cli
 
-Use [Faraday](https://faradaysec.com/) directly from your favorite terminal. faraday-cli is the official client that make automating your security workflows, easier.
+Use [Faraday](https://faradaysec.com/) directly from your favorite terminal. faraday-cli is the official client that makes automating your security workflows easier.
 
 <script src="https://asciinema.org/a/384132.js" id="asciicast-384132" async data-autoplay="false" data-size="small"></script>
 
@@ -11,11 +11,14 @@ Here you have some snippets of different workflows you can generate using farada
 
 #### One-line Continuous Scan
 
-Scan assets from workspace.
+Scan the assets of a workspace with nmap and import the results back.
 
 ```shell
 $ faraday-cli host list -ip -w other_ws | nmap -iL - -oX /tmp/nmap.xml && faraday-cli tool report -w other_ws /tmp/nmap.xml
 ```
+
+!!! info
+    In this case there should be a workspace named "other_ws" with hosts in it.
 
 #### AI pentest with FaradAI
 
@@ -25,19 +28,20 @@ Launch an AI-driven pentest against a target using the FaradAI cloud agent
 ```shell
 $ faraday-cli pentest --target https://example.com --watch
 ```
-!!! info `pentest` is the shortcut for `faradai scan`. Use `--advanced` for the deeper 80-round audit, or `scanners run --agent <id|name>` to run any cloud agent with raw parameters. See [Commands](commands.md#faradai).
 
-### One-Line to nmap to all the host in the workspace and import the results back to Faraday
+!!! info
+    `pentest` is the shortcut for `faradai scan`. Use `--advanced` for the deeper
+    80-round audit, `triage -w <workspace>` to re-test the findings of a
+    workspace, or `scanners run <id|name>` to run any cloud agent with its own
+    parameters. See [Commands](commands.md#faradai).
 
-To scan all the host list inside a workspace with ```nmap``` and import the results back to faraday.
+#### One-line nmap scan of all the hosts in the workspace
+
+To scan all the hosts inside a workspace with ```nmap``` and import the results back to faraday.
 
 ```shell
-for ip in $(faraday-cli host list -ip); faraday-cli tool run \"nmap -Pn -p443,80 -sV --script=+http-enum -vvv $ip\"
+$ for ip in $(faraday-cli host list -ip); do faraday-cli tool run "nmap -Pn -p443,80 -sV --script=+http-enum -vvv $ip"; done
 ```
-
-
-
-!!! info In this case it should have a workspace named "other_ws" with  hostnames in it
 
 #### Scan your subdomains
 
@@ -48,14 +52,16 @@ $ assetfinder -subs-only example.com| sort | uniq |awk 'BEGIN { ORS = ""; print 
 { printf "%s%s", separator, $1, $2
 separator = ","}END { print "\"}" }' | faraday-cli agent run -a 1 -e nmap --stdin
 ```
-!!! info For this purpouse, an agent is created and already connected to run the nmap executor
+
+!!! info
+    For this purpose, an agent is created and already connected to run the nmap executor.
 
 #### Send Faraday Executive Reports by mail
 
 Run a daily scan and send your report
 
 ```shell
-$ faraday-cli executive_report create -t \'"generic_default.docx (generic) (Word)"\' --confirmed -d /tmp/report.docx && echo "Faraday Daily Report" | mail -s "Daily Report" user@example.com -A /tmp/report.docx
+$ faraday-cli executive_report create -t "generic_default.docx (generic) (Word)" --confirmed -d /tmp/report.docx && echo "Faraday Daily Report" | mail -s "Daily Report" user@example.com -A /tmp/report.docx
 ```
 
 #### Load your assets from your cloud provider
@@ -69,7 +75,7 @@ separator = ", "}END { print "] " }' | faraday-cli host create --stdin
 ```
 
 
-!!! question "Too many secrets?"
-```
-QW55IGZhbnMgb2YgVGhlIFNuZWFrZXJzPz8gVHJ5IHJ1bm5pbmcgZmFyYWRheS1jbGkgYWZ0ZXIgc2V0dGluZyB0aGlzICJleHBvcnQgS0FLRVJfTU9ERT0xIg
-```
+??? question "Too many secrets?"
+    ```
+    QW55IGZhbnMgb2YgVGhlIFNuZWFrZXJzPz8gVHJ5IHJ1bm5pbmcgZmFyYWRheS1jbGkgYWZ0ZXIgc2V0dGluZyB0aGlzICJleHBvcnQgS0FLRVJfTU9ERT0xIg
+    ```

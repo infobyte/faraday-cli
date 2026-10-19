@@ -152,7 +152,7 @@ class FaradaiCommands(cmd2.CommandSet):
         "--goal",
         type=str,
         default=None,
-        help="Free-text goal/focus for the run (wizard GOAL; empty by default)",
+        help="Free-text goal/focus for the run (default: the wizard GOAL for the tier)",
     )
     scan_parser.add_argument(
         "--mode",

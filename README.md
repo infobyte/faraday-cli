@@ -3,7 +3,7 @@ Use faraday directly from your favorite terminal
 
 ![Example](./docs/docs/images/general.gif)
 
-faraday-cli is the official client that make automating your security workflows, easier.
+faraday-cli is the official client that makes automating your security workflows easier.
 
 Before installing, we recommend creating and activating a Python virtual environment to avoid affecting your system Python packages. For example:
 
@@ -29,19 +29,35 @@ pip install .
 
 ## Documentation
 
-For more info you can check our [documentation][doc]
+For more info you can check our [documentation][doc]. From the CLI itself,
+`faraday-cli --help` shows the common commands and `faraday-cli <command> -h`
+the options of any command.
 
 
 ## Use it like a command
 
 ### Login
 
-Configure auth for farday-cli
+Configure auth for faraday-cli
 
 ```shell script
 $ faraday-cli auth
 ```
 ![Example](./docs/docs/images/auth.gif)
+
+Each login is saved as a named session (`user@host`), so you can keep several
+servers or users and switch between them:
+
+```shell script
+$ faraday-cli auth list
+  ID  ACTIVE    NAME                       KIND    SERVER                        USER     WORKSPACE
+----  --------  -------------------------  ------  ----------------------------  -------  -----------
+   1  ✔         alice@faraday.example.com  server  https://faraday.example.com/  alice    some_name
+   2            faraday@localhost          server  http://localhost:5985         faraday  -
+
+$ faraday-cli auth use 2
+$ faraday-cli status
+```
 
 
 ### Create a workspace
@@ -61,7 +77,7 @@ $ faraday-cli workspace select some_name
 ### List workspaces
 
 ```shell script
-$ faraday-cli list_ws
+$ faraday-cli workspace list
 NAME         HOSTS    SERVICES    VULNS  ACTIVE    PUBLIC    READONLY
 ---------  -------  ----------  -------  --------  --------  ----------
 some_name       14          13       39  True      False     False
@@ -76,24 +92,12 @@ $ faraday-cli host list
  574  127.0.0.1    unknown                            1  3
  566  127.0.0.10   unknown                            1  3
  569  127.0.0.11   unknown                            1  3
- 568  127.0.0.12   unknown                            1  3
- 570  127.0.0.13   unknown                            1  3
- 576  127.0.0.2    unknown                            1  3
- 565  127.0.0.3    unknown                            1  3
- 572  127.0.0.4    unknown                            1  3
- 573  127.0.0.5    unknown                            1  3
- 567  127.0.0.6    unknown                            1  3
- 571  127.0.0.7    unknown                            1  3
- 564  127.0.0.8    unknown                            1  3
- 575  127.0.0.9    unknown                            1  3
  590  58.76.184.4  unknown  www.googlec.com           0  -
 ```
 
 ### Get host
 
 ```shell script
-$ faraday-cli host get 574
-
 $ faraday-cli host get 574
 Host:
   ID  IP         OS       HOSTNAMES    OWNER    OWNED      VULNS
@@ -116,16 +120,16 @@ Vulnerabilities:
 ### Create hosts
 
 ```shell script
-$ faraday-cli host create -d \''[{"ip": "stan.local", "description": "some server"}]'\'
+$ faraday-cli host create -d '[{"ip": "stan.local", "description": "some server"}]'
 ```
 
 Or pipe it
 ```shell script
 $ echo '[{"ip": "1.1.1.5", "description": "some text"}]' | faraday-cli host create --stdin
-
 ```
-**The escaping of the single quotes (\\') is only needed when using it as a command.
-In the shell or using pipes it not necessary**
+
+Quote the arguments as you would for any other command. The escaped syntax used
+in older versions of this README (`-d \''[...]'\'`) is still accepted.
 
 
 ### Import vulnerabilities from tool report
@@ -138,7 +142,7 @@ $ faraday-cli tool report "/path/to/report.xml"
 ### Import vulnerabilities from command
 
 ```shell script
-$ faraday-cli ping -c 1 www.google.com
+$ faraday-cli tool run "ping -c 1 www.google.com"
 ```
 ![Example](./docs/docs/images/command.gif)
 
@@ -149,7 +153,7 @@ Local Faraday Agents (dispatcher *runners*). Reachable as `agent`, `agents`,
 
 ```shell script
 $ faraday-cli agent list
-  id  name      active    status    executors
+  ID  NAME      ACTIVE    STATUS    EXECUTORS
 ----  --------  --------  --------  -----------
    8  internal  True      online    nmap
 ```
@@ -157,8 +161,10 @@ $ faraday-cli agent list
 ### Run executor
 
 ```shell script
-$ faraday-cli agent run -a 1 -e nmap -p \''{"target": "www.google.com"}'\'
-Run executor: internal/nmap [{'successful': True}]
+$ faraday-cli agent run -a 8 -e nmap -p '{"target": "www.google.com"}'
+Running executor: internal/nmap
+Parameters: {"TARGET": "www.google.com"}
+Generated Command: 13
 ```
 
 ### Run a FaradAI scan (cloud agents / scanners)
@@ -178,22 +184,31 @@ $ faraday-cli pentest --target https://example.com --advanced --watch
 $ faraday-cli triage -w my_workspace --severities critical,high --reproduce
 ```
 
-List and run any cloud agent generically:
+List and run any cloud agent generically (`scanner` is an alias of `scanners`):
 
 ```shell script
 $ faraday-cli scanners list
-  ID  NAME            SLUG            CATEGORY   LAST_RUN
-----  --------------  --------------  ---------  ----------
-   2  FaradAI         faradai         pentest    -
-   4  FaradAI Triage  faradai-triage  triage     -
+  ID  NAME                SLUG        CATEGORY    LAST_RUN
+----  ------------------  ----------  ----------  ----------
+   7  FaradAI             faradai     AI Pentest  -
+   6  New CVEs Detection  top-10-cve  discovery   -
 
-$ faraday-cli scanners run --agent faradai -w my_workspace \
+# see the parameters a scanner accepts
+$ faraday-cli scanners get 7
+
+# run it with parameters…
+$ faraday-cli scanners run faradai -w my_workspace \
     --param TARGET=https://example.com --param ROUNDS=20
+
+# …or let the CLI ask for them (and confirm before launching)
+$ faraday-cli scanners run faradai -w my_workspace
 ```
 
-> No Faraday server connected? `pentest` / `triage` fall back to the
-> FaradAI-scan SaaS and walk you through creating an account on first use.
-> See the [FaradAI docs][doc] for registration and `--standalone` details.
+> No Faraday server? The first `pentest` / `triage` (with nothing configured)
+> walks you through creating a FaradAI-scan SaaS account, which is saved as the
+> `faradai-scan` session. You can also do it step by step with
+> `faradai register` / `faradai verify` / `faradai login`. See the
+> [FaradAI docs][doc].
 
 ## Use it like a shell
 
@@ -205,14 +220,14 @@ Faraday-cli can be used as a shell and have all the same commands you have as a 
 
 ### Continuous scan your assets with faraday
 
-For example run nmap for all the hosts in faraday that listen on the 443 port and import the results back to faraday
+For example run nmap for all the hosts in a workspace and import the results back to faraday
 ```shell
-$ faraday-cli host list --port 443 -ip | nmap -iL - -oX /tmp/nmap.xml  && faraday-cli process_report /tmp/nmap.xml
+$ faraday-cli host list -ip -w my_workspace | nmap -iL - -oX /tmp/nmap.xml && faraday-cli tool report -w my_workspace /tmp/nmap.xml
 ```
 
 ### Scan your subdomains
 
-Use a tool like assetfinder to do a domains lookup, scan them with nmap and send de results to faraday
+Use a tool like assetfinder to do a domains lookup, scan them with nmap and send the results to faraday
 
 ```shell
 $ assetfinder -subs-only example.com| sort | uniq |awk 'BEGIN { ORS = ""; print " {\"target\":\""}

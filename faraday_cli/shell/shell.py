@@ -270,7 +270,7 @@ class FaradayShell(Cmd):
         "-n",
         "--name",
         type=str,
-        help="Session name to save this connection as (default: the server host)",
+        help="Session name to save this connection as (default: user@host)",
         required=False,
     )
     # Subcommands: `auth list` / `auth use <name>` / `auth rm <name>` (defined in
