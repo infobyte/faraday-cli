@@ -148,3 +148,19 @@ def test_resolve_session_ambiguous_user_is_none(cfg):
     assert c.resolve_session("same") is None
     # but the exact names still work
     assert c.resolve_session("a2") == "a2"
+
+
+def test_legacy_url_without_token_is_kept(cfg):
+    path = os.environ["FARADAY_CLI_CONFIG"]
+    with open(path, "w") as f:
+        f.write("auth:\n  faraday_url: https://notoken.faraday\n  token: null\n  ignore_ssl: true\n")
+    c = cfg.Config()
+    assert c.active_session is None
+    assert c.faraday_url == "https://notoken.faraday"
+    assert c.ignore_ssl is True
+
+
+def test_config_file_is_owner_only(cfg):
+    c = cfg.Config()
+    c.add_session("corp", "https://corp", "tok-c")
+    assert os.stat(os.environ["FARADAY_CLI_CONFIG"]).st_mode & 0o777 == 0o600

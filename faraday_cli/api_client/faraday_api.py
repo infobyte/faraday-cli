@@ -166,10 +166,11 @@ class FaradayApi:
 
     @handle_errors
     def is_token_valid(self):
+        # Only an auth failure means the token is invalid. A connection error
+        # (server down / network blip) is raised so callers don't mistake it for
+        # an expired token (e.g. and drop a still-valid stored session).
         try:
             self.faraday_api.login.validate()
-        except ClientConnectionError:
-            return False
         except AuthError:
             return False
         else:
@@ -334,11 +335,12 @@ class FaradayApi:
         Each command has `duration`/`end_date` set once it finishes, which is how
         `--watch` detects completion. The v3 paginated view wraps each row as
         ``{"id": N, "value": {...fields...}}`` — unwrap to the flat command dicts
-        (with `_id`) so callers read `duration`/`end_date` directly.
+        (with `_id`) so callers read `duration`/`end_date` directly. The server
+        returns the rows under ``commands`` (``rows`` is accepted too).
         """
         response = self.faraday_api.command.list(workspace_name)
         body = response.body
-        rows = body.get("rows") if isinstance(body, dict) else body
+        rows = (body.get("commands") or body.get("rows")) if isinstance(body, dict) else body
         rows = rows or []
         out = []
         for r in rows:

@@ -1,4 +1,5 @@
 import argparse
+import ipaddress
 import secrets
 import string
 from collections import OrderedDict
@@ -12,7 +13,7 @@ from tabulate import tabulate
 
 from faraday_cli.api_client.exceptions import InvalidCredentials
 from faraday_cli.config import active_config, FARADAI_SCAN_SESSION
-from faraday_cli.shell.modules.cloud_agent_common import launch_cloud_agent_and_report
+from faraday_cli.shell.modules.cloud_agent_common import is_interactive, launch_cloud_agent_and_report
 from faraday_cli.shell.modules.faradai_instructions import (
     SCAN_GOALS,
     SCAN_INSTRUCTIONS,
@@ -52,6 +53,14 @@ def _target_host(target: str) -> str:
     if "://" not in t:
         t = "//" + t  # let urlsplit find the netloc when there's no scheme
     return (urlsplit(t).hostname or "").lower().strip(".")
+
+
+def _is_ip(host: str) -> bool:
+    try:
+        ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return True
 
 
 def _email_domain_covers_target(email: str, target_host: str) -> bool:
@@ -498,14 +507,21 @@ class FaradaiCommands(cmd2.CommandSet):
         email = click.prompt("Email")
         if not _email_domain_covers_target(email, target_host):
             dom = email.partition("@")[2].strip().lower() or "that provider"
+            if _is_ip(target_host):
+                # No email domain can cover a bare IP — don't suggest one.
+                advice = "IP targets can't be covered by a self-registered account; have an operator authorize it."
+            else:
+                advice = (
+                    f"Use an email at '{target_host}' (a domain you control), "
+                    "or have an operator authorize your account."
+                )
             self._cmd.poutput(
                 cmd2.style(
                     f"Heads up: an account on '{dom}' can only scan '{dom}' and its "
                     f"subdomains, not '{target_host}'. A self-registered account is "
                     f"scoped to its email domain (public providers like gmail.com get "
                     f"no scan scope at all), so this scan would be rejected after "
-                    f"registering.\nUse an email at '{target_host}' (a domain you "
-                    f"control), or have an operator authorize your account.",
+                    f"registering.\n{advice}",
                     fg=COLORS.YELLOW,
                 )
             )
@@ -604,6 +620,13 @@ class FaradaiCommands(cmd2.CommandSet):
             self._cmd.perror(f"Could not reach {dashboard_url}: {e}")
             return False
         if resp.status_code == 404:
+            # The server has no (or an expired) pending registration: drop the
+            # locally stashed credentials too instead of keeping them around.
+            if email == active_config.faradai_pending_email:
+                active_config.faradai_pending_email = None
+                active_config.faradai_pending_password = None
+                active_config.faradai_pending_dashboard_url = None
+                active_config.save()
             self._cmd.perror("No pending registration (or registration disabled). Run 'faradai register' first.")
             return False
         if resp.status_code != 200:
@@ -728,6 +751,15 @@ class FaradaiCommands(cmd2.CommandSet):
             return self._activate_saas_session(target=target)
         if active_config.active_session:
             return True
+        # Saved server connections but none active (e.g. after `auth rm` of the
+        # active one): point the user at them instead of the public SaaS signup.
+        servers = [n for n, s in active_config.sessions.items() if n != FARADAI_SCAN_SESSION]
+        if servers:
+            self._cmd.perror(
+                "No active connection. Pick a saved one with 'auth use <id|name>' "
+                f"(saved: {', '.join(servers)}), or run 'auth' to connect to a server."
+            )
+            return False
         # Nothing configured → first-time scan-only user → SaaS onboarding.
         return self._activate_saas_session(target=target)
 
@@ -763,6 +795,14 @@ class FaradaiCommands(cmd2.CommandSet):
             )
             active_config.remove_session(FARADAI_SCAN_SESSION)
 
+        if not is_interactive():
+            # Onboarding prompts for an email + code; in a script/CI there is no
+            # one to answer, so fail with the non-interactive alternatives.
+            self._cmd.perror(
+                "No connection configured. Run 'faraday-cli auth' to connect to a server, "
+                "or 'faradai login' / 'faradai register' + 'faradai verify' for the FaradAI-scan SaaS."
+            )
+            return False
         if not self._guided_onboarding(target=target):
             return False
         # _do_verify (called by onboarding) registered + activated the session.
@@ -790,6 +830,8 @@ class FaradaiCommands(cmd2.CommandSet):
         """Best-effort human message from a non-2xx FaradAI-scan API response."""
         try:
             payload = resp.json()
-            return f"Error ({resp.status_code}): {payload.get('error') or payload}"
         except ValueError:
             return f"Error ({resp.status_code})"
+        if isinstance(payload, dict):
+            return f"Error ({resp.status_code}): {payload.get('error') or payload}"
+        return f"Error ({resp.status_code}): {payload}"

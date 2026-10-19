@@ -61,7 +61,13 @@ def main(argv=None):
         # argument the OS shell already de-quoted (e.g. --agent "First Scan")
         # survives cmd2's own re-parse of this reassembled string — otherwise
         # the space splits it into two args and argparse rejects the tail.
-        command_string = " ".join(shlex.quote(a) for a in [args.command, *args.command_args])
+        # A single argument is the whole command line in one string (e.g.
+        # `faraday-cli "workspace list"`): pass it as-is, quoting it would turn
+        # it into one unknown token that gets run in the system shell.
+        if args.command_args:
+            command_string = " ".join(shlex.quote(a) for a in [args.command, *args.command_args])
+        else:
+            command_string = args.command
         app.onecmd_plus_hooks(command_string)
     else:
         # we have no command, drop into shell mode

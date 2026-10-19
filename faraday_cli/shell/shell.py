@@ -127,13 +127,25 @@ class FaradayShell(Cmd):
                 ignore_ssl=active_config.ignore_ssl,
                 token=active_config.token,
             )
-            if not self.api_client.is_token_valid():
+            # A server error (e.g. 502 from the proxy while the backend is down)
+            # must not abort startup — warn and let the user run `auth`/`help`.
+            try:
+                token_valid = self.api_client.is_token_valid()
+            except Exception as e:
                 intro.append(
                     style(
-                        f"{self.emojis['cross']} Authentication invalid, run 'auth'",
+                        f"{self.emojis['cross']} Could not validate authentication: {e}. Check your Faraday server",
                         fg=COLORS.RED,
                     )
                 )
+            else:
+                if not token_valid:
+                    intro.append(
+                        style(
+                            f"{self.emojis['cross']} Authentication invalid, run 'auth'",
+                            fg=COLORS.RED,
+                        )
+                    )
         else:
             self.api_client = FaradayApi()
             intro.append(
@@ -429,7 +441,14 @@ class FaradayShell(Cmd):
     @with_argparser(status_parser)
     def do_status(self, args):
         """Show Cli status"""
-        valid_token = self.api_client.is_token_valid()
+        valid_token = False
+        if not active_config.token:
+            self.perror("Missing Config, run 'faraday-cli auth'")
+        else:
+            try:
+                valid_token = self.api_client.is_token_valid()
+            except Exception as e:
+                self.perror(f"Could not validate authentication: {e}. Check your Faraday server")
         user = None
         version = "-"
         if valid_token:

@@ -210,6 +210,10 @@ class Config:
                     self._sync_from_session(self.active_session)
                 else:
                     self.active_session = None
+                    # No session to mirror: keep a legacy URL saved without a
+                    # token so `auth` still offers it as the default.
+                    self.faraday_url = auth.get("faraday_url")
+                    self.ignore_ssl = bool(auth.get("ignore_ssl"))
         except KeyError:
             pass
 
@@ -245,7 +249,11 @@ class Config:
                 "pending_dashboard_url": self.faradai_pending_dashboard_url,
             },
         }
-        with open(self.config_file, "w") as f:
+        # The file holds API tokens (and a pending SaaS password), so keep it
+        # readable by the owner only.
+        fd = os.open(self.config_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        os.chmod(self.config_file, 0o600)
+        with os.fdopen(fd, "w") as f:
             yaml.dump(config_data, f)
 
 

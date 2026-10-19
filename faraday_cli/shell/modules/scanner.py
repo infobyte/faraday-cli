@@ -8,6 +8,7 @@ from cmd2 import Fg as COLORS
 from tabulate import tabulate
 from simple_rest_client.exceptions import NotFoundError
 
+from faraday_cli.api_client.exceptions import NotFound
 from faraday_cli.config import active_config
 from faraday_cli.shell.modules.cloud_agent_common import (
     _agent_param_specs,
@@ -100,8 +101,9 @@ class ScannerCommands(cmd2.CommandSet):
         """Show a cloud agent and the parameters it accepts (for ``scanners run``)."""
         try:
             agent = self._cmd.api_client.get_cloud_agent(args.scanner_id)
-        except NotFoundError:
-            self._cmd.perror("Cloud agent not found")
+        except (NotFound, NotFoundError):
+            # handle_errors re-raises the client's NotFoundError as NotFound.
+            self._cmd.perror(f"Cloud agent {args.scanner_id} not found. See 'scanners list'.")
             return
         if args.json_output:
             self._cmd.poutput(json.dumps(agent, indent=4))
@@ -215,6 +217,7 @@ class ScannerCommands(cmd2.CommandSet):
         # (or when --wizard is explicit); otherwise an empty param set is kept
         # (back-compat for scripted/non-interactive callers).
         run_args = None
+        used_wizard = False
         if args.params_json and not args.wizard:
             try:
                 run_args = json.loads(args.params_json)
@@ -232,6 +235,7 @@ class ScannerCommands(cmd2.CommandSet):
                 return
         elif args.wizard or is_interactive():
             run_args = prompt_params_wizard(self._cmd, api_client, agent_id, agent_ref)
+            used_wizard = run_args is not None
             if run_args is None:
                 # No param metadata to drive the wizard — fall back to --param.
                 try:
@@ -270,6 +274,12 @@ class ScannerCommands(cmd2.CommandSet):
                 fg=COLORS.GREEN,
             )
         )
+        # The wizard pre-fills the agent's stored defaults (including its
+        # target), so Enter-Enter-Enter would launch a real scan unnoticed —
+        # ask before launching (default No).
+        if used_wizard and not click.confirm("Launch this run?", default=False):
+            self._cmd.poutput("Run cancelled — nothing launched.")
+            return
         launched = launch_cloud_agent_and_report(
             self._cmd, api_client, agent_id, run_args, workspaces, "Run", args.watch
         )
@@ -284,8 +294,8 @@ class ScannerCommands(cmd2.CommandSet):
     def _resolve_run_workspaces(self, args, run_args, api_client=None, agent_id=None):
         """Return the workspace list for the run body, or None after erroring.
 
-        Priority: ``--workspace`` → active connection workspace → a
-        workspace-ish param the user explicitly passed via ``--param`` → an
+        Priority: ``--workspace`` → a workspace-ish param the user explicitly
+        passed via ``--param`` → active connection workspace → an
         interactive prompt pre-filled with the agent's configured default
         workspace. A workspace key that leaked into ``run_args`` (e.g. an
         explicit ``--param workspaces=…``) is popped out so it never ships
@@ -306,12 +316,14 @@ class ScannerCommands(cmd2.CommandSet):
                 if val and from_param is None:
                     from_param = val
 
+        # An explicit workspace param beats the active workspace — otherwise the
+        # run body could target the active ws while args carry another one.
         if args.workspace:
             workspaces = list(args.workspace)
-        elif active_config.workspace:
-            workspaces = [active_config.workspace]
         elif from_param:
             workspaces = [w.strip() for w in str(from_param).split(",") if w.strip()]
+        elif active_config.workspace:
+            workspaces = [active_config.workspace]
         elif is_interactive():
             default_ws = ""
             if api_client is not None and agent_id is not None:
