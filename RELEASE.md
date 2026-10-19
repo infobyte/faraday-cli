@@ -1,7 +1,13 @@
+2.3.0 [Oct 19th, 2026]:
+---
+ * [ADD] FaradAI cloud agents support: `scanners` (list/get/run), `faradai scan|triage` with `pentest`/`triage` shortcuts, and named connection sessions (`auth list|use|rm`). #112
+ * [ADD] FaradAI-scan SaaS onboarding from the CLI: `faradai register`/`verify`/`login` to sign up and scan without a Faraday server. #113
+ * [FIX] The CLI no longer crashes on startup when the Faraday server returns a 5xx; it warns and keeps running. #114
+
 2.2.2 [May 14th, 2026]:
 ---
- * [FIX] Fix ignore_ssl not being saved when set via interactive prompt. #98
- * [MOD] Instalation guide virtualenv recomendation. #107
+ * [FIX] Fixed `ignore_ssl` setting not being persisted when configured through the interactive prompt. #98
+ * [MOD] Installation guide virtualenv recomendation. #107
 
 2.2.1 [Jan 26th, 2026]:
 ---
