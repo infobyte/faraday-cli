@@ -8,7 +8,8 @@ from urllib.parse import urlsplit
 import cmd2
 import click
 import requests
-from cmd2 import Fg as COLORS
+from cmd2 import Color as COLORS
+from faraday_cli.shell.utils import style
 from tabulate import tabulate
 
 from faraday_cli.api_client.exceptions import InvalidCredentials
@@ -253,7 +254,7 @@ class FaradaiCommands(cmd2.CommandSet):
         }
 
         self._cmd.poutput(
-            cmd2.style(
+            style(
                 f"Launching FaradAI scan\n"
                 f"  Target:     {args.target}\n"
                 f"  Mode:       {args.mode}\n"
@@ -415,7 +416,7 @@ class FaradaiCommands(cmd2.CommandSet):
             triage_args["DRY_RUN"] = True
 
         self._cmd.poutput(
-            cmd2.style(
+            style(
                 f"Launching FaradAI triage\n"
                 f"  Workspaces: {', '.join(workspaces)}\n"
                 f"  Severities: {args.severities or 'all'}\n"
@@ -448,7 +449,7 @@ class FaradaiCommands(cmd2.CommandSet):
         dashboard_url = (args.dashboard_url or active_config.faradai_dashboard_url).rstrip("/")
         if not self._do_register(args.email, args.password, dashboard_url):
             return
-        self._cmd.poutput(cmd2.style("Run: faradai verify <code>", fg=COLORS.GREEN))
+        self._cmd.poutput(style("Run: faradai verify <code>", fg=COLORS.GREEN))
 
     def _do_register(self, email, password, dashboard_url):
         """POST /api/register; stash email+password; report. Returns True on OK.
@@ -484,7 +485,7 @@ class FaradaiCommands(cmd2.CommandSet):
         lines = [f"Verification code sent to {email}."]
         if generated:
             lines.append(f"Generated password: {password}  (save it — you'll log in with it later)")
-        self._cmd.poutput(cmd2.style("\n".join(lines), fg=COLORS.GREEN))
+        self._cmd.poutput(style("\n".join(lines), fg=COLORS.GREEN))
         return True
 
     def _guided_onboarding(self, target=None):
@@ -502,7 +503,7 @@ class FaradaiCommands(cmd2.CommandSet):
         would create an account that gets the OTP, a password… and then fails
         at scan time. We warn and let the user pick a matching email instead.
         """
-        self._cmd.poutput(cmd2.style("No FaradAI-scan account yet — let's create one.", fg=COLORS.CYAN))
+        self._cmd.poutput(style("No FaradAI-scan account yet — let's create one.", fg=COLORS.CYAN))
         target_host = _target_host(target)
         email = click.prompt("Email")
         if not _email_domain_covers_target(email, target_host):
@@ -516,7 +517,7 @@ class FaradaiCommands(cmd2.CommandSet):
                     "or have an operator authorize your account."
                 )
             self._cmd.poutput(
-                cmd2.style(
+                style(
                     f"Heads up: an account on '{dom}' can only scan '{dom}' and its "
                     f"subdomains, not '{target_host}'. A self-registered account is "
                     f"scoped to its email domain (public providers like gmail.com get "
@@ -596,7 +597,7 @@ class FaradaiCommands(cmd2.CommandSet):
             # this session (and the rest of the CLI) talk to it right away.
             self._cmd.reload_api_client()
             self._cmd.poutput(
-                cmd2.style(
+                style(
                     f"FaradAI scan account ready — active connection is now "
                     f"'{FARADAI_SCAN_SESSION}' ({email}).\n"
                     "Try: faradai scan --target <url>   (or 'auth use <name>' to switch back)",
@@ -718,11 +719,11 @@ class FaradaiCommands(cmd2.CommandSet):
         msg = f"Logged in to {scan_url} — active connection is now '{FARADAI_SCAN_SESSION}'."
         if ws:
             msg += f" Workspace: {ws}"
-        self._cmd.poutput(cmd2.style(msg, fg=COLORS.GREEN))
+        self._cmd.poutput(style(msg, fg=COLORS.GREEN))
 
     def _warn_standalone_deprecated(self):
         self._cmd.poutput(
-            cmd2.style(
+            style(
                 "note: --standalone is deprecated — it now switches your active "
                 "connection to the FaradAI-scan SaaS ('auth use "
                 f"{FARADAI_SCAN_SESSION}' / 'auth list').",
@@ -788,7 +789,7 @@ class FaradaiCommands(cmd2.CommandSet):
                 self._cmd.reload_api_client()
                 return True
             self._cmd.poutput(
-                cmd2.style(
+                style(
                     "Stored FaradAI-scan session is invalid or expired — let's set it up again.",
                     fg=COLORS.YELLOW,
                 )

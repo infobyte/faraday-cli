@@ -5,13 +5,14 @@ import arrow
 import sys
 
 import cmd2
-from cmd2 import Fg as COLORS
+from cmd2 import Color as COLORS
 from simple_rest_client.exceptions import NotFoundError
 from tabulate import tabulate
 
 from faraday_cli.extras.halo.halo import Halo
 from faraday_cli.config import active_config
 from faraday_cli.shell.utils import (
+    style,
     get_active_workspaces_filter,
     SEVERITY_COLORS,
 )
@@ -31,7 +32,7 @@ class WorkspaceCommands(cmd2.CommandSet):
             active_config.workspace = args.workspace_name
             active_config.save()
             self._cmd.poutput(
-                cmd2.style(
+                style(
                     f"{self._cmd.emojis['check']} " f"Selected workspace: {args.workspace_name}",
                     fg=COLORS.GREEN,
                 )
@@ -114,7 +115,7 @@ class WorkspaceCommands(cmd2.CommandSet):
             self._cmd.perror(f"Invalid workspace: {workspace_name}")
             return
         self._cmd.api_client.delete_workspace(workspace_name)
-        self._cmd.poutput(cmd2.style(f"Deleted workspace: {args.workspace_name}", fg=COLORS.GREEN))
+        self._cmd.poutput(style(f"Deleted workspace: {args.workspace_name}", fg=COLORS.GREEN))
         if active_config.workspace == workspace_name:
             active_config.workspace = None
             active_config.save()
@@ -141,7 +142,7 @@ class WorkspaceCommands(cmd2.CommandSet):
             self._cmd.perror(f"{e}")
         else:
             self._cmd.poutput(
-                cmd2.style(
+                style(
                     f"{self._cmd.emojis['check']} " f"Created workspace: {args.workspace_name}",
                     fg=COLORS.GREEN,
                 )
@@ -250,11 +251,11 @@ class WorkspaceCommands(cmd2.CommandSet):
             return self._cmd.api_client.get_workspace_activities(workspace_name)
 
         def activities_vulns_parser(activity_data):
-            critical_text = cmd2.style(activity_data["criticalIssue"], fg=SEVERITY_COLORS["critical"])
-            high_text = cmd2.style(activity_data["highIssue"], fg=SEVERITY_COLORS["high"])
-            med_text = cmd2.style(activity_data["mediumIssue"], fg=SEVERITY_COLORS["med"])
-            low_text = cmd2.style(activity_data["lowIssue"], fg=SEVERITY_COLORS["low"])
-            info_text = cmd2.style(activity_data["infoIssue"], fg=SEVERITY_COLORS["info"])
+            critical_text = style(activity_data["criticalIssue"], fg=SEVERITY_COLORS["critical"])
+            high_text = style(activity_data["highIssue"], fg=SEVERITY_COLORS["high"])
+            med_text = style(activity_data["mediumIssue"], fg=SEVERITY_COLORS["med"])
+            low_text = style(activity_data["lowIssue"], fg=SEVERITY_COLORS["low"])
+            info_text = style(activity_data["infoIssue"], fg=SEVERITY_COLORS["info"])
             vulns_text = (
                 f"and {activity_data['vulnerabilities_count']} vulns ("
                 f"{critical_text}/"
@@ -309,7 +310,7 @@ class WorkspaceCommands(cmd2.CommandSet):
                 )
                 for key, severity in SEVERITY_COUNTER_KEYS:
                     value = workspace_info["stats"].get(key)
-                    severity_text = cmd2.style(severity, fg=SEVERITY_COLORS[severity])
+                    severity_text = style(severity, fg=SEVERITY_COLORS[severity])
                     text = f"{severity_text}:" f" {value}"
                     workspace_data["severities"].append(text)
                 for key, name, parser in SUMMARY_COUNTER_KEYS:
@@ -347,7 +348,7 @@ class WorkspaceCommands(cmd2.CommandSet):
             self._cmd.perror(f"{e}")
         else:
             self._cmd.poutput(
-                cmd2.style(
+                style(
                     f"{self._cmd.emojis['check']} " f"Disabled workspace: {workspace_name}",
                     fg=COLORS.GREEN,
                 )
@@ -373,7 +374,7 @@ class WorkspaceCommands(cmd2.CommandSet):
             self._cmd.perror(f"{e}")
         else:
             self._cmd.poutput(
-                cmd2.style(
+                style(
                     f"{self._cmd.emojis['check']} " f"Enable workspace: {workspace_name}",
                     fg=COLORS.GREEN,
                 )

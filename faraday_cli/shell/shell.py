@@ -14,14 +14,13 @@ from packaging import version
 
 from cmd2 import (
     Cmd,
-    style,
     with_argparser,
     Statement,
     Settable,
     with_default_category,
     with_category,
 )
-from cmd2 import Fg as COLORS
+from cmd2 import Color as COLORS
 import click
 from faraday_plugins.plugins.manager import (
     PluginsManager,
@@ -37,6 +36,7 @@ from faraday_cli import __version__
 from faraday_cli.extras.halo.halo import Halo
 from faraday_cli.config import active_config
 from faraday_cli.shell import utils
+from faraday_cli.shell.utils import style
 
 from faraday_cli.api_client import FaradayApi
 from faraday_cli.api_client.exceptions import InvalidCredentials, Invalid2FA

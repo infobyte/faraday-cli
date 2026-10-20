@@ -4,7 +4,8 @@ import getpass
 import json
 
 import cmd2
-from cmd2 import Fg as COLORS
+from cmd2 import Color as COLORS
+from faraday_cli.shell.utils import style
 from faraday_cli.config import active_config
 from faraday_cli.shell.utils import RANGE_SEVERITIES
 
@@ -94,7 +95,7 @@ class ReportsCommands(cmd2.CommandSet):
                     try:
                         self._cmd.api_client.create_workspace(workspace_name)
                         self._cmd.poutput(
-                            cmd2.style(
+                            style(
                                 f"Workspace {workspace_name} created",
                                 fg=COLORS.GREEN,
                             )
@@ -118,7 +119,7 @@ class ReportsCommands(cmd2.CommandSet):
                 return
         if not args.json_output:
             self._cmd.poutput(
-                cmd2.style(
+                style(
                     f"{self._cmd.emojis['page']} " f"Processing {plugin.id} report",
                     fg=COLORS.GREEN,
                 )

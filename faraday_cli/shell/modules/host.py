@@ -4,7 +4,8 @@ import sys
 from collections import OrderedDict
 
 import cmd2
-from cmd2 import Fg as COLORS
+from cmd2 import Color as COLORS
+from faraday_cli.shell.utils import style
 from tabulate import tabulate
 from simple_rest_client.exceptions import NotFoundError
 
@@ -222,7 +223,7 @@ class HostCommands(cmd2.CommandSet):
                             {
                                 "ID": x["id"],
                                 "NAME": x["value"]["name"],
-                                "SEVERITY": cmd2.style(
+                                "SEVERITY": style(
                                     x["value"]["severity"].upper(),
                                     fg=utils.get_severity_color(x["value"]["severity"]),
                                 ),
@@ -271,7 +272,7 @@ class HostCommands(cmd2.CommandSet):
         except Exception as e:
             self._cmd.perror(f"{e}")
         else:
-            self._cmd.poutput(cmd2.style("Host deleted", fg=COLORS.GREEN))
+            self._cmd.poutput(style("Host deleted", fg=COLORS.GREEN))
 
     # Create hosts
     create_host_parser = argparse.ArgumentParser()
