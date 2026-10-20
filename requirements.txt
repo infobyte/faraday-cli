@@ -8,7 +8,7 @@ tabulate>=0.8.9
 validators>=0.18.2
 spinners>=0.0.24
 termcolor>=1.1.0
-cmd2>=3.0.0,<4.0.0 # 4.x removes with_default_category and needs python>=3.11
+cmd2>=3.2.0,<4.0.0 # 3.0/3.1 fail on py3.14 (parser deepcopy); 4.x removes with_default_category and needs python>=3.11
 log-symbols>=0.0.14
 arrow>=1.1.0
 py-sneakers>=1.0.1
