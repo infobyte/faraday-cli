@@ -877,9 +877,12 @@ $ faraday-cli scanners run -a 2 -w my_workspace \
     only scan that domain and its subdomains. Registering `you@gmail.com` (or any
     public provider, or another company's domain) to scan `faradaysec.com` will
     be rejected — public providers get no scan scope at all. During inline
-    onboarding the CLI checks your email against the `--target` before sending the
-    code and warns if they don't match. Use an email at the target's domain, or
-    have an operator authorize your account.
+    onboarding the CLI checks your email against the `--target` and, if they
+    don't match, stops **before** sending the code (no account is created). An
+    already-registered account is checked the same way before a scan launches
+    (`Out of scope: …`). Use an email at the target's domain, or have an operator
+    authorize the target and re-run with `--skip-scope-check` (the server still
+    enforces scope).
 
 ### faradai scan
 
@@ -909,6 +912,7 @@ $ faraday-cli faradai scan --target https://example.com -w my_workspace --advanc
 | `--advanced`         | Advanced (deeper) scan — 80 rounds + the wizard full-audit instruction, instead of the standard 20 |
 | `--agent-id`         | Explicit cloud-agent id (skips FaradAI auto-discovery)  |
 | `--watch`            | Poll the launched command(s) until they finish          |
+| `--skip-scope-check` | Skip the client-side target-vs-`ext_<domain>` workspace pre-check (operator-authorized workspaces; the server still enforces scope) |
 | `--standalone`       | Force the FaradAI-scan SaaS backend (auto-used when no server is connected) |
 
 !!! note "Instructions match the web wizard"
