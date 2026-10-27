@@ -14,7 +14,6 @@ import time
 from collections import OrderedDict
 
 import click
-import cmd2
 from cmd2 import Color as COLORS
 from faraday_cli.shell.utils import style
 from tabulate import tabulate
