@@ -1005,9 +1005,12 @@ parameters with `--param`/`--params-json`.
     only scan that domain and its subdomains. Registering `you@gmail.com` (or any
     public provider, or another company's domain) to scan `faradaysec.com` will
     be rejected — public providers get no scan scope at all. During the guided
-    onboarding the CLI checks your email against the `--target` before sending
-    the code and warns if they don't match. Use an email at the target's domain,
-    or have an operator authorize your account.
+    onboarding the CLI checks your email against the `--target` and, if they
+    don't match, stops **before** sending the code (no account is created). An
+    already-registered account is checked the same way before a scan launches
+    (`Out of scope: …`). Use an email at the target's domain, or have an operator
+    authorize the target and re-run with `--skip-scope-check` (the server still
+    enforces scope).
 
 ### faradai scan
 
@@ -1043,6 +1046,7 @@ $ faraday-cli faradai scan --target https://example.com -w my_workspace --advanc
 | `--advanced`         | Advanced (deeper) scan — 80 rounds + the wizard full-audit instruction, instead of the standard 20 |
 | `--agent-id AGENT_ID` | Explicit cloud-agent id (skips FaradAI auto-discovery)  |
 | `--watch`            | Poll the launched command(s) until they finish ([see `--watch`](#scanners-run)) |
+| `--skip-scope-check` | Skip the client-side target-vs-`ext_<domain>` workspace pre-check (operator-authorized workspaces; the server still enforces scope) |
 | `--standalone`       | (deprecated) Switch to the `faradai-scan` session for the run; prefer `auth use faradai-scan` |
 
 !!! tip "Workspace"

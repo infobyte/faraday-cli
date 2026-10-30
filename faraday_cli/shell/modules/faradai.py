@@ -1,5 +1,6 @@
 import argparse
 import ipaddress
+import re
 import secrets
 import string
 from collections import OrderedDict
@@ -78,6 +79,33 @@ def _email_domain_covers_target(email: str, target_host: str) -> bool:
     if not dom or not host:
         return True
     return host == dom or host.endswith("." + dom)
+
+
+def _slug(text: str) -> str:
+    """Faraday workspace slug of a domain/host (``my-corp.com`` → ``my_corp_com``)."""
+    return re.sub(r"[^a-z0-9]+", "_", (text or "").lower()).strip("_")
+
+
+def _workspaces_cover_target(workspaces, target_host: str) -> bool:
+    """True unless EVERY workspace is a self-registered ``ext_<domain>`` that can't scan the host.
+
+    Mirrors the CAM scope guard client-side, so an out-of-scope scan fails fast
+    with a clear message instead of a generic server error. Compared on slugs
+    (``ext_<slug(domain)>`` is lossy for dots vs hyphens), so it errs permissive:
+    the CAM stays the final judge. A non-``ext_`` workspace (operator-managed),
+    an IP-less unknown host, or no workspaces → True.
+    """
+    host = _slug(target_host)
+    if not host or not workspaces:
+        return True
+    for ws in workspaces:
+        name = (ws or "").lower()
+        if not name.startswith("ext_"):
+            return True
+        dom = name[4:]  # strip "ext_"
+        if dom and (host == dom or host.endswith("_" + dom)):
+            return True
+    return False
 
 
 def _find_faradai_agent(cmd, api_client=None, kind="pentest"):
@@ -179,6 +207,12 @@ class FaradaiCommands(cmd2.CommandSet):
         help="Explicit cloud-agent id (skips FaradAI auto-discovery)",
     )
     scan_parser.add_argument(
+        "--skip-scope-check",
+        action="store_true",
+        help="Skip the client-side target-vs-workspace scope pre-check (for "
+        "operator-authorized workspaces; the server still enforces scope)",
+    )
+    scan_parser.add_argument(
         "--watch",
         action="store_true",
         help="Poll the launched command(s) until they finish",
@@ -234,6 +268,17 @@ class FaradaiCommands(cmd2.CommandSet):
                     "(you have access to zero or multiple workspaces)."
                 )
                 return
+
+        target_host = _target_host(args.target)
+        if not getattr(args, "skip_scope_check", False) and not _workspaces_cover_target(workspaces, target_host):
+            self._cmd.perror(
+                f"Out of scope: workspace(s) {', '.join(workspaces)} can't scan "
+                f"'{target_host}'. A self-registered account only scans its own email "
+                "domain and its subdomains (public providers like gmail.com get no "
+                "scope). Register with an email at the target's domain, or ask an "
+                "operator to authorize the target (then re-run with --skip-scope-check)."
+            )
+            return
 
         # Tier: --advanced selects the deeper template + 80 rounds; otherwise
         # standard + 20. The tier picks the default INSTRUCTION (the same staged
@@ -500,7 +545,8 @@ class FaradaiCommands(cmd2.CommandSet):
         and can only scan that domain (and subdomains), so an email that can't
         cover the target (a public provider, or a different company's domain)
         would create an account that gets the OTP, a password… and then fails
-        at scan time. We warn and let the user pick a matching email instead.
+        at scan time. So a mismatch stops here: no account, no OTP — the user
+        re-runs with an email at the target's domain (or asks an operator).
         """
         self._cmd.poutput(cmd2.style("No FaradAI-scan account yet — let's create one.", fg=COLORS.CYAN))
         target_host = _target_host(target)
@@ -520,14 +566,12 @@ class FaradaiCommands(cmd2.CommandSet):
                     f"Heads up: an account on '{dom}' can only scan '{dom}' and its "
                     f"subdomains, not '{target_host}'. A self-registered account is "
                     f"scoped to its email domain (public providers like gmail.com get "
-                    f"no scan scope at all), so this scan would be rejected after "
-                    f"registering.\n{advice}",
+                    f"no scan scope at all), so this scan would be rejected.\n{advice}",
                     fg=COLORS.YELLOW,
                 )
             )
-            if not click.confirm("Register anyway?", default=False):
-                self._cmd.poutput("Onboarding cancelled — no code sent.")
-                return False
+            self._cmd.perror("Onboarding cancelled — no code sent.")
+            return False
         dashboard_url = active_config.faradai_dashboard_url.rstrip("/")
         if not self._do_register(email, None, dashboard_url):
             return False

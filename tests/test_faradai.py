@@ -251,7 +251,7 @@ def test_scan_posts_to_active_connection(monkeypatch):
         SimpleNamespace(
             standalone=False,
             agent_id=None,
-            target="http://t",
+            target="http://app.corp.com",
             workspace=None,
             instruction="full",
             mode="Dual",
@@ -262,7 +262,7 @@ def test_scan_posts_to_active_connection(monkeypatch):
         )
     )
     assert posted["agent_id"] == 3
-    assert posted["args"]["TARGET"] == "http://t"
+    assert posted["args"]["TARGET"] == "http://app.corp.com"
     assert posted["args"]["ROUNDS"] == 20  # standard default
     assert posted["workspaces"] == ["ext_corp_com"]
     assert any("Command id(s): 11" in o for o in fc._cmd.outputs)
@@ -285,7 +285,7 @@ def test_scan_aborts_when_not_connected(monkeypatch):
         SimpleNamespace(
             standalone=True,
             agent_id=None,
-            target="http://t",
+            target="http://app.corp.com",
             workspace=None,
             instruction="x",
             mode="Dual",
@@ -317,7 +317,7 @@ def test_scan_standalone_warns_deprecated(monkeypatch):
         SimpleNamespace(
             standalone=True,
             agent_id=None,
-            target="http://t",
+            target="http://app.corp.com",
             workspace=None,
             instruction="full",
             mode="Dual",
@@ -350,7 +350,7 @@ def test_scan_advanced_uses_80_rounds(monkeypatch):
         SimpleNamespace(
             standalone=True,
             agent_id=None,
-            target="http://t",
+            target="http://app.corp.com",
             workspace=None,
             instruction="full",
             mode="Dual",
@@ -368,7 +368,7 @@ def test_scan_advanced_uses_80_rounds(monkeypatch):
         SimpleNamespace(
             standalone=True,
             agent_id=None,
-            target="http://t",
+            target="http://app.corp.com",
             workspace=None,
             instruction="full",
             mode="Dual",
@@ -404,7 +404,7 @@ def test_scan_authenticated_autodiscovers_single_workspace(monkeypatch):
         SimpleNamespace(
             standalone=False,
             agent_id=None,
-            target="http://t",
+            target="http://app.onlyone.com",
             workspace=None,
             instruction="full",
             mode="Dual",
@@ -440,7 +440,7 @@ def test_scan_authenticated_multiple_workspaces_requires_flag(monkeypatch):
         SimpleNamespace(
             standalone=False,
             agent_id=None,
-            target="http://t",
+            target="http://app.corp.com",
             workspace=None,
             instruction="full",
             mode="Dual",
@@ -667,7 +667,7 @@ def test_scan_default_instruction_standard(monkeypatch):
         SimpleNamespace(
             standalone=False,
             agent_id=None,
-            target="http://t",
+            target="http://app.corp.com",
             workspace=None,
             instruction=None,
             goal=None,
@@ -696,7 +696,7 @@ def test_scan_default_instruction_advanced_and_goal(monkeypatch):
         SimpleNamespace(
             standalone=False,
             agent_id=None,
-            target="http://t",
+            target="http://app.corp.com",
             workspace=None,
             instruction=None,
             goal="focus on auth",
@@ -863,12 +863,13 @@ def test_email_domain_covers_target():
 
 
 def test_onboarding_warns_and_aborts_on_domain_mismatch(monkeypatch):
-    """`pentest --target faradaysec.com` with a gmail email must warn and, on
-    decline, abort WITHOUT sending the OTP (no /api/register call)."""
+    """`pentest --target faradaysec.com` with a gmail email must warn and abort
+    WITHOUT sending the OTP (no /api/register call) — and never offer to
+    "register anyway", even if the user would say yes."""
     posted = []
     monkeypatch.setattr(faradai_mod.requests, "post", lambda *a, **k: posted.append(a) or _FakeResp(200, {}))
     monkeypatch.setattr(faradai_mod.click, "prompt", lambda *a, **k: "famato@gmail.com")
-    monkeypatch.setattr(faradai_mod.click, "confirm", lambda *a, **k: False)  # decline
+    monkeypatch.setattr(faradai_mod.click, "confirm", lambda *a, **k: True)  # would accept
 
     fc = _bound_cmd()
     ok = fc._guided_onboarding(target="https://faradaysec.com")
@@ -1044,3 +1045,55 @@ def test_onboarding_ip_target_does_not_suggest_email_at_ip(monkeypatch):
     warning = " ".join(fc._cmd.outputs)
     assert "IP targets" in warning
     assert "email at '10.0.0.5'" not in warning
+
+
+def test_workspaces_cover_target():
+    from faraday_cli.shell.modules.faradai import _workspaces_cover_target
+
+    assert _workspaces_cover_target(["ext_gmail_com"], "faradaysec.com") is False
+    assert _workspaces_cover_target(["ext_other_com"], "faradaysec.com") is False
+    assert _workspaces_cover_target(["ext_faradaysec_com"], "faradaysec.com") is True
+    assert _workspaces_cover_target(["ext_faradaysec_com"], "app.faradaysec.com") is True
+    # not a label boundary → no match
+    assert _workspaces_cover_target(["ext_faradaysec_com"], "evilfaradaysec.com") is False
+    # hyphenated domains survive the lossy slug
+    assert _workspaces_cover_target(["ext_my_corp_com"], "api.my-corp.com") is True
+    # any covering / operator-managed workspace → allowed (server decides)
+    assert _workspaces_cover_target(["ext_gmail_com", "ext_faradaysec_com"], "faradaysec.com") is True
+    assert _workspaces_cover_target(["client_acme"], "faradaysec.com") is True
+    assert _workspaces_cover_target([], "faradaysec.com") is True
+
+
+def test_scan_refuses_out_of_scope_target_before_launch(monkeypatch):
+    """gmail-registered workspace → faradaysec.com: refused client-side, never launched."""
+    monkeypatch.setattr(faradai_mod.active_config, "workspace", "ext_gmail_com", raising=False)
+    launched = []
+
+    class _FakeClient:
+        def list_cloud_agents(self):
+            return [{"id": 3, "name": "FaradAI", "slug": "faradai"}]
+
+        def run_cloud_agent(self, *a, **k):
+            launched.append(a)
+            return {"command_ids": [{"id": 1}]}
+
+    fc = _bound_cmd()
+    fc._cmd.api_client = _FakeClient()
+    ns = dict(
+        standalone=False,
+        agent_id=None,
+        target="https://faradaysec.com",
+        workspace=None,
+        instruction="full",
+        mode="Dual",
+        rounds=None,
+        advanced=False,
+        goal=None,
+        watch=False,
+    )
+    fc.scan(SimpleNamespace(**ns))
+    assert launched == []
+    assert any("Out of scope" in e for e in fc._cmd.errors)
+    # operator-authorized escape hatch still reaches the server
+    fc.scan(SimpleNamespace(**ns, skip_scope_check=True))
+    assert len(launched) == 1
