@@ -24,7 +24,7 @@ You can also use `virtualenv` if you prefer. Once the virtual environment is act
     ```
 
 !!! info "Python version"
-    Python 3.7 and up required.
+    Python 3.10 or later is recommended (the CLI is tested on Python 3.10 to 3.12).
 
 # Using Faraday Cli
 
@@ -48,10 +48,22 @@ Faraday url [http://localhost:5985]:
 User: faraday
 
 Password:
-Saving config
+Saving config (session 'faraday@localhost')
 ✔ Authenticated with faraday: http://localhost:5985
 Faraday>
 ```
+
+In scripts, pass everything as arguments (add `-i` to skip SSL verification,
+e.g. for a self-signed certificate):
+
+```
+$ faraday-cli auth -f https://faraday.example.com -u faraday -p "$FARADAY_PASSWORD" -i
+```
+
+!!! tip "More than one server"
+    Each login is saved as a named session (`user@host`). If you work with more
+    than one Faraday server (or user), run `auth` for each one and switch with
+    `auth list` / `auth use <id|name>`. Check the connection with `status`.
 
 ## Create a workspace or select active Workspace
 
@@ -108,6 +120,42 @@ Server: http://localhost:5985
 ✔ Done
 ```
 
+### Filter and tag what you import
+
+`tool report` and `tool run` can skip vulnerabilities by severity and tag what
+they import:
+
+```
+# skip informational findings
+$ faraday-cli tool report scan.xml --min-severity low
+
+# only critical and high
+$ faraday-cli tool report scan.xml --min-severity high
+
+# tag vulnerabilities, hosts and services (repeat a flag to add more tags)
+$ faraday-cli tool report scan.xml --vuln-tag q4-scan --host-tag production --service-tag external
+```
+
+### Or let FaradAI find it
+
+If your Faraday server has the FaradAI cloud agent, launch an AI pentest
+against a target and its findings land in the workspace:
+
+```
+$ faraday-cli pentest --target https://example.com -w test
+Launching FaradAI scan
+  Target:     https://example.com
+  Mode:       Dual
+  Rounds:     20 (standard)
+  Workspaces: test
+Scan launched. Command id(s): 151
+```
+
+`faraday-cli scanners list` shows every cloud agent available on your server,
+and `faraday-cli triage -w test` re-tests the findings of a workspace. Don't have
+a Faraday server? The first `pentest` walks you through creating a FaradAI-scan
+SaaS account. See [FaradAI](commands.md#faradai) and
+[Scanners](commands.md#scanners-cloud-agents).
 
 ### Or run the tools with faraday-cli
 
@@ -200,7 +248,7 @@ Every faraday cli command can be used as an individual command from the command 
 This is useful when integrating faraday cli to batch process, scripts or pipelines.
 
 ```
-$ faraday-cli tool run \"nmap localhost\"
+$ faraday-cli tool run "nmap localhost"
 💻 Processing Nmap command
 Starting Nmap 7.80 ( https://nmap.org ) at 2021-01-14 13:34 -03
 Nmap scan report for localhost (127.0.0.1)
@@ -217,7 +265,7 @@ Nmap done: 1 IP address (1 host up) scanned in 2.55 seconds
 ```
 
 !!! info
-    For more information check out our [commands](../commands/) section.
+    For more information check out our [commands](commands.md) section.
 
 ### Change settings
 
@@ -226,6 +274,8 @@ You can change some settings from the cli itself.
 * _custom_plugins_path_ **(Path where the cli will look for custom plugins)**
 * _ignore_info_severity_ **(If set to True the cli will ignore all INFORMATIONAL vulnerabilities)** [DEFAULT: False]
 * _auto_command_detection_ **(If set to True the cli will try process a tool when is run in shell mode)** [DEFAULT: True]
+
+See [Settings](settings.md) for all the settings and the configuration file.
 
 ```
 $ faraday-cli
