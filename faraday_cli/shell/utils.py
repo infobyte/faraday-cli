@@ -27,8 +27,10 @@ SEVERITY_COLORS = {
     "critical": COLORS.MAGENTA,
     "high": COLORS.RED,
     "med": COLORS.YELLOW,
+    "medium": COLORS.YELLOW,
     "low": COLORS.GREEN,
     "info": COLORS.BLUE,
+    "informational": COLORS.BLUE,
     "unclassified": COLORS.CYAN,
 }
 RANGE_SEVERITIES = (
