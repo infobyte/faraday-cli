@@ -8,7 +8,8 @@ import io
 from socket import gethostbyname, inet_aton
 import jsonschema
 
-from cmd2 import Fg as COLORS
+from cmd2 import Color as COLORS
+from cmd2 import stylize
 
 from validators import url
 
@@ -41,8 +42,13 @@ RANGE_SEVERITIES = (
 )
 
 
+def style(text, fg=None):
+    """cmd2 < 3 compatible helper on top of cmd2.stylize"""
+    return stylize(text, style=fg.value) if fg else text
+
+
 def validate_url(value):
-    valid_url = url(value)
+    valid_url = url(value, simple_host=True)  # accept http://localhost
     if valid_url:
         return value
     else:

@@ -5,14 +5,14 @@ jsonschema>=3.2.0
 PyYAML>=5.4.1
 simple-rest-client>=1.0.8
 tabulate>=0.8.9
-validators>=0.18.2,<=0.20.0 # Future versions consider http://localhost as invalid
+validators>=0.18.2
 spinners>=0.0.24
 termcolor>=1.1.0
-cmd2>=2.3.0,<3.0.0 # <3.0.0 to avoid breaking changes
+cmd2>=3.2.0,<4.0.0 # 3.0/3.1 fail on py3.14 (parser deepcopy); 4.x removes with_default_category and needs python>=3.11
 log-symbols>=0.0.14
 arrow>=1.1.0
 py-sneakers>=1.0.1
 luddite>=1.0.2
 packaging>=21.3
-httpx<=0.28
+httpx>=0.24.0
 requests>=2.25.0

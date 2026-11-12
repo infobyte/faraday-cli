@@ -14,8 +14,8 @@ import time
 from collections import OrderedDict
 
 import click
-import cmd2
-from cmd2 import Fg as COLORS
+from cmd2 import Color as COLORS
+from faraday_cli.shell.utils import style
 from tabulate import tabulate
 from simple_rest_client.exceptions import NotFoundError
 
@@ -97,13 +97,13 @@ def launch_cloud_agent_and_report(cmd, api_client, agent_id, run_args, workspace
     command_ids = [c.get("id") for c in (response.get("command_ids") or []) if c.get("id") is not None]
     if command_ids:
         cmd.poutput(
-            cmd2.style(
+            style(
                 f"{verb} launched. Command id(s): {', '.join(str(c) for c in command_ids)}",
                 fg=COLORS.GREEN,
             )
         )
     else:
-        cmd.poutput(cmd2.style(f"{verb} launched.", fg=COLORS.GREEN))
+        cmd.poutput(style(f"{verb} launched.", fg=COLORS.GREEN))
         cmd.poutput(json.dumps(response, indent=2))
 
     if watch:
@@ -128,7 +128,7 @@ def watch_commands(cmd, api_client, workspace_names, command_ids):
     getter = getattr(api_client, "get_workspace_commands", None) or getattr(api_client, "get_commands", None)
     if getter is None or not command_ids:
         cmd.poutput(
-            cmd2.style(
+            style(
                 "--watch: no command-status endpoint available in this CLI; " "check the run in the Faraday UI.",
                 fg=COLORS.YELLOW,
             )
@@ -136,7 +136,7 @@ def watch_commands(cmd, api_client, workspace_names, command_ids):
         return
 
     pending = set(command_ids)
-    cmd.poutput(cmd2.style("Watching run (Ctrl-C to stop watching)…", fg=COLORS.CYAN))
+    cmd.poutput(style("Watching run (Ctrl-C to stop watching)…", fg=COLORS.CYAN))
     try:
         while pending:
             time.sleep(15)
@@ -158,12 +158,12 @@ def watch_commands(cmd, api_client, workspace_names, command_ids):
                     "",
                     "In progress",
                 ) or cmd_row.get("end_date"):
-                    cmd.poutput(cmd2.style(f"  command {cid} finished", fg=COLORS.GREEN))
+                    cmd.poutput(style(f"  command {cid} finished", fg=COLORS.GREEN))
                     pending.discard(cid)
-        cmd.poutput(cmd2.style("Run finished.", fg=COLORS.GREEN))
+        cmd.poutput(style("Run finished.", fg=COLORS.GREEN))
     except KeyboardInterrupt:
         cmd.poutput(
-            cmd2.style(
+            style(
                 "\nStopped watching (run keeps running server-side).",
                 fg=COLORS.YELLOW,
             )
@@ -338,20 +338,20 @@ def prompt_params_wizard(cmd, api_client, agent_id, agent_label):
     specs = _agent_param_specs(api_client, agent_id)
     if not specs:
         cmd.poutput(
-            cmd2.style(
+            style(
                 f"'{agent_label}' exposes no parameter metadata — " "pass --param KEY=VALUE explicitly.",
                 fg=COLORS.YELLOW,
             )
         )
         return None
 
-    cmd.poutput(cmd2.style(f"\nParameters for {agent_label} (Enter = keep default/skip):", fg=COLORS.CYAN))
+    cmd.poutput(style(f"\nParameters for {agent_label} (Enter = keep default/skip):", fg=COLORS.CYAN))
     out = {}
     for spec in specs:
         name = spec["name"]
         req = " [required]" if spec["mandatory"] else ""
         desc = f" — {spec['description']}" if spec["description"] else ""
-        cmd.poutput(cmd2.style(f"  {name}{req}{desc}", fg=COLORS.BLUE))
+        cmd.poutput(style(f"  {name}{req}{desc}", fg=COLORS.BLUE))
         default = spec["default"]
         while True:
             raw = click.prompt(
@@ -362,7 +362,7 @@ def prompt_params_wizard(cmd, api_client, agent_id, agent_label):
             raw = (raw or "").strip()
             if not raw:
                 if spec["mandatory"] and default in (None, ""):
-                    cmd.poutput(cmd2.style("    (required — please enter a value)", fg=COLORS.YELLOW))
+                    cmd.poutput(style("    (required — please enter a value)", fg=COLORS.YELLOW))
                     continue
                 if default not in (None, ""):
                     out[name] = _coerce_value(default)
@@ -397,5 +397,5 @@ def build_run_oneliner(agent_ref, workspaces, params):
 
 def print_run_oneliner(cmd, agent_ref, workspaces, params):
     """Print the reproducible one-liner after a launch."""
-    cmd.poutput(cmd2.style("\nReproduce this run with:", fg=COLORS.CYAN))
+    cmd.poutput(style("\nReproduce this run with:", fg=COLORS.CYAN))
     cmd.poutput("  " + build_run_oneliner(agent_ref, workspaces, params))

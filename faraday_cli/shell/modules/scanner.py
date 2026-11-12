@@ -4,7 +4,8 @@ from collections import OrderedDict
 
 import click
 import cmd2
-from cmd2 import Fg as COLORS
+from cmd2 import Color as COLORS
+from faraday_cli.shell.utils import style
 from tabulate import tabulate
 from simple_rest_client.exceptions import NotFoundError
 
@@ -267,7 +268,7 @@ class ScannerCommands(cmd2.CommandSet):
             return
 
         self._cmd.poutput(
-            cmd2.style(
+            style(
                 f"Launching cloud agent {agent_ref}\n"
                 f"  Workspaces: {', '.join(workspaces)}\n"
                 f"  Params:     {run_args or '(none)'}",

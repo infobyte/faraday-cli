@@ -5,7 +5,8 @@ import os
 from collections import OrderedDict
 
 import cmd2
-from cmd2 import Fg as COLORS
+from cmd2 import Color as COLORS
+from faraday_cli.shell.utils import style
 import click
 from tabulate import tabulate
 from simple_rest_client.exceptions import NotFoundError
@@ -278,7 +279,7 @@ class AgentCommands(cmd2.CommandSet):
                         f"Running executor: {agent['name']}/{executor['name']}" f"\nParameters: {executor_params}"
                     )
                     self._cmd.poutput(
-                        cmd2.style(
+                        style(
                             run_message,
                             fg=COLORS.GREEN,
                         )
@@ -301,7 +302,7 @@ class AgentCommands(cmd2.CommandSet):
                         self._cmd.perror(str(e))
                     else:
                         self._cmd.poutput(
-                            cmd2.style(
+                            style(
                                 f"Generated Command: {response['commands_id']}",  # noqa: E501
                                 fg=COLORS.GREEN,
                             )

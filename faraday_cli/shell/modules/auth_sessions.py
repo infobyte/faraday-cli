@@ -2,7 +2,8 @@ import argparse
 from collections import OrderedDict
 
 import cmd2
-from cmd2 import Fg as COLORS
+from cmd2 import Color as COLORS
+from faraday_cli.shell.utils import style
 from tabulate import tabulate
 
 from faraday_cli.config import active_config
@@ -73,7 +74,7 @@ class AuthSessionCommands(cmd2.CommandSet):
         msg = f"Switched to '{name}'{who} ({s.get('faraday_url')})"
         if s.get("workspace"):
             msg += f" — workspace {s['workspace']}"
-        self._cmd.poutput(cmd2.style(msg, fg=COLORS.GREEN))
+        self._cmd.poutput(style(msg, fg=COLORS.GREEN))
 
     # ---- auth rm ----
     rm_auth_parser = argparse.ArgumentParser()
@@ -97,11 +98,11 @@ class AuthSessionCommands(cmd2.CommandSet):
             # the user switches or logs in again.
             self._cmd.reload_api_client()
             self._cmd.poutput(
-                cmd2.style(
+                style(
                     f"Removed '{name}' (was active — no active connection now; "
                     f"run 'auth use <id|name>' or 'auth').",
                     fg=COLORS.YELLOW,
                 )
             )
         else:
-            self._cmd.poutput(cmd2.style(f"Removed '{name}'.", fg=COLORS.GREEN))
+            self._cmd.poutput(style(f"Removed '{name}'.", fg=COLORS.GREEN))

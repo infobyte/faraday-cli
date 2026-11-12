@@ -10,7 +10,7 @@ with open("requirements.txt") as fp:
 
 extra_req = {
     "dev": ["giteasychangelog", "flake8", "black", "pre-commit"],
-    "test": ["pytest", "pytest-cov", "faradaysec"],
+    "test": ["pytest", "pytest-cov", "faradaysec", "cmd2-ext-test"],
     "docs": [
         "mkdocs",
         "mkdocs-material",
@@ -35,12 +35,13 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
     ],
     license="GNU General Public License v3",
     author="Faradaysec",
-    python_requires=">3.7.0",
+    python_requires=">=3.10",
     author_email="devel@faradaysec.com",
     long_description=readme + "\n\n" + history,
     long_description_content_type="text/markdown",
