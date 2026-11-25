@@ -1,3 +1,11 @@
+2.4.0 [Nov 25th, 2026]:
+---
+ * [MOD] Docs and README updated to the current commands: sessions, scanners, FaradAI, workspace enable/disable, core commands, settings and natural quoting. #117
+ * [MOD] Update `validators` (no max version), `httpx` (no max version) and `cmd2` (3.x) requirements. Python >=3.10 is now required. #118
+ * [MOD] Update faraday-plugins minimum version to 1.32.0. #9999
+ * [FIX] `faradai scan`/`pentest` refuses an out-of-scope target before launching (self-registered `ext_<domain>` workspaces only scan their own domain), and inline onboarding no longer offers "Register anyway" — a mismatched email stops before the code is sent. Adds `--skip-scope-check` for operator-authorized workspaces. #119
+ * [FIX] faraday-cli no longer fails to start with `No module named six` on clean installs: the undeclared `six` import was removed. #121
+
 2.3.0 [Oct 19th, 2026]:
 ---
  * [ADD] FaradAI cloud agents support: `scanners` (list/get/run), `faradai scan|triage` with `pentest`/`triage` shortcuts, and named connection sessions (`auth list|use|rm`). #112
@@ -5,7 +13,7 @@
  * [FIX] The CLI no longer crashes on startup when the Faraday server returns a 5xx; it warns and keeps running. #114
  * [FIX] Command mode accepts again the escaped quoting from the docs (`\"nmap host\"`, `\''{...}'\'`) alongside the natural shell quoting. #115
 
-  2.2.2 [May 14th, 2026]:
+2.2.2 [May 14th, 2026]:
 ---
  * [FIX] Fixed `ignore_ssl` setting not being persisted when configured through the interactive prompt. #98
  * [MOD] Installation guide virtualenv recomendation. #107
